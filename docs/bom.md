@@ -30,6 +30,8 @@ Status is marked inline in each table below: ✅ ordered, ⬜ still to buy.
 
 **Substitution to be aware of:** the JST-XH 8-pin connector pair specified below was replaced with a Phoenix-style 5.08mm screw-terminal 8-pin connector (Order 3). Still detachable and keyed for the same purpose (unplugging the key-turner unit), just a different connector family than originally planned — flagging in case it wasn't deliberate, otherwise no action needed.
 
+**New item surfaced by the v0.1 housing design (not yet ordered):** 3x off-the-shelf 5mm-5mm flexible shaft coupler (Oldham or jaw type, ~25mm long). `cad/dial_unit_housing.scad` needs one per dial motor to bridge a several-mm parallel offset between the motor and its coaxial coupler — the real dial-hole spacing is too tight for 3 full-size NEMA17 bodies to sit directly behind their sockets. See `docs/housing_decisions.md` for the full reasoning. Rough cost: a few EUR each.
+
 ## Core electronics — locked in
 
 | Item | Qty | Est. unit price | Est. total | Status | Notes |

@@ -202,14 +202,26 @@ Resolved 2026-09-29:
 Still open:
 - [ ] Key bow dimensions (width, thickness, how far it protrudes from
       the socket face) — needed to design the key-turner's gripper.
+      `cad/key_turner_housing.scad` v0.1 sidesteps this with an
+      adjustable clamp rather than a fitted pocket — see
+      `docs/housing_decisions.md` — but the clamp's own working range
+      (9mm slot) still needs the real bow checked against it.
 - [ ] Center-to-center spacing between the 3 dial holes (or a simple
       coordinate layout) — needed to place the 3 motors in the dial
       unit's frame. Get this as plain numbers rather than read off
       ruler photos — same reasoning as the v0.1 bore-diameter mistake
       in `docs/decisions.md`: a caliper/tape number beats pixel-peeping.
+      `cad/dial_unit_housing.scad` v0.1 uses a 36mm placeholder read
+      (by eye, not calipers) off `docs/photos/dial-holes-ruler-2.jpg`
+      and `star-opening-tape-2.jpg` — good enough to build a first-pass
+      model, explicitly NOT good enough to close this item. See
+      `docs/housing_decisions.md` for the full readout and the real
+      NEMA17-body-collision problem that spacing surfaced.
 - [ ] Rough distance from the dial cluster to socket #4 (doesn't need
       precision — just enough to plan cable length between the two
-      units, now that they're not one rigid frame).
+      units, now that they're not one rigid frame). Same photos give
+      ~55mm — see `docs/housing_decisions.md`. This one probably can be
+      treated as answered, given the stated precision bar.
 - [ ] Verify each dial wheel has a hard stop near position 1, for the
       homing move in step 4 to find.
 - [ ] Torque/effort needed to turn each dial wheel and the key, to
