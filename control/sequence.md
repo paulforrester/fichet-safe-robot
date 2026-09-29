@@ -52,6 +52,53 @@ if an encoder is added and full rotation could exceed 360°, it needs
 turn-counting logic — a bare AS5600 only reports position within one
 revolution.
 
+## Electronics: Mega 2560 + RAMPS 1.4 wiring plan
+
+Settled 2026-09-29. Mounting/wiring the 4 drivers: **RAMPS 1.4**, a
+shield that plugs directly onto the Mega 2560 and has 5 driver sockets
+in the same StepStick footprint as the BigTreeTech TMC2209 V1.3 boards
+— no soldering needed for the 3 local drivers, they plug straight in.
+Only 3 of its 5 sockets get used (X/Y/Z, for the 3 dial motors) — the
+key-turner unit's driver does **not** plug into the shield, per the
+driver-placement rule above; it's wired out to the remote unit over the
+inter-unit cable instead.
+
+**Correction to the earlier "4 hardware UART ports" plan**: the Mega
+has 4 hardware serial ports total (`Serial`/`Serial1`/`Serial2`/`Serial3`),
+but `Serial` (pins 0/1) is tied up by USB — using it for a driver would
+mean losing USB programming/debug output while the robot runs. That
+leaves only 3 clean hardware UARTs, not 4. Fixed by using the TMC2209's
+built-in **UART multi-drop addressing** instead of 1:1 dedicated lines:
+up to 4 drivers can share a single UART bus, each given its own address
+(0–3) via its MS1/MS2 pin strapping. So **all 4 drivers (3 local + the
+remote key-turner) share one bus on `Serial2`** (Mega pins 16 TX / 17
+RX). This is the officially-supported mode, not a hack, and it means
+only one UART signal wire needs to extend out to the remote unit rather
+than a dedicated pair.
+
+Why `Serial2` specifically, not `Serial1` or `Serial3`: confirmed
+against the standard RAMPS 1.4 pin map — `Serial1` (pins 18/19) and
+`Serial3` (pins 14/15) are the *same physical Mega pins* as the Z-axis
+and Y-axis MIN/MAX endstop headers respectively. Using either of those
+serial ports would make the corresponding endstop headers unusable.
+`Serial2` (pins 16/17) has no such conflict, so it leaves every
+endstop header free.
+
+That matters because the endstop headers are being **repurposed to
+carry each local driver's DIAG (stall-output) signal** instead of an
+actual mechanical switch — X_MIN (pin 3), Y_MIN (pin 14), Z_MIN (pin
+18), one per local dial motor's driver. With UART on `Serial2`, none of
+these three are double-booked.
+
+For the remote key-turner driver (off-shield): STEP/DIR/ENABLE + its
+DIAG line are wired from 4 free Mega digital pins (exact pins aren't
+critical — any spare GPIO broken out on RAMPS' AUX headers or tapped
+from the Mega's own header row works) out through the inter-unit cable,
+alongside the shared `Serial2` UART tap and 12V/GND motor power. Each
+driver (all 4) also needs a ~1kΩ resistor between the MCU's UART TX pin
+and its own PDN_UART pin — standard TMC2209 single-wire UART wiring,
+one resistor per driver regardless of bus-sharing.
+
 ## Mounting: two independent units, not one frame
 
 Resolved 2026-09-29: photos confirmed the keyhole (socket #4) and the
