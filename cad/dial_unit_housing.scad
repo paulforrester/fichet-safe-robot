@@ -30,18 +30,26 @@
 // apart — the motor bodies collide. This model mounts the 3 motors on
 // a larger, safely-spaced ring (same triangle shape, same centroid,
 // just bigger) and bridges each motor's shaft to its coupler with a
-// short off-the-shelf flexible shaft coupler (5mm-5mm, NOT printed —
-// not yet on docs/bom.md, added as a follow-up item). The needed
-// offset is a few mm of pure PARALLEL shaft misalignment (not
-// angular), which is exactly what an Oldham-style flex coupler is
-// designed for — cheap and common, e.g. widely sold for 3D-printer
-// Z-axis motor-to-leadscrew couplings.
+// PRINTED Oldham coupler (see common_mounts.scad's oldham_* modules)
+// rather than a bought part — deliberately chosen over a bought
+// bellows/helical flex coupler, since those work by elastically
+// FLEXING the material every cycle, which is a fatigue risk in PETG
+// over the ~8,000-combination search's tens of thousands of cycles.
+// An Oldham coupler is 3 rigid pieces (two slotted hubs + a sliding
+// middle disc) — the offset is absorbed by the disc's tongues sliding
+// in each hub's slot, not by anything bending, which is a much better
+// match for FDM-printed PETG. See docs/housing_decisions.md for the
+// full reasoning and the sizing trade-off this creates (the hub ends
+// up fairly large relative to the ~36mm hole spacing).
 //
 // Prints as several separate bodies on one plate (see the bottom of
 // this file): the static frame (plate + motor mounts + electronics
-// tray) as one part, and 3 identical rotating dial_coupler() shafts
-// as separate parts (they rotate inside the frame, so must not be
-// fused to it).
+// tray) as one part; 3 identical rotating dial_coupler() shafts
+// (each with an integrated Oldham hub on its rear end); 3 identical
+// oldham_motor_hub() pieces (motor-side, mounts on the NEMA17 shaft);
+// and 3 identical oldham_disc() pieces (the loose sliding middle
+// piece) — none of these fuse to the frame or to each other, they're
+// separate parts assembled by hand.
 // ============================================================
 
 include <common_mounts.scad>
@@ -68,21 +76,43 @@ fit_clearance = 0.35;
 collar_dia    = 11.75;
 collar_len    = 2;
 
-// ---- plate + bushing ----
-plate_thickness   = 5;
-coupler_bore_clear = collar_dia + 1.2;   // clearance dia so the coupler spins freely
-bushing_shaft_clear = nema17_shaft_d + 0.4; // the coupler's own rear shaft stub rides here
-
-// ---- motor tier ----
+// ---- motor tier + Oldham coupler sizing ----
+// (computed before the plate/bushing section below, since the
+// bushing bore now has to be sized around the Oldham hub, not just
+// the collar)
 motor_min_spacing = 48;   // mm, safe center spacing for 42.3mm-body motors (>42.3 + margin)
-rear_standoff     = 42;   // mm, plate back face to motor mounting face — fits the coupler's
-                           // rear shaft stub + an off-the-shelf ~25mm flex coupler + a few mm slack
 
 hole_ring_r  = dial_spacing / sqrt(3);       // circumradius of the real (door) hole triangle
 motor_ring_r = motor_min_spacing / sqrt(3);  // circumradius of the fanned-out motor triangle
 
 hole_pts  = ring_points(3, hole_ring_r, 90);
 motor_pts = ring_points(3, motor_ring_r, 90);  // same angles -> pure radial (parallel) offset only
+
+oldham_offset = motor_ring_r - hole_ring_r;  // mm, the parallel misalignment each coupler bridges
+oldham_hub_d  = oldham_hub_dia(oldham_offset); // from common_mounts.scad
+
+dial_hub_len  = 6;   // mm, Hub B's own axial length (integrated into dial_coupler(), below)
+motor_hub_len = 6;   // mm, Hub A's own axial length (oldham_motor_hub(), below)
+oldham_gap    = 2*oldham_tongue_h + oldham_disc_web + 0.4; // mm, hub-face-to-hub-face gap the disc needs
+
+// ---- plate + bushing ----
+plate_thickness   = 5;
+// Bushing bore has to be wide enough for dial_coupler()'s Hub B end
+// (oldham_hub_d, well over the collar's own 11.75mm) to pass all the
+// way through during assembly — the collar itself just rides loosely
+// inside it, registration against the real socket happens at the
+// actual door, not against this bore.
+coupler_bore_clear = oldham_hub_d + 2;
+
+// neck: the plain shaft between the collar and Hub B, long enough to
+// clear the bushing (plate_thickness) plus a couple mm of margin.
+neck_len = plate_thickness + 2;
+
+// rear_standoff derived directly from the drivetrain stack it has to
+// contain: neck + Hub B + the disc's gap + Hub A, minus the plate's
+// own thickness (rear_standoff is measured from the plate's BACK
+// face, and the neck starts counting from the plate's FRONT face).
+rear_standoff = (neck_len + dial_hub_len + oldham_gap + motor_hub_len) - plate_thickness;
 
 // ---- plate outline: rounded triangle-ish blob big enough for the
 // hole cluster + bushings + a magnet ring, via hull of 3 corner circles
@@ -97,25 +127,35 @@ module plate_outline(r_pad = 0) {
 }
 
 // ============================================================
-// Rotating part: one dial coupler. Motor-side end is a plain round
-// shaft stub sized for an off-the-shelf 5mm flex coupler (NOT the
-// D-bore — that stays on the motor's own shaft, on the coupler side
-// the flex coupler just clamps a round shaft same as it clamps the
-// motor's); socket-side end is the confirmed spline plug, unchanged
-// from tube_socket_test_key.scad.
+// Rotating part: one dial coupler. Rear end (z=0) is an integrated
+// Oldham hub (Hub B) — a slot cut into its rear face, angled 90 deg
+// from the matching oldham_motor_hub()'s slot below — then a plain
+// neck shaft through the bushing, then the registration collar, then
+// the confirmed spline plug (unchanged from tube_socket_test_key.scad)
+// at the socket-facing end.
 // ============================================================
-module dial_coupler(rear_shaft_len = 14) {
+module dial_coupler() {
     root_dia_local = (key_tip_dia - 2 * tooth_height) - fit_clearance;
     tip_dia_local  = key_tip_dia - fit_clearance;
     eps = 0.1;
+    neck_dia = 6; // mm — thicker than the old 5mm shaft-stub idea now
+                  // that it's a printed PETG-CF neck under torsion,
+                  // not a metal shaft clamped by a bought coupler
     union() {
-        // rear shaft stub (into the flex coupler)
-        cylinder(d = nema17_shaft_d, h = rear_shaft_len, $fn = 32);
+        // Hub B — this coupler's half of the Oldham joint
+        difference() {
+            cylinder(d = oldham_hub_d, h = dial_hub_len, $fn = 64);
+            translate([0, 0, -eps_c])
+                oldham_slot_cut(oldham_offset, angle = 90);
+        }
+        // neck, through the bushing
+        translate([0, 0, dial_hub_len - eps])
+            cylinder(d = neck_dia, h = neck_len + eps, $fn = 32);
         // registration collar
-        translate([0, 0, rear_shaft_len - eps])
+        translate([0, 0, dial_hub_len + neck_len - eps])
             cylinder(d = collar_dia, h = collar_len + eps, $fn = 64);
         // spline plug (confirmed geometry, reused verbatim)
-        translate([0, 0, rear_shaft_len + collar_len - eps])
+        translate([0, 0, dial_hub_len + neck_len + collar_len - eps])
             spline_plug(tip_dia_local, root_dia_local, tooth_count, plug_len + eps, tooth_width);
     }
 }
@@ -141,7 +181,11 @@ module front_plate() {
 // Motor plate: a SOLID plate using the same outline/footprint as
 // front_plate() (not 3 separate floating bosses — those wouldn't be
 // physically connected to anything), with the 3 NEMA17 bolt patterns
-// + body clearance cut into it at the fanned-out motor positions.
+// + body clearance cut into it at the fanned-out motor positions, plus
+// a small through-hole per motor for its shaft (just the shaft — Hub A
+// mounts on the shaft in the open gap in front of this plate, it
+// doesn't need to pass through the plate itself, only the bare shaft
+// does).
 module motor_plate(h = 6) {
     translate([0, 0, plate_thickness + rear_standoff]) {
         difference() {
@@ -152,12 +196,9 @@ module motor_plate(h = 6) {
                     nema17_bolt_holes(depth = h + 4);
                     translate([0, 0, -eps_c])
                         nema17_body_clearance(h = 0.1, clearance = 1.5); // face clearance only, not a through-hole
+                    translate([0, 0, -eps_c])
+                        cylinder(d = nema17_shaft_d + 2, h = h + 2*eps_c, $fn = 24); // bare shaft clearance
                 }
-            // clearance so each dial_coupler's rear shaft stub + flex
-            // coupler has room to pass through on its way to the motor
-            for (p = hole_pts)
-                translate([p[0], p[1], -eps_c])
-                    cylinder(d = coupler_bore_clear, h = h + 2*eps_c, $fn = 64);
         }
     }
 }
@@ -220,24 +261,39 @@ module frame() {
     }
 }
 
-// ---- output: static frame + 3 loose coupler shafts laid out beside it ----
+// ---- output: static frame + 3 sets of loose drivetrain parts ----
 frame();
 
-for (i = [0 : 2])
-    translate([plate_reach * 2.6, i * 30 - 30, 0])
+layout_x = plate_reach * 2.6;
+for (i = [0 : 2]) {
+    translate([layout_x, i * 30 - 30, 0])
         dial_coupler();
+    translate([layout_x + oldham_hub_d + 15, i * 30 - 30, 0])
+        oldham_motor_hub(oldham_offset, len = motor_hub_len, slot_angle = 0);
+    translate([layout_x + 2*(oldham_hub_d + 15), i * 30 - 30, 0])
+        oldham_disc(oldham_offset);
+}
 
 // ============================================================
 // PRINT NOTES:
 //  - Frame: PETG is fine (structural, not wear-facing). Print with
 //    the front plate face-down for a clean door-facing surface.
-//  - Couplers: print in PETG-CF per docs/decisions.md's wear-mitigation
-//    decision (Bambu Lab order already covers this filament + the
-//    tungsten-carbide hotend it needs) — same reasoning as the final
-//    motorized key coupler, these see the same repeated-engagement wear.
-//  - Needed but not yet on docs/bom.md: 3x off-the-shelf 5mm-5mm
-//    flexible shaft coupler (Oldham or jaw type, ~25mm long) to bridge
-//    each motor to its dial_coupler(). Flag for a follow-up order.
+//  - Couplers + Oldham hubs (dial_coupler, oldham_motor_hub): print in
+//    PETG-CF per docs/decisions.md's wear-mitigation decision (Bambu
+//    Lab order already covers this filament + the tungsten-carbide
+//    hotend it needs) — these see the same repeated-engagement wear as
+//    the final motorized key coupler, now with sliding Oldham contact
+//    surfaces added on top of the spline engagement.
+//  - Oldham discs: plain PETG is fine here — thin sliding tongues, not
+//    the wear-critical interface (that's the slot walls on the hubs,
+//    which see PETG-CF). A light coat of PTFE or silicone grease on
+//    the tongues before assembly will help.
+//  - No longer needed: the off-the-shelf flexible shaft coupler this
+//    file used to call for — replaced by the printed Oldham joint
+//    above. docs/bom.md's follow-up item for it should come off.
 //  - Bench-fit TODO before trusting dial_spacing: confirm the 36mm
-//    triangle with calipers directly on the door (see header).
+//    triangle with calipers directly on the door (see header). Also
+//    test-fit the Oldham disc in its hubs before committing to a full
+//    print — same iterate-on-clearance approach already used for the
+//    spline key (docs/decisions.md).
 // ============================================================

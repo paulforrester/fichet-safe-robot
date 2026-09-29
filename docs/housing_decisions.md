@@ -6,6 +6,68 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## v0.2 — dial unit's motor offset bridged with a printed Oldham coupler, not a bought part
+
+v0.1 (below) resolved the NEMA17-vs-hole-spacing collision by fanning
+the 3 motors onto a larger ring and calling for an off-the-shelf 5mm-5mm
+flexible shaft coupler per motor to bridge the resulting offset. Revisited
+on request ("might it be possible to print the flexible shaft coupler?")
+and switched to a printed **Oldham coupler** instead — reasoning below.
+
+**Why not a bought bellows/helical flex coupler (the "obvious" printed
+option):** those work by elastically *flexing* the printed material
+every cycle. That's a poor match for PETG here — the dial motors cycle
+tens of thousands of times over the ~8,000-combination search (3 dials
+per attempt), and repeated elastic flexing is PETG's weak point
+(fatigue cracking). TPU would flex fine but adds spring-back that works
+against positioning accuracy.
+
+**Why an Oldham coupler instead:** it's 3 *rigid* pieces — two hubs,
+each with a slot cut across its face 90 deg apart, plus a loose middle
+disc with two perpendicular tongues. The offset is absorbed by the
+tongues sliding in their slots once per revolution, not by anything
+bending. That's a genuinely good match for FDM printing — no fatigue-prone
+flexing, just a sliding fit, and it's the same coupler *type* v0.1 had
+already pointed at as the right off-the-shelf choice ("Oldham-style...
+is specifically designed for parallel misalignment") — this just prints
+that idea instead of buying it.
+
+**Implementation** (`common_mounts.scad`'s new `oldham_*` modules, used
+by `dial_unit_housing.scad`):
+- Hub B is now integrated directly into `dial_coupler()`'s rear end
+  (no more separate round shaft stub) — a slotted hub, then a neck
+  through the bushing, then the same collar + spline plug as before.
+- Hub A (`oldham_motor_hub()`) is a new small loose part that mounts on
+  the motor's own D-shaft, slot rotated 90 deg from Hub B's.
+- The disc (`oldham_disc()`) is a new small loose part sandwiched
+  between them.
+- Standard Oldham sizing rule (slot length >= tongue width + 2x max
+  offset) applied to the dial unit's actual ~6.9mm offset (derived from
+  `motor_ring_r - hole_ring_r`, itself from the placeholder 36mm hole
+  spacing and the 48mm motor-safe spacing) — this makes for a fairly
+  large hub (~27mm dia) relative to the ~36mm hole spacing, tight but
+  workable: the 3 bushing bores (now sized to pass the hub through
+  during assembly, not just the collar) leave about a 6-7mm web of
+  plate material between adjacent bores. Worth keeping an eye on when
+  bench-fitting.
+
+**Bonus effect, not the goal:** the axial stack a printed Oldham joint
+needs (a hub, a thin disc, another hub — a few mm total) is much
+shorter than the ~25mm a bought coupler plus clearance needed. This let
+`rear_standoff` shrink from 42mm to ~20mm — the whole dial unit is
+now noticeably more compact front-to-back.
+
+**Superseded by this:** the "buy 3x flexible shaft coupler" line —
+removed from `docs/bom.md`, nothing to order for this anymore.
+`docs/bom.md` now instead carries a small material note (print in
+PETG-CF for the wear-facing hub parts, same as the spline couplers).
+
+**Not yet validated:** this is a first-pass sizing, same caveat as
+everything else in v0.1 below — needs a real test-fit of the disc in
+its hubs (print, check the tongue/slot clearance feels right, adjust
+`oldham_fit` if it binds or rattles) before committing to a full print,
+the same iterate-on-clearance approach already used for the spline key.
+
 ## v0.1 — first-pass housings, built from photo-read placeholders
 
 Built per Paul's go-ahead to try a first pass now rather than wait on
@@ -72,17 +134,15 @@ single motor body).
 a second, larger ring (48mm side, safely clear of body collisions) at
 the *same* triangle angles as the real holes — a pure radial
 (parallel, non-angular) offset of a few mm per motor — and bridging
-each motor shaft to its coaxial spline coupler with a short off-the-shelf
-flexible shaft coupler (5mm-5mm). Parallel-offset shafts are exactly
-what an Oldham-style coupler is designed for (cheap, common — widely
-sold for 3D-printer Z-axis couplings), and the 18°-per-step resolution
-this needs (20 positions/wheel, re-homed every run via stall detection)
-tolerates the small amount of backlash a flex coupler adds far better
-than a precision positioning task would.
+each motor shaft to its coaxial spline coupler. The 18°-per-step
+resolution this needs (20 positions/wheel, re-homed every run via
+stall detection) tolerates a bit of coupler backlash far better than a
+precision positioning task would.
 
-**Follow-up for `docs/bom.md`: 3x 5mm-5mm flexible shaft coupler
-(Oldham or jaw type, ~25mm long) — not yet ordered, not on the BOM
-before this.**
+**Superseded by v0.2 above:** this originally called for an
+off-the-shelf 5mm-5mm flexible shaft coupler per motor. Switched to a
+*printed* Oldham coupler instead — same coupler type, printed rather
+than bought. Nothing to order for this anymore.
 
 ### Key-turner gripper: adjustable clamp instead of a fitted pocket
 
@@ -127,8 +187,8 @@ future revision of these files before treating a render as done.
 - Confirm the 36mm dial-hole triangle with calipers directly on the
   door (per `control/sequence.md`'s own standing caution against
   trusting photo reads for this).
-- Order the 3 flexible shaft couplers (see follow-up above) before
-  attempting the dial unit.
+- Test-print and check the fit of one Oldham hub pair + disc (see v0.2
+  above) before committing to a full dial-unit print.
 - Measure the real key bow's thickness and grip-section width; confirm
   both sit inside the gripper's 9mm/20mm slot range before relying on
   it, resize and reprint if not (cheap — it's a small standalone part).

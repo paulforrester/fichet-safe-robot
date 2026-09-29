@@ -93,3 +93,76 @@ function ring_points(n, r, start_angle = 90) =
     [for (i = [0 : n - 1])
         let(a = start_angle + i * 360/n)
         [r * cos(a), r * sin(a)]];
+
+// ---- Oldham coupler (printed) ----
+// Bridges a small PARALLEL offset between two coaxial shafts — e.g. a
+// motor shaft and a dial coupler shaft that don't line up because the
+// real dial holes are spaced too tightly for full-size NEMA17 motors
+// to sit directly behind them (see docs/housing_decisions.md). Two
+// rigid hubs, each with a slot cut across its face, plus a loose
+// middle disc with two perpendicular tongues that ride in those
+// slots — all rigid parts, no flexing material, chosen deliberately
+// over a bought/molded flex coupler for exactly that reason (repeated
+// elastic flexing is a fatigue risk in printed PETG; sliding rigid
+// tongues aren't).
+oldham_tongue_width = 3.5;  // mm, tongue thickness
+oldham_fit          = 0.25; // mm clearance per side, slot vs. tongue
+oldham_tongue_h      = 2.2;  // mm, how far a tongue protrudes into its slot
+oldham_slot_depth    = oldham_tongue_h + 0.3; // mm, slot depth (a bit deeper than the tongue, axial running clearance)
+oldham_disc_web      = 1.4;  // mm, disc material between the two tongues (sets the hub-to-hub gap)
+
+// Standard Oldham sizing rule: slot length >= tongue width + 2x the
+// max offset being bridged, so the tongue stays fully engaged at
+// worst-case offset. +4mm margin on top of the rule-of-thumb minimum
+// — kept tight deliberately: at the dial unit's ~7mm offset this
+// already makes for a fairly large hub relative to the ~36mm hole
+// spacing (see docs/housing_decisions.md), so margin is trimmed to
+// the minimum that's still comfortable to print and slide.
+function oldham_slot_length(max_offset) = oldham_tongue_width + 2*max_offset + 4;
+// Hub diameter: slot length plus enough rim to keep the slot's ends
+// from breaking out the side of the hub.
+function oldham_hub_dia(max_offset) = oldham_slot_length(max_offset) + 6;
+
+// Cuts one slot into whatever it's subtracted from, at the origin,
+// starting at z=0 and going up by `depth`. angle rotates it in the XY
+// plane (0 = along X) — a hub pair must use angles 90 degrees apart.
+module oldham_slot_cut(max_offset, angle = 0, depth = oldham_slot_depth) {
+    slot_len = oldham_slot_length(max_offset);
+    slot_w   = oldham_tongue_width + 2*oldham_fit;
+    rotate([0, 0, angle])
+        translate([-slot_len/2, -slot_w/2, -eps_c])
+            cube([slot_len, slot_w, depth + eps_c]);
+}
+
+// Motor-side hub: NEMA17 D-shaft bore from the back face, slot cut
+// into the front face. This is the only piece that needs a D-bore —
+// the dial-coupler-side hub is printed as part of dial_coupler()
+// itself (see dial_unit_housing.scad), not a separate piece.
+module oldham_motor_hub(max_offset, len = 6, slot_angle = 0) {
+    dia = oldham_hub_dia(max_offset);
+    difference() {
+        cylinder(d = dia, h = len, $fn = 64);
+        translate([0, 0, -eps_c])
+            dshaft_bore(bore_len = len - oldham_slot_depth, screw_z = (len - oldham_slot_depth) * 0.6);
+        translate([0, 0, len - oldham_slot_depth])
+            oldham_slot_cut(max_offset, slot_angle);
+    }
+}
+
+// The loose middle disc: two perpendicular tongues, one per face —
+// slightly undersized relative to the hubs so it's a free sliding fit
+// once printed.
+module oldham_disc(max_offset) {
+    dia      = oldham_hub_dia(max_offset) - 3;
+    slot_len = oldham_slot_length(max_offset) - 1;
+    tw       = oldham_tongue_width;
+    union() {
+        cylinder(d = dia, h = oldham_disc_web, $fn = 64);
+        // tongue A, +Z side, along X — mates with a slot_angle=0 hub
+        translate([-slot_len/2, -tw/2, oldham_disc_web - eps_c])
+            cube([slot_len, tw, oldham_tongue_h + eps_c]);
+        // tongue B, -Z side, along Y — mates with a slot_angle=90 hub
+        translate([-tw/2, -slot_len/2, -oldham_tongue_h])
+            cube([tw, slot_len, oldham_tongue_h + eps_c]);
+    }
+}
