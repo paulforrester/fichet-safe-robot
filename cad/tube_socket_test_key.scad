@@ -60,9 +60,9 @@ plug_len     = 5.0;   // mm — DEPTH: the key's measured straight (pre-taper) s
 // ---- HEIGHT and WIDTH: the two tuning parameters -------------------
 // Top-level so either can be overridden from the command line, e.g.:
 //   openscad -D "tooth_height=1.75" -D "tooth_width=1.06" -o out.stl tube_socket_test_key.scad
-tooth_height = 1.75;  // mm, radial extent of a tooth, root circle -> tip circle — v0.3 winner
-tooth_width  = 1.04;  // mm, constant tangential WIDTH of each tooth — was 1.0mm, real key measures 1.04-1.06mm
-engrave_lines = ["1.75", "1.04"]; // label engraved on the bottom of the handle, one value per line
+tooth_height = 2.00;  // mm, radial extent of a tooth, root circle -> tip circle — LOCKED IN, see docs/decisions.md
+tooth_width  = 1.04;  // mm, constant tangential WIDTH of each tooth — LOCKED IN, see docs/decisions.md
+engrave_lines = ["2.00", "1.04"]; // label engraved on the bottom of the handle, one value per line
 
 // key_root_dia is DERIVED from tip + height (see v0.2 -> v0.3 note above).
 key_root_dia = key_tip_dia - 2 * tooth_height;

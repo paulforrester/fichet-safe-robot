@@ -4,7 +4,31 @@ Working notes on how the test key's dimensions were arrived at, most
 recent first. Terminology (WIDTH / HEIGHT / DEPTH) is defined in
 `tooth_terms_diagram.png` in this folder.
 
-## v0.4 — width corrected to 1.04mm (current)
+## CLOSED — tooth geometry locked in: HEIGHT 2.00mm, WIDTH 1.04mm
+
+Printed a second height-sweep plate (1.80 / 1.85 / 1.90 / 1.95 /
+2.00mm, all at width 1.04mm). All five felt equivalent by hand on the
+bench, so going with **2.00mm height / 1.04mm width** — the tightest
+of the batch, on the reasoning that a snugger fit means less slop
+under repeated motorized engagement, which matters more for wear than
+it does for one-off hand testing.
+
+Open concern, not a geometry problem: repeated engagement may wear the
+printed teeth over the ~8,000-combination search. Two mitigations,
+both deferred to when the final motorized coupler (not this hand-test
+key) is built:
+- Print the final coupler in a tougher material than plain PETG —
+  PETG-CF or nylon.
+- The StallGuard-based force-feedback motor control (see
+  `control/sequence.md`) backs off at first resistance rather than
+  grinding, which should wear the teeth less than hand-forcing did
+  during testing.
+
+This closes the tooth-geometry tuning item. `cad/tube_socket_test_key.scad`'s
+top-level `tooth_height`/`tooth_width` defaults should be updated to
+2.00/1.04 the next time that file is touched.
+
+## v0.4 — width corrected to 1.04mm
 
 Re-measured tooth WIDTH on the real key with calipers: 1.04-1.06mm, not
 the 1.0mm used through v0.3. Height stays at 1.75mm (the v0.3 winner).
