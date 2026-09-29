@@ -42,11 +42,11 @@ power cross the cable, drivers stay local to each motor.
 | PETG-CF or nylon filament, small spool | 1 | €25–40 | Wear-resistance mitigation from `docs/decisions.md`'s closed tooth-geometry decision — only needed for the coupler that will actually do the ~8,000-attempt motorized search, not the plain-PETG hand-test keys already printed. |
 | Hardened (steel/ruby-tipped) nozzle, if not already owned | 1 | €10–20 | CF-filled filament is abrasive and will wear a brass nozzle quickly. Skip if going with plain nylon instead of PETG-CF. |
 
-## Mounting — contingent, do not buy yet
+## Mounting — resolved, nothing to buy
 
 | Item | Qty | Est. price | Notes |
 |---|---|---|---|
-| Neodymium disc magnets (size/count TBD) | TBD | TBD | **Blocked on the still-open "is the door face ferrous" question** in `control/sequence.md`. Don't buy until that's confirmed — if the door isn't ferrous, this is double-stick tape or a mechanical clip instead, a different shopping list entirely. |
+| Neodymium disc magnets, 2mm×8mm | already on hand (~100) | €0 | Door confirmed ferrous 2026-09-29 (both body and door), so magnets are the mounting method. Paul already has enough on hand from a prior print project, which also worked out the press-fit pocket geometry to reuse: **8.00mm diameter × 1.9mm depth** per magnet, in both units' mounting faces. No purchase needed. |
 
 ## Optional / contingency
 
@@ -65,20 +65,18 @@ power cross the cable, drivers stay local to each motor.
 ## Rough total
 
 Core electronics + power + cable/connectors + filament + optional AS5600
-and switch: **roughly €120–210**, excluding mounting (blocked) and
-anything already on hand (breadboard, jumper wires, etc.).
+and switch: **roughly €120–210**, plus €0 for mounting (magnets already
+on hand) and anything already on hand (breadboard, jumper wires, etc.).
 
 ## Before ordering, worth resolving first
 
 Buying the motors now is reasonable — NEMA17 is a safe generic starting
-point — but two open items from `control/sequence.md` could change this
-list once answered:
+point — but one open item from `control/sequence.md` could still change
+this list once answered:
 
 - **Torque/effort to turn each dial wheel and the key** — if it turns out
   to need much more torque than a standard NEMA17 delivers, a geared
   stepper or a gear-reduction print becomes part of the BOM.
-- **Whether the door face is ferrous** — decides the entire mounting line
-  item (magnets vs. tape vs. a clip), not just which magnets to buy.
 
-Everything else on this list (drivers, MCU, cable, filament) doesn't
-depend on those answers and is safe to order now.
+Everything else on this list (drivers, MCU, cable, filament, mounting)
+is settled and safe to order now.

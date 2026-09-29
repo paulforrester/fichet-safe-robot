@@ -72,9 +72,16 @@ connected by a cable:
   key's blade, just its protruding head). Connected to the dial unit
   by a cable.
 
-Each unit attaches to the door independently — magnets or double-stick
-tape, leaning toward magnets if the door face is ferrous (likely, not
-yet confirmed). Splitting avoids one large frame needing to be
+Each unit attaches to the door independently with **neodymium magnets**
+— confirmed 2026-09-29 that both the safe body and door are ferrous, so
+this is settled, not a fallback. Paul already has ~100 2mm×8mm
+neodymium disc magnets on hand from a prior print project ("Poop chute
+print for h2d"), which also worked out a tight-press-fit pocket size for
+this exact magnet: **8.00mm diameter × 1.9mm depth** (0.1mm undersize on
+depth vs. the 2mm-thick magnet, for an interference press fit rather
+than a loose slot — glue optional/backup, not load-bearing). Reuse that
+pocket geometry directly in both units' mounting faces rather than
+re-deriving it. Splitting avoids one large frame needing to be
 dimensionally accurate across the full door width, and each unit is
 small enough to print in one piece.
 
@@ -140,6 +147,10 @@ Resolved 2026-09-29:
       confirms the 11.75mm collar (0.5mm clearance) is fine as-is.
 - [x] One frame vs. multiple units — going with two: dial unit
       (3 motors + electronics) and key-turner unit, cabled together.
+- [x] Ferrous door confirmed (both body and door) — mounting is
+      neodymium magnets, pocket geometry reused from a prior project
+      (8.00mm dia × 1.9mm depth for 2mm×8mm disc magnets, press fit).
+      ~100 magnets already on hand.
 
 Still open:
 - [ ] Key bow dimensions (width, thickness, how far it protrudes from
@@ -156,8 +167,6 @@ Still open:
       homing move in step 4 to find.
 - [ ] Torque/effort needed to turn each dial wheel and the key, to
       size motors and gearing.
-- [ ] Whether the door face is ferrous, at both mounting locations
-      (for magnets).
 - [ ] Whether the Fichet-Bauche "Complice" line has any known
       anti-manipulation relocking behavior, before running thousands
       of automated attempts.
