@@ -15,7 +15,7 @@ driver-placement rationale in `control/sequence.md`).
 | Item | Qty | Est. unit price | Est. total | Notes |
 |---|---|---|---|---|
 | NEMA17 stepper motor | 4 | €8–15 | €32–60 | 3 for dial wheels, 1 for key-turner. Any standard NEMA17 (e.g. 1.5–1.7A/phase, 200 steps/rev) works to start — torque sizing is a still-open item (see below), so don't buy a large batch yet in case a stronger/weaker motor turns out to be needed. |
-| TMC2209 stepper driver module (StallGuard, UART) — **Adafruit 6121 breakout** | 4 | €14.40 | ~€58 | Checked live on Amazon.fr 2026-09-29: the Adafruit board (genuine, well-documented, UART to 1/256 microstepping, screw terminals) over a cheaper no-name (GERUI) 2-pack — that clone's reviews show a real failure pattern ("1 of 2 doesn't work," repeated across several countries, one report of a board failing outright), which isn't worth the ~€8/unit saved on a part this build depends on for force feedback, especially the one buried in the harder-to-debug remote key-turner unit. That Amazon.fr listing had **only 2 in stock** at check time — order the other 2 from adafruit.com or a distributor (Mouser/DigiKey) rather than waiting on restock. Add a heatsink per board (not included, a couple euros each). |
+| TMC2209 stepper driver module (StallGuard, UART) — **BigTreeTech TMC2209 V1.3, 5-pack w/ heatsinks** | 1 pack (5, one spare) | €35.99 | €35.99 | Checked live on Amazon.fr 2026-09-29, settled on this after ruling out two others: a no-name GERUI 2-pack whose reviews show a real failure pattern ("1 of 2 doesn't work," repeated across several countries), and a listing badged "TMC2209" whose actual product-variant names ("R3-V3-4988") and description described A4988 hardware instead — a mislabeled/wrong-part risk, not just a lesser board. BigTreeTech is an established brand in this exact space (makes the SKR/Octopus boards much of the 3D-printer Klipper/Marlin community runs) and this listing had 491 ratings at 4.5★, a real sample size. The 5-pack also solves the quantity problem in one order (4 needed + 1 spare) rather than splitting across sellers, and includes heatsinks. |
 | Arduino Mega 2560 (or genuine-compatible clone) | 1 | €15–40 | €15–40 | Chosen over an Uno/Nano for its 4 hardware UART ports — lines up 1:1 with the 4 TMC2209s' UART needs for StallGuard config, no software-serial juggling. A genuine board is pricier but avoids clone USB-chip driver headaches. |
 
 ## Power
@@ -65,11 +65,10 @@ power cross the cable, drivers stay local to each motor.
 ## Rough total
 
 Core electronics + power + cable/connectors + filament + optional AS5600
-and switch: **roughly €160–250** (bumped up from the earlier rough
-estimate now that the driver line is priced against a real listing —
-Adafruit boards at €14.40 each rather than a €4–7 generic estimate),
-plus €0 for mounting (magnets already on hand) and anything already on
-hand (breadboard, jumper wires, etc.).
+and switch: **roughly €140–225**, now that the driver line is priced
+against a real listing (€35.99 for the 5-pack, with a spare, rather
+than a €16–28 generic estimate), plus €0 for mounting (magnets already
+on hand) and anything already on hand (breadboard, jumper wires, etc.).
 
 ## Before ordering, worth resolving first
 
