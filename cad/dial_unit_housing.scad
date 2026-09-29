@@ -42,14 +42,19 @@
 // full reasoning and the sizing trade-off this creates (the hub ends
 // up fairly large relative to the ~36mm hole spacing).
 //
-// Prints as several separate bodies on one plate (see the bottom of
-// this file): the static frame (plate + motor mounts + electronics
-// tray) as one part; 3 identical rotating dial_coupler() shafts
+// Prints as several separate bodies (see the bottom of this file):
+// front_assembly() (front plate + 3 standoff legs) and rear_assembly()
+// (motor plate + bridge arm + electronics tray) as two SEPARATE printed
+// parts that bolt together after printing (M3 screws into heat-set
+// inserts at the 3 leg positions) — see docs/housing_decisions.md v0.3
+// for why: fusing them into one part left motor_plate/electronics_tray
+// bridging in mid-air between 3 thin pillars, well past any safe
+// unsupported span. Plus 3 identical rotating dial_coupler() shafts
 // (each with an integrated Oldham hub on its rear end); 3 identical
 // oldham_motor_hub() pieces (motor-side, mounts on the NEMA17 shaft);
 // and 3 identical oldham_disc() pieces (the loose sliding middle
-// piece) — none of these fuse to the frame or to each other, they're
-// separate parts assembled by hand.
+// piece) — none of these fuse to either assembly or to each other,
+// they're separate parts assembled by hand.
 // ============================================================
 
 include <common_mounts.scad>
@@ -113,6 +118,21 @@ neck_len = plate_thickness + 2;
 // own thickness (rear_standoff is measured from the plate's BACK
 // face, and the neck starts counting from the plate's FRONT face).
 rear_standoff = (neck_len + dial_hub_len + oldham_gap + motor_hub_len) - plate_thickness;
+
+// ---- front/rear mounting: M3 screws into heat-set inserts ----
+// Joins front_assembly()'s standoff legs to rear_assembly()'s motor
+// plate — replaces the v0.2 printed pillars/bridge that fused both
+// plates into one object with an unsupported span. See
+// docs/housing_decisions.md v0.3.
+leg_dia           = 12;   // mm, standoff leg / boss diameter (was 10mm
+                           // as a plain pillar; a bit more meat now that
+                           // it carries a heat-set insert)
+insert_hole_d     = 4.2;  // mm, brass M3 heat-set insert OD (typical)
+insert_hole_depth = 6;    // mm, blind hole depth in the leg, opens on
+                           // the leg's top (mating) face
+m3_clear_d        = 3.4;  // mm, M3 clearance hole through the motor plate
+m3_head_d         = 6.2;  // mm, socket-cap-head counterbore diameter
+m3_head_depth     = 3.2;  // mm, counterbore depth (screw head sits flush)
 
 // ---- plate outline: rounded triangle-ish blob big enough for the
 // hole cluster + bushings + a magnet ring, via hull of 3 corner circles
@@ -199,20 +219,39 @@ module motor_plate(h = 6) {
                     translate([0, 0, -eps_c])
                         cylinder(d = nema17_shaft_d + 2, h = h + 2*eps_c, $fn = 24); // bare shaft clearance
                 }
+            // M3 mounting holes to front_assembly()'s standoff legs, at
+            // the same corner positions the legs use — clearance hole
+            // through the full plate + a counterbore on this plate's
+            // OUTER face (h-side, away from front_plate) so a socket-cap
+            // screw head sits flush. This is the accessible face once
+            // assembled (the back of the whole unit), so screws thread
+            // in from here toward the legs below.
+            for (p = plate_corner_pts)
+                translate([p[0], p[1], -eps_c]) {
+                    cylinder(d = m3_clear_d, h = h + 2*eps_c, $fn = 24);
+                    translate([0, 0, h - m3_head_depth + eps_c])
+                        cylinder(d = m3_head_d, h = m3_head_depth + eps_c, $fn = 24);
+                }
         }
     }
 }
 
-// 3 solid pillars connecting front_plate to motor_plate across
-// rear_standoff — without these the two plates are just floating in
-// space relative to each other. Placed at the same outer positions
-// used to build both plates' outline (plate_corner_pts), so they land
-// solidly inside both hulls, clear of the coupler bores in the middle.
+// 3 standoff legs growing straight up from front_plate at the same
+// corner positions the old (v0.2) support_pillars used — a plate with
+// posts on it is fully self-supporting, no bridging involved. Each leg
+// carries a blind bore for an M3 heat-set insert, opening on its top
+// (mating) face, so a screw driven in from motor_plate()'s outer face
+// can draw the two assemblies together. See docs/housing_decisions.md v0.3.
 motor_plate_h = 6;
-module support_pillars() {
+module front_standoff_legs() {
+    leg_h = rear_standoff + eps_c; // overlaps into the plate, like the old pillars did
     for (p = plate_corner_pts)
         translate([p[0], p[1], plate_thickness - eps_c])
-            cylinder(d = 10, h = rear_standoff + 2*eps_c, $fn = 32);
+            difference() {
+                cylinder(d = leg_dia, h = leg_h, $fn = 32);
+                translate([0, 0, leg_h - insert_hole_depth])
+                    cylinder(d = insert_hole_d, h = insert_hole_depth + eps_c, $fn = 24);
+            }
 }
 
 // 4 standoff posts + a floor for the Arduino Mega 2560 (101.52 x
@@ -251,20 +290,46 @@ module bridge_arm() {
         cube([max(x1 - x0, 10), 24, motor_plate_h + 10]);
 }
 
-module frame() {
+// ---- the two printed assemblies (v0.3 — see docs/housing_decisions.md) ----
+// Front: door-facing plate + 3 standoff legs. Self-supporting on its
+// own — print with front_plate's door-facing face down, as before.
+module front_assembly() {
     union() {
         front_plate();
-        support_pillars();
+        front_standoff_legs();
+    }
+}
+
+// Rear: motor plate + bridge arm + electronics tray, unchanged in shape
+// from v0.2 — it was never the floating part, front_plate was just
+// fused to it across an unsupported gap. Self-supporting on its own
+// too — print with motor_plate's mating face (the one with the M3
+// counterbores) down.
+module rear_assembly() {
+    union() {
         motor_plate(h = motor_plate_h);
         bridge_arm();
         electronics_tray();
     }
 }
 
-// ---- output: static frame + 3 sets of loose drivetrain parts ----
-frame();
+// ---- output: both assemblies + 3 sets of loose drivetrain parts,
+// laid out side by side so nothing overlaps. Each top-level call below
+// is its own disconnected body in the exported STL — use Bambu
+// Studio's "Split to Objects" to separate them for slicing/orientation,
+// same as the v0.2 file already relied on for the drivetrain parts.
+bound_r = plate_reach + 14; // plate_outline()'s outer extent from its own center
 
-layout_x = plate_reach * 2.6;
+// front_assembly() sits at the origin (native position).
+front_assembly();
+
+// rear_assembly(), shifted clear of front_assembly along +X.
+assembly_gap = 2 * bound_r + 30; // clear separation between the two outlines, plus margin
+translate([assembly_gap, 0, 0])
+    rear_assembly();
+
+// loose drivetrain parts, shifted clear of both assemblies.
+layout_x = assembly_gap + bound_r + 30;
 for (i = [0 : 2]) {
     translate([layout_x, i * 30 - 30, 0])
         dial_coupler();
@@ -276,8 +341,21 @@ for (i = [0 : 2]) {
 
 // ============================================================
 // PRINT NOTES:
-//  - Frame: PETG is fine (structural, not wear-facing). Print with
-//    the front plate face-down for a clean door-facing surface.
+//  - front_assembly() + rear_assembly(): PETG is fine (structural, not
+//    wear-facing). Print as two SEPARATE parts (split to objects, see
+//    above) — each is self-supporting in its natural orientation:
+//    front_assembly face-down on its door-facing face (as v0.2 was),
+//    rear_assembly face-down on motor_plate's mating (counterbored)
+//    face. Neither should need support material for the plate/leg/tray
+//    geometry itself. See docs/housing_decisions.md v0.3 for why this
+//    replaced the single fused frame() (it left motor_plate/tray
+//    bridging unsupported between 3 thin pillars).
+//  - Hardware to join them (not yet in docs/bom.md — add before
+//    ordering): 3x M3 heat-set threaded inserts (4.2mm OD size, for the
+//    front_standoff_legs() bores) + 3x M3x10 or M3x12 socket-cap screws
+//    (through motor_plate's counterbores into those inserts). Press the
+//    inserts in with a soldering iron after printing, before final
+//    assembly.
 //  - Couplers + Oldham hubs (dial_coupler, oldham_motor_hub): print in
 //    PETG-CF per docs/decisions.md's wear-mitigation decision (Bambu
 //    Lab order already covers this filament + the tungsten-carbide
@@ -293,7 +371,8 @@ for (i = [0 : 2]) {
 //    above. docs/bom.md's follow-up item for it should come off.
 //  - Bench-fit TODO before trusting dial_spacing: confirm the 36mm
 //    triangle with calipers directly on the door (see header). Also
-//    test-fit the Oldham disc in its hubs before committing to a full
+//    test-fit the Oldham disc in its hubs, and the leg/insert/screw
+//    fit joining the two assemblies, before committing to a full
 //    print — same iterate-on-clearance approach already used for the
 //    spline key (docs/decisions.md).
 // ============================================================

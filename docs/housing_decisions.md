@@ -6,6 +6,58 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## v0.3 — dial unit split into two bolt-together assemblies (fixes unsupported bridge in slicer)
+
+Bambu Studio flagged an unsupported region on `frame()` (the v0.2 static
+body: `front_plate()` + `motor_plate()` + `electronics_tray()` fused into
+one printed object). Cause: those three plates were connected only by 3
+thin (10mm) `support_pillars()` and a `bridge_arm()` across the
+~`rear_standoff` (~20mm) gap between `front_plate` and `motor_plate`.
+Sliced with `front_plate` on the bed, `motor_plate` — a large flat disc —
+and everything beyond it (tray) was floating in mid-air, bridging between
+3 thin posts spaced ~50mm apart: far past any safe unsupported span.
+
+**Fix: stop fusing the two plates into one printed body.** `frame()` is
+replaced by two independently-printable modules that bolt together after
+printing, instead of one part with a bridged gap:
+
+- `front_assembly()` = `front_plate()` (unchanged: 3 Oldham bushings,
+  magnet ring) + `front_standoff_legs()` — 3 solid posts (12mm dia, up
+  from the old 10mm pillars, for more meat around the insert) growing
+  straight up from the plate at the same corner positions the old
+  pillars used. A plate with posts standing on it is fully
+  self-supporting on its own — no bridging, nothing floating.
+- `rear_assembly()` = `motor_plate()` + `bridge_arm()` +
+  `electronics_tray()`, unchanged in shape, just no longer fused to
+  `front_plate()`. Printed with `motor_plate`'s mating face on the bed,
+  it's the same self-supporting shape it always was (a flat plate with
+  the tray/gusset built up from it) — the floating problem was *between*
+  this and the front plate, not within it.
+
+The two mate at the same 3 corner positions (`plate_corner_pts`) the
+pillars used, now joined with **M3 screws into heat-set inserts**:
+`front_standoff_legs()` gets a blind bore (4.2mm dia x 6mm deep) in the
+top of each leg for a heat-set insert; `motor_plate()` gets a matching M3
+clearance hole + a counterbore (6.2mm dia x 3.2mm deep) on its outer
+(away-from-front-plate) face so screw heads sit flush. Screws go in from
+that outer face — the back of the whole assembly, unobstructed by the
+tray, which sits off to one side — down through `motor_plate` and into
+the legs' inserts. `rear_standoff` (and therefore the whole drivetrain
+stack: neck + Hub B + disc gap + Hub A) is unchanged; only how the two
+plates are held apart changed, not how far apart.
+
+**Print orientation:** each assembly is self-supporting in its natural
+orientation — `front_assembly` with the front plate's door-facing face
+down (as before), `rear_assembly` with `motor_plate`'s mating face down.
+Neither needs the other underneath it, so no bridging supports either
+way.
+
+**Not yet done:** heat-set insert install (soldering-iron press-in,
+after printing, before final assembly) and a real bench test that the 3
+legs land accurately enough on the motor plate's holes — same
+first-pass-pending-bench-fit caveat as everything else in v0.1/v0.2
+below.
+
 ## v0.2 — dial unit's motor offset bridged with a printed Oldham coupler, not a bought part
 
 v0.1 (below) resolved the NEMA17-vs-hole-spacing collision by fanning

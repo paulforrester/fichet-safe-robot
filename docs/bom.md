@@ -65,11 +65,13 @@ power cross the cable, drivers stay local to each motor.
 | PETG-CF or nylon filament, small spool | 1 | €25–40 | ✅ Ordered (Bambu Lab, PETG-CF Black 1kg, €33.27) | Wear-resistance mitigation from `docs/decisions.md`'s closed tooth-geometry decision — only needed for the coupler that will actually do the ~8,000-attempt motorized search, not the plain-PETG hand-test keys already printed. PETG-CF branch chosen (not nylon). |
 | Hardened (steel/ruby-tipped) nozzle, if not already owned | 1 | €10–20 | ✅ Ordered (Bambu Lab, Tungsten Carbide Hotend – H2/P2S/X2D, €60.49) | CF-filled filament is abrasive and will wear a brass nozzle quickly. What was ordered is a full tungsten-carbide hotend assembly (H2D-specific) rather than just a nozzle tip, hence the higher cost vs. the €10–20 estimate — same purpose, tungsten carbide is even more wear-resistant than ruby-tipped. |
 
-## Mounting — resolved, nothing to buy
+## Mounting
 
-| Item | Qty | Est. price | Notes |
-|---|---|---|---|
-| Neodymium disc magnets, 2mm×8mm | already on hand (~100) | €0 | Door confirmed ferrous 2026-09-29 (both body and door), so magnets are the mounting method. Paul already has enough on hand from a prior print project, which also worked out the press-fit pocket geometry to reuse: **8.00mm diameter × 1.9mm depth** per magnet, in both units' mounting faces. No purchase needed. |
+| Item | Qty | Est. price | Status | Notes |
+|---|---|---|---|---|
+| Neodymium disc magnets, 2mm×8mm | already on hand (~100) | €0 | ✅ On hand, nothing to buy | Door confirmed ferrous 2026-09-29 (both body and door), so magnets are the mounting method. Paul already has enough on hand from a prior print project, which also worked out the press-fit pocket geometry to reuse: **8.00mm diameter × 1.9mm depth** per magnet, in both units' mounting faces. No purchase needed. |
+| M3 brass heat-set threaded inserts (4.2mm OD size) | 3 (+ spares) | €3–6 | 🔲 Not yet ordered | New with `dial_unit_housing.scad` v0.3 (see `docs/housing_decisions.md`) — the housing's `frame()` was split into `front_assembly()`/`rear_assembly()` to fix an unsupported bridge Bambu Studio flagged, and the two now bolt together instead of printing as one fused part. One insert per standoff leg (3 legs); buy a small multi-size kit rather than exactly 3 — cheap and useful elsewhere. |
+| M3×10 or M3×12 socket-cap screws | 3 (+ spares) | €2–4 | 🔲 Not yet ordered | Pairs with the inserts above — through `motor_plate()`'s counterbored holes into the legs' inserts. Length just needs to clear `motor_plate`'s ~6mm thickness plus the ~6mm insert depth; a small assorted M3 screw kit covers this. |
 
 ## Optional / contingency
 
