@@ -14,7 +14,7 @@ driver-placement rationale in `control/sequence.md`).
 
 | Item | Qty | Est. unit price | Est. total | Notes |
 |---|---|---|---|---|
-| NEMA17 stepper motor | 4 | €15–21 | €60–84 | 3 for dial wheels, 1 for key-turner. Torque/effort to turn the dial wheels and key is still an open item (see below), which is the one thing that could still force a reorder — since this is meant to be a single order, lean toward a **higher-torque NEMA17 variant (e.g. ~55–60Ncm, like the STEPPERONLINE 59Ncm 2A, 4.6★/1,116 ratings, €21.13)** rather than the cheapest ~40Ncm option, as headroom against an unknown load. The price difference is a few euros per motor; a second order isn't. If bench testing shows even this isn't enough, gearing becomes a separate, later problem — but this hedges against the common case. |
+| NEMA17 stepper motor — **STEPPERONLINE 55Ncm 2A, pack of 5** | 1 pack (5, one spare) | €55.42 | €55.42 | 3 for dial wheels, 1 for key-turner, 1 spare. Checked live on Amazon.fr 2026-09-29: 55Ncm/2A is essentially the same torque class as the ~59Ncm hedge target (headroom against the still-open torque/effort unknown, see below), and STEPPERONLINE is a genuinely reputable brand here — 661 ratings at 4.7★, #1 best seller in category. The 5-pack is also cheaper than buying 4 singles (€55.42 vs. ~€84.52), with the 5th motor as a spare rather than waste. Note from the listing: on some units the 2 middle motor wires are swapped from the expected color coding — easy fix (lift the connector's white pins and swap), just don't mistake it for a wiring fault elsewhere. |
 | TMC2209 stepper driver module (StallGuard, UART) — **BigTreeTech TMC2209 V1.3, 5-pack w/ heatsinks** | 1 pack (5, one spare) | €35.99 | €35.99 | Checked live on Amazon.fr 2026-09-29, settled on this after ruling out two others: a no-name GERUI 2-pack whose reviews show a real failure pattern ("1 of 2 doesn't work," repeated across several countries), and a listing badged "TMC2209" whose actual product-variant names ("R3-V3-4988") and description described A4988 hardware instead — a mislabeled/wrong-part risk, not just a lesser board. BigTreeTech is an established brand in this exact space (makes the SKR/Octopus boards much of the 3D-printer Klipper/Marlin community runs) and this listing had 491 ratings at 4.5★, a real sample size. The 5-pack also solves the quantity problem in one order (4 needed + 1 spare) rather than splitting across sellers, and includes heatsinks. |
 | Arduino Mega 2560 (or genuine-compatible clone) | 1 | €15–40 | €15–40 | Chosen over an Uno/Nano for having enough hardware UART capacity for this design. (Correction from the earlier "4 dedicated UARTs" reasoning: `Serial` is tied up by USB, and all 4 drivers now share one UART bus on `Serial2` via TMC2209's built-in multi-drop addressing — see `control/sequence.md`'s new wiring-plan section. The Mega is still the right pick, just for a slightly different reason.) A genuine board is pricier but avoids clone USB-chip driver headaches. |
 | RAMPS 1.4 shield (for the Mega 2560) | 1 | €9–17 | €9–17 | Plugs directly onto the Mega; 5 StepStick-footprint sockets, same physical pinout as the BigTreeTech TMC2209 boards above — no soldering for the 3 local dial drivers, they plug straight in. Only 3 of its 5 sockets get used (X/Y/Z); the 4th driver (key-turner) is wired off-shield per the driver-placement rule. Well-established part, e.g. ARCELI (4.2★, 255 ratings, €9.99) or DollaTek (4.2★, 124 ratings, €8.99). |
@@ -79,12 +79,12 @@ Called out explicitly since the goal is one order, not a string of
 
 ## Rough total
 
-Core electronics (now including the RAMPS shield and resistors) + power
-+ cable/connectors + filament + optional AS5600 and switch: **roughly
-€155–250**, plus €0 for mounting (magnets already on hand), plus
-whatever's missing from the prototyping-basics list above (perfboard,
-jumper wires, soldering iron, multimeter — skip anything already
-owned).
+Core electronics (motors, drivers, Mega, RAMPS shield, resistors — all
+now priced against real listings) + power + cable/connectors + filament
++ optional AS5600 and switch: **roughly €150–245**, plus €0 for
+mounting (magnets already on hand), plus whatever's missing from the
+prototyping-basics list above (perfboard, jumper wires, soldering iron,
+multimeter — skip anything already owned).
 
 ## Single-order readiness
 
