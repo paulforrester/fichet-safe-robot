@@ -43,17 +43,26 @@
 // up fairly large relative to the ~36mm hole spacing).
 //
 // Prints as several separate bodies (see the bottom of this file):
-// front_assembly() (front plate + 3 standoff legs) and rear_assembly()
-// (motor plate + bridge arm + electronics tray) as two SEPARATE printed
-// parts that bolt together after printing (M3 screws into heat-set
-// inserts at the 3 leg positions) — see docs/housing_decisions.md v0.3
-// for why: fusing them into one part left motor_plate/electronics_tray
-// bridging in mid-air between 3 thin pillars, well past any safe
-// unsupported span. Plus 3 identical rotating dial_coupler() shafts
+// front_assembly() (front plate + 3 standoff legs), rear_assembly()
+// (motor plate + 3 taller standoff legs for the deck below), and
+// electronics_deck() (Mega/RAMPS mounting plate) — three SEPARATE
+// printed parts that bolt together after printing (M3 screws into
+// heat-set inserts, at 2 different sets of 3 leg positions), instead
+// of any of them being fused into the same printed object. See
+// docs/housing_decisions.md v0.3 and v0.4 for why: v0.3 split front
+// from rear because fusing them left motor_plate bridging in mid-air
+// between 3 thin pillars; v0.4 did the same for the electronics
+// mounting after a real print showed the v0.3 electronics_tray (fused
+// to motor_plate, only 4mm proud of it) physically colliding with a
+// motor can — the housing never modeled the NEMA17's real ~48mm body
+// length behind its mounting face, only a token 0.1mm clearance
+// pocket. electronics_deck now sits far enough out to clear the real
+// can length, on its own standoff legs rather than a one-sided
+// cantilevered bridge. Plus 3 identical rotating dial_coupler() shafts
 // (each with an integrated Oldham hub on its rear end); 3 identical
 // oldham_motor_hub() pieces (motor-side, mounts on the NEMA17 shaft);
 // and 3 identical oldham_disc() pieces (the loose sliding middle
-// piece) — none of these fuse to either assembly or to each other,
+// piece) — none of these fuse to any assembly or to each other,
 // they're separate parts assembled by hand.
 // ============================================================
 
@@ -145,6 +154,35 @@ module plate_outline(r_pad = 0) {
             translate(p) circle(r = 14 + r_pad, $fn = 48);
     }
 }
+
+// ---- rear/deck mounting: second M3 + heat-set-insert tier ----
+// electronics_deck() bolts onto motor_plate() the same way
+// front_assembly bolts to it (deck_standoff_legs() grows from
+// motor_plate; electronics_deck() gets the matching clearance +
+// counterbore holes) — see docs/housing_decisions.md v0.4.
+//
+// Real STEPPERONLINE 55Ncm/2A NEMA17 body length (the "L" dimension,
+// motor can only, not the shaft) — this was NEVER modeled before
+// (common_mounts.scad's nema17_body_clearance() is a deliberate 0.1mm
+// face-clearance pocket, not the real depth), which is why the v0.3
+// electronics_tray (only 4mm proud of motor_plate) physically
+// collided with a motor can on the actual print. Sourced from the
+// exact part in docs/bom.md ("STEPPERONLINE 55Ncm 2A, pack of 5"),
+// listed as 42x48mm: https://www.ebay.de/itm/204638353437 — matches
+// the well-known 17HS19-2004S1 (48mm body, 0.59Nm/59Ncm class,
+// 24mm shaft protrusion), whose datasheet confirms the same 48mm:
+// https://static.maritex.eu/file/display/5sXxpHH1SP-JwnhJEZ0lhfX-xdYKZRi3/17HS19-2004S1_Full_Datasheet.pdf
+nema17_can_length = 48; // mm, motor body length behind the mounting face
+deck_clearance    = 6;  // mm, margin past the can length for connectors/wiring
+deck_standoff_h   = nema17_can_length + deck_clearance;
+
+// Offset 60 deg from the motor positions (motor_pts uses start_angle
+// 90; this uses 150) so these legs land in the gaps BETWEEN motors —
+// motor_plate has no cutouts at all in these 3 directions (the bolt
+// patterns, shaft holes, and front-to-rear M3 holes all sit at the
+// motor_pts/plate_corner_pts angles), confirmed by render.
+deck_leg_r   = 28;
+deck_leg_pts = ring_points(3, deck_leg_r, 150);
 
 // ============================================================
 // Rotating part: one dial coupler. Rear end (z=0) is an integrated
@@ -254,24 +292,67 @@ module front_standoff_legs() {
             }
 }
 
-// 4 standoff posts + a floor for the Arduino Mega 2560 (101.52 x
-// 53.3mm) + RAMPS 1.4 stacked on it — first pass: open tray, no
-// walls/lid/cable glands yet. Positioned off to one side of the motor
-// plate so it doesn't collide with the fanned-out motors, and bridged
-// to the motor plate by bridge_arm() below so it's not left floating.
-mega_x = 101.52; mega_y = 53.3; tray_post_h = 8;
-tray_z = plate_thickness + rear_standoff + motor_plate_h + 4;
-tray_x_offset = motor_ring_r + mega_x/2 + 20;
+// 3 standoff legs growing straight up from motor_plate's OUTER (h-side)
+// face at deck_leg_pts, tall enough (deck_standoff_h) to clear the
+// full NEMA17 can length before electronics_deck() begins — see the
+// deck-mounting section above and docs/housing_decisions.md v0.4.
+// Structurally identical to front_standoff_legs(), just a different
+// base plate/position/height.
+module deck_standoff_legs() {
+    leg_h  = deck_standoff_h + eps_c;
+    base_z = plate_thickness + rear_standoff + motor_plate_h - eps_c;
+    for (p = deck_leg_pts)
+        translate([p[0], p[1], base_z])
+            difference() {
+                cylinder(d = leg_dia, h = leg_h, $fn = 32);
+                translate([0, 0, leg_h - insert_hole_depth])
+                    cylinder(d = insert_hole_d, h = insert_hole_depth + eps_c, $fn = 24);
+            }
+}
 
-module electronics_tray() {
-    translate([tray_x_offset, 0, tray_z]) {
-        // floor
-        translate([-mega_x/2 - 4, -mega_y/2 - 4, 0])
-            cube([mega_x + 8, mega_y + 8, 3]);
-        // 4 corner standoffs, generic M3 self-tap posts (no exact Mega
-        // hole pattern yet — see docs/decisions.md TODO)
+// Electronics mounting plate for the Arduino Mega 2560 (101.52 x
+// 53.3mm) + RAMPS 1.4 stacked on it — first pass: open deck, no
+// walls/lid/cable glands yet. Centered on the motor tier's own axis
+// (not offset to one side, unlike the v0.3 electronics_tray this
+// replaces) and bolted onto deck_standoff_legs() via M3 screws driven
+// in from this plate's outer face, so it's held clear of every motor
+// can by deck_standoff_h rather than cantilevered past just one of them.
+mega_x = 101.52; mega_y = 53.3; tray_post_h = 8;
+deck_thickness = 5;
+
+module deck_outline() {
+    hull() {
+        // pad around each Mega corner-standoff position
         for (x = [-1, 1]) for (y = [-1, 1])
-            translate([x * (mega_x/2 - 5), y * (mega_y/2 - 5), 3])
+            translate([x * (mega_x/2 - 5), y * (mega_y/2 - 5)])
+                circle(r = 11, $fn = 32);
+        // the 3 leg-mounting positions
+        for (p = deck_leg_pts)
+            translate(p) circle(r = 14, $fn = 48);
+    }
+}
+
+module electronics_deck() {
+    deck_z = plate_thickness + rear_standoff + motor_plate_h + deck_standoff_h;
+    translate([0, 0, deck_z]) {
+        difference() {
+            linear_extrude(height = deck_thickness)
+                deck_outline();
+            // M3 mounting holes to deck_standoff_legs(), clearance
+            // through the plate + a counterbore on the OUTER face (the
+            // outermost face of the whole assembly once bolted
+            // together) so screw heads sit flush and stay accessible.
+            for (p = deck_leg_pts)
+                translate([p[0], p[1], -eps_c]) {
+                    cylinder(d = m3_clear_d, h = deck_thickness + 2*eps_c, $fn = 24);
+                    translate([0, 0, deck_thickness - m3_head_depth + eps_c])
+                        cylinder(d = m3_head_d, h = m3_head_depth + eps_c, $fn = 24);
+                }
+        }
+        // 4 corner standoffs for the Mega, generic M3 self-tap posts
+        // (no exact Mega hole pattern yet — see docs/decisions.md TODO)
+        for (x = [-1, 1]) for (y = [-1, 1])
+            translate([x * (mega_x/2 - 5), y * (mega_y/2 - 5), deck_thickness - eps_c])
                 difference() {
                     cylinder(d = 7, h = tray_post_h, $fn = 24);
                     translate([0, 0, -eps_c]) cylinder(d = 2.6, h = tray_post_h + 2*eps_c, $fn = 16); // M3 self-tap pilot
@@ -279,18 +360,7 @@ module electronics_tray() {
     }
 }
 
-// Solid gusset from the motor plate's edge up and across to the tray
-// floor's near edge — generously overlaps both so the tray isn't a
-// separate floating body. Not pretty, but this is a first pass; a
-// cleaner integrated bracket is a follow-up.
-module bridge_arm() {
-    x0 = plate_reach * 0.5;
-    x1 = tray_x_offset - mega_x/2 - 4 + 8; // overlaps into the tray floor
-    translate([x0, -12, plate_thickness + rear_standoff])
-        cube([max(x1 - x0, 10), 24, motor_plate_h + 10]);
-}
-
-// ---- the two printed assemblies (v0.3 — see docs/housing_decisions.md) ----
+// ---- the three printed assemblies (v0.3/v0.4 — see docs/housing_decisions.md) ----
 // Front: door-facing plate + 3 standoff legs. Self-supporting on its
 // own — print with front_plate's door-facing face down, as before.
 module front_assembly() {
@@ -300,25 +370,24 @@ module front_assembly() {
     }
 }
 
-// Rear: motor plate + bridge arm + electronics tray, unchanged in shape
-// from v0.2 — it was never the floating part, front_plate was just
-// fused to it across an unsupported gap. Self-supporting on its own
-// too — print with motor_plate's mating face (the one with the M3
-// counterbores) down.
+// Rear: motor plate + 3 taller standoff legs for the electronics deck
+// below. Self-supporting on its own (flat plate + posts, same idea as
+// front_assembly) — print with motor_plate's mating face (the one
+// with the front-to-rear M3 counterbores) down.
 module rear_assembly() {
     union() {
         motor_plate(h = motor_plate_h);
-        bridge_arm();
-        electronics_tray();
+        deck_standoff_legs();
     }
 }
 
-// ---- output: both assemblies + 3 sets of loose drivetrain parts,
+// ---- output: all three assemblies + 3 sets of loose drivetrain parts,
 // laid out side by side so nothing overlaps. Each top-level call below
 // is its own disconnected body in the exported STL — use Bambu
 // Studio's "Split to Objects" to separate them for slicing/orientation,
 // same as the v0.2 file already relied on for the drivetrain parts.
-bound_r = plate_reach + 14; // plate_outline()'s outer extent from its own center
+bound_r      = plate_reach + 14; // plate_outline()'s outer extent from its own center
+deck_bound_r = max(mega_x/2 - 5, mega_y/2 - 5) + 11; // deck_outline()'s outer extent from its own center
 
 // front_assembly() sits at the origin (native position).
 front_assembly();
@@ -328,8 +397,13 @@ assembly_gap = 2 * bound_r + 30; // clear separation between the two outlines, p
 translate([assembly_gap, 0, 0])
     rear_assembly();
 
-// loose drivetrain parts, shifted clear of both assemblies.
-layout_x = assembly_gap + bound_r + 30;
+// electronics_deck(), shifted clear of rear_assembly along +X.
+deck_gap = assembly_gap + bound_r + deck_bound_r + 30;
+translate([deck_gap, 0, 0])
+    electronics_deck();
+
+// loose drivetrain parts, shifted clear of all three.
+layout_x = deck_gap + deck_bound_r + 30;
 for (i = [0 : 2]) {
     translate([layout_x, i * 30 - 30, 0])
         dial_coupler();
@@ -341,21 +415,35 @@ for (i = [0 : 2]) {
 
 // ============================================================
 // PRINT NOTES:
-//  - front_assembly() + rear_assembly(): PETG is fine (structural, not
-//    wear-facing). Print as two SEPARATE parts (split to objects, see
-//    above) — each is self-supporting in its natural orientation:
-//    front_assembly face-down on its door-facing face (as v0.2 was),
-//    rear_assembly face-down on motor_plate's mating (counterbored)
-//    face. Neither should need support material for the plate/leg/tray
-//    geometry itself. See docs/housing_decisions.md v0.3 for why this
-//    replaced the single fused frame() (it left motor_plate/tray
-//    bridging unsupported between 3 thin pillars).
+//  - front_assembly() + rear_assembly() + electronics_deck(): PETG is
+//    fine (structural, not wear-facing). Print as three SEPARATE parts
+//    (split to objects, see above) — each is self-supporting in its
+//    natural orientation: front_assembly face-down on its door-facing
+//    face (as v0.2 was), rear_assembly face-down on motor_plate's
+//    mating (front-to-rear-counterbored) face, electronics_deck
+//    face-down on its mating (deck-leg-counterbored) face. None should
+//    need support material for the plate/leg/deck geometry itself. See
+//    docs/housing_decisions.md v0.3 for why front/rear were split
+//    (fusing them left motor_plate bridging unsupported between 3 thin
+//    pillars) and v0.4 for why the electronics mounting got the same
+//    treatment (the v0.3 electronics_tray, cantilevered only 4mm past
+//    motor_plate, physically collided with a motor can on the real
+//    print — the housing never modeled the NEMA17's real ~48mm body
+//    length there).
 //  - Hardware to join them (not yet in docs/bom.md — add before
-//    ordering): 3x M3 heat-set threaded inserts (4.2mm OD size, for the
-//    front_standoff_legs() bores) + 3x M3x10 or M3x12 socket-cap screws
-//    (through motor_plate's counterbores into those inserts). Press the
-//    inserts in with a soldering iron after printing, before final
-//    assembly.
+//    ordering): 6x M3 heat-set threaded inserts (4.2mm OD size — 3 for
+//    front_standoff_legs(), 3 for deck_standoff_legs()) + 6x M3x10 or
+//    M3x12 socket-cap screws (front-to-rear through motor_plate's
+//    counterbores; rear-to-deck through electronics_deck's
+//    counterbores). Press the inserts in with a soldering iron after
+//    printing, before final assembly.
+//  - Build order matters for electronics_deck: bolt it onto
+//    deck_standoff_legs() BEFORE mounting the Arduino Mega on its own
+//    4 corner posts — 2 of the 3 deck-to-leg screws land under the
+//    Mega's footprint once it's installed (same accessible-outer-face
+//    logic as the front-to-rear screws, just one Mega-sized board now
+//    sitting on top of them). If those screws ever need to come out
+//    again, remove the Mega (its own 4 screws) first.
 //  - Couplers + Oldham hubs (dial_coupler, oldham_motor_hub): print in
 //    PETG-CF per docs/decisions.md's wear-mitigation decision (Bambu
 //    Lab order already covers this filament + the tungsten-carbide

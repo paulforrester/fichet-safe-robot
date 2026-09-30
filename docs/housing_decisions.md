@@ -6,6 +6,80 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## v0.4 — electronics deck moved onto its own standoff tier (real print showed it fouling a motor)
+
+Paul printed the v0.3 STL overnight. Two problems surfaced: (1)
+`electronics_tray` was still cantilevered (only reachable by
+`bridge_arm()` off one edge of `motor_plate`), so Bambu Studio needed
+supports for it; (2) worse, once printed, the tray physically sits
+where one of the 3 dial motors needs to go — that motor can't be
+bolted on.
+
+**Root cause, found by re-deriving the geometry rather than guessing:**
+`electronics_tray` was positioned at `tray_z = ...motor_plate_h + 4` —
+only 4mm proud of `motor_plate`'s outer face. But that's also the face
+the NEMA17 motors themselves bolt to (their shaft has to reach through
+`motor_plate` into the `rear_standoff` cavity to hit the Oldham hub,
+which by NEMA convention puts the motor's mounting flange — and its
+whole can — on the *outer* face, not the cavity side). The housing
+never modeled the can's real length: `common_mounts.scad`'s
+`nema17_body_clearance()` is a deliberate 0.1mm face-clearance pocket
+("a printed bracket only needs to touch the mounting face, not hug the
+body"), not a stand-in for the actual body depth. With only 4mm of
+clearance against a real ~48mm-long can, the tray was always going to
+collide with whichever motor happened to be closest to it — which,
+given `bridge_arm`/`electronics_tray` were placed at a fixed `+X`
+offset while the 3 motors are arranged in a triangle, was going to be
+one specific motor regardless of the placeholder dial-hole numbers.
+
+The real can length wasn't in this repo anywhere, so it was looked up
+rather than guessed: the exact ordered part (`docs/bom.md`,
+"STEPPERONLINE 55Ncm 2A, pack of 5") is listed at **42×48mm** on the
+matching eBay listing —
+[ebay.de/itm/204638353437](https://www.ebay.de/itm/204638353437) —
+which matches the well-known STEPPERONLINE 17HS19-2004S1 (0.59Nm/59Ncm
+class, same torque tier), whose own datasheet confirms the same 48mm
+body length and a 24mm shaft protrusion —
+[datasheet PDF](https://static.maritex.eu/file/display/5sXxpHH1SP-JwnhJEZ0lhfX-xdYKZRi3/17HS19-2004S1_Full_Datasheet.pdf).
+
+**Fix, per Paul's own suggestion ("build a third level above the
+motors"):** `electronics_tray`/`bridge_arm()` are replaced by
+`electronics_deck()` — a third bolt-on tier, following the same
+bolt-together pattern v0.3 already established rather than a fused
+cantilever:
+
+- `deck_standoff_legs()` — 3 more legs (same design as
+  `front_standoff_legs()`: heat-set insert bores, M3 screws), this
+  time growing from `motor_plate`'s outer face, at `deck_leg_pts` —
+  positioned 60° offset from the 3 motor angles (`ring_points(3,
+  deck_leg_r, 150)` vs. the motors' `start_angle=90`) so they land on
+  solid `motor_plate` material in the gaps between motors, confirmed
+  clear of every bolt pattern/shaft hole by render. Height =
+  `nema17_can_length + 6mm` clearance — tall enough to clear the full
+  real can length, not the old 4mm token gap.
+- `electronics_deck()` — the Mega/RAMPS mounting plate itself
+  (same 4 corner standoffs as the old tray), now centered on the
+  assembly's own axis rather than cantilevered off to one side, bolted
+  onto `deck_standoff_legs()` via M3 screws + counterbores, mirroring
+  how `motor_plate` bolts onto `front_standoff_legs()`.
+
+Trade-off worth flagging: because the deck sits directly above/behind
+the whole motor cluster (by design — that's what clears every motor
+regardless of which one the tray used to favor), 2 of its 3 mounting
+screws land underneath the Mega board's own footprint once that's
+installed on its posts. Servicing those means removing the Mega first
+(4 easily-accessible screws) — normal build-order inconvenience, not a
+blocker, and noted in the file's print notes.
+
+**Verified** with the same render + trimesh check as v0.3: 12
+disconnected, all-watertight bodies (9 drivetrain parts + 3 assemblies,
+each its own single solid, none fused to another), plus a manual
+top-down render confirming the deck legs land clear of every motor
+hole/bolt pattern and the front-to-rear mounting holes.
+
+**Not yet done:** the same bench-fit/insert-press-in caveat as v0.3,
+now for 6 inserts instead of 3 (`docs/bom.md` updated accordingly).
+
 ## v0.3 — dial unit split into two bolt-together assemblies (fixes unsupported bridge in slicer)
 
 Bambu Studio flagged an unsupported region on `frame()` (the v0.2 static
