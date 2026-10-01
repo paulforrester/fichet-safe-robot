@@ -14,12 +14,12 @@ driver-placement rationale in `control/sequence.md`).
 
 Four orders placed 2026-09-29, checked against every line below:
 
-| # | Vendor | Order No. | Total (incl. VAT) | Contents |
-|---|---|---|---|---|
-| 1 | Amazon.fr | [redacted] | €46.81 | PCB/perfboard kit, AS5600 encoder ×4, 12V/5A power supply, heat shrink tube assortment |
-| 2 | Amazon.fr | [redacted] | €286.52 | TMC2209 drivers ×5, shielded 6-conductor cable (18 ft), RAMPS 1.4 shield, Arduino Mega 2560, M–M jumper wires ×2 kits, 1kΩ resistors ×100, heat gun, soldering station, NEMA17 motors ×5, USB-C→B cable, momentary pushbuttons ×12 |
-| 3 | Amazon.fr | [redacted] | €13.99 | Phoenix 5.08mm 8-pin screw-terminal connectors (substituted for the JST-XH spec below) |
-| 4 | Bambu Lab | — | €428.42 (order also includes general printer supplies not on this BOM) | PETG-CF filament (1kg), tungsten carbide hotend — plus PETG Basic ×2, PLA Basic ×2, and a Bambu Lab AMS 2 Pro, none of which are BOM items |
+| # | Vendor | Total (incl. VAT) | Contents |
+|---|---|---|---|
+| 1 | Amazon.fr | €46.81 | PCB/perfboard kit, AS5600 encoder ×4, 12V/5A power supply, heat shrink tube assortment |
+| 2 | Amazon.fr | €286.52 | TMC2209 drivers ×5, shielded 6-conductor cable (18 ft), RAMPS 1.4 shield, Arduino Mega 2560, M–M jumper wires ×2 kits, 1kΩ resistors ×100, heat gun, soldering station, NEMA17 motors ×5, USB-C→B cable, momentary pushbuttons ×12 |
+| 3 | Amazon.fr | €13.99 | Phoenix 5.08mm 8-pin screw-terminal connectors (substituted for the JST-XH spec below) |
+| 4 | Bambu Lab | €428.42 (order also includes general printer supplies not on this BOM) | PETG-CF filament (1kg), tungsten carbide hotend — plus PETG Basic ×2, PLA Basic ×2, and a Bambu Lab AMS 2 Pro, none of which are BOM items |
 
 Status is marked inline in each table below: ✅ ordered, ⬜ still to buy.
 
