@@ -430,13 +430,24 @@ for (i = [0 : 2]) {
 //    motor_plate, physically collided with a motor can on the real
 //    print — the housing never modeled the NEMA17's real ~48mm body
 //    length there).
-//  - Hardware to join them (not yet in docs/bom.md — add before
-//    ordering): 6x M3 heat-set threaded inserts (4.2mm OD size — 3 for
-//    front_standoff_legs(), 3 for deck_standoff_legs()) + 6x M3x10 or
-//    M3x12 socket-cap screws (front-to-rear through motor_plate's
-//    counterbores; rear-to-deck through electronics_deck's
-//    counterbores). Press the inserts in with a soldering iron after
-//    printing, before final assembly.
+//  - Hardware to join them: 6x M3 brass heat-set threaded inserts
+//    (4.2mm OD, ~5mm length — fits insert_hole_depth's 6mm blind bore
+//    with a little clearance — 3 for front_standoff_legs(), 3 for
+//    deck_standoff_legs()) + 6x M3x8 DIN 912 / ISO 4762 socket-head
+//    cap screws, machine-thread (not self-tapping — they thread into
+//    the brass insert, not the plastic). Press the inserts in with a
+//    soldering iron after printing, before final assembly.
+//    LENGTH MATTERS here, corrected from an earlier (wrong) M3x10/12
+//    note: a too-long screw bottoms on the leg's solid floor *before*
+//    its head seats in the counterbore, leaving the joint proud and
+//    not actually clamped. Max screw length before that happens: ~8.8mm
+//    for the front-to-rear joint (motor_plate is 6mm thick, minus the
+//    3.2mm counterbore, plus the 6mm leg bore = 2.8+6), and only ~7.8mm
+//    for the rear-to-deck joint (electronics_deck is 5mm thick: 1.8+6).
+//    M3x8 clears both with a standard ~5mm insert and doesn't bottom
+//    out on either joint. If your inserts turn out longer (6-8mm), the
+//    math above still applies — don't just size the screw to the plate
+//    + full insert length without checking it against those ceilings.
 //  - Build order matters for electronics_deck: bolt it onto
 //    deck_standoff_legs() BEFORE mounting the Arduino Mega on its own
 //    4 corner posts — 2 of the 3 deck-to-leg screws land under the

@@ -6,6 +6,25 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## v0.4 addendum — screw length corrected to M3x8 (was wrongly M3x10/M3x12)
+
+Asked while Paul was about to do a real test assembly, so it got
+checked precisely rather than repeated from the earlier (wrong) print
+note. Both bolted joints use a 3.2mm-deep screw-head counterbore and a
+6mm-deep blind insert bore in the leg — but the *plate material between
+them* differs: 2.8mm for the front-to-rear joint (6mm `motor_plate_h`
+minus the counterbore) vs. only 1.8mm for the rear-to-deck joint (5mm
+`deck_thickness` minus the counterbore). That sets a hard ceiling on
+usable screw length before the tip bottoms on the leg's solid floor
+*before* the head seats flush: ~8.8mm front, ~7.8mm deck. The original
+note ("M3x10 or M3x12") didn't account for this and would leave the
+rear-to-deck joint standing proud rather than actually clamped. **M3x8**
+clears both ceilings with a standard ~5mm-long M3 heat-set insert,
+confirmed by computing it rather than estimating
+(`m3_head_depth` + `insert_hole_depth` + each plate's own thickness, per
+joint). `docs/bom.md` and `dial_unit_housing.scad`'s print notes updated
+to match.
+
 ## v0.4 — electronics deck moved onto its own standoff tier (real print showed it fouling a motor)
 
 Paul printed the v0.3 STL overnight. Two problems surfaced: (1)
