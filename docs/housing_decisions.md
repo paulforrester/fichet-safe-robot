@@ -6,6 +6,52 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## Printed internal thread fit test — can a real M5/M6 screw thread directly into PLA?
+
+New file, `cad/printed_thread_test.scad`. Different question from the
+self-tap test just below: that one tests a plain pilot hole with a
+screw cutting its own grip as it goes in; this one tests an actual
+*modeled* ISO-profile thread, printed directly into the hole, that an
+ordinary screw threads into with no self-tapping and no insert at all.
+Paul specifically wanted the latter — the self-tap test is still kept,
+just answers a different question.
+
+**Thread profile**, checked against the ISO basic-profile formulas
+rather than guessed: H (fundamental triangle height) = 0.8660254 ×
+pitch; major-to-minor diameter difference = 1.0825318 × pitch. From
+that, the truncated profile actually cut is a 60° trapezoid: root flat
+pitch/4 wide, crest flat pitch/8 wide. Only M5 (×0.8) and M6 (×1.0) are
+tested — same reasoning as the earlier printed-thread research: a
+0.4mm nozzle is at or past the viable size right around M5/M6, M3/M4
+were the ones specifically steered toward inserts instead.
+
+**How it's built**: the thread is cut into each test block by
+*subtracting* a solid "male" thread tool (a core cylinder at minor
+diameter + a helical ridge out to major diameter, swept with
+`linear_extrude(twist=...)`) — the same idea as a tap cutting a nut.
+First attempt at the ridge-to-core union left two disconnected
+watertight solids instead of one (the ridge's root sat exactly on the
+core's surface — a coincident-face issue, same category as the
+`eps_c` overlaps used throughout this project) — fixed by giving the
+ridge's root a 0.1mm radial overlap into the core, verified in
+isolation (rendered, exported, checked with `trimesh` for a single
+connected watertight body) before using it as a cutting tool.
+
+**Clearance sweep**: FDM holes tend to print undersized, so rather
+than guess the right oversize for Paul's printer, this sweeps +0.0 /
++0.2 / +0.4mm diametral clearance per size (same approach as
+`tube_socket_test_key_set.scad`'s tooth-height sweep) — 6 blocks
+total, each a short through-hole, generously walled since the thread
+holding is what's being tested here, not wall-splitting (that's the
+self-tap test's job).
+
+**Verified** the same way as everything else in this file: rendered,
+checked `trimesh`-watertight (6 separate, correctly isolated bodies),
+and visually inspected close-up before treating it as done. Full
+6-block render takes ~50s — cut `$fn` and the twist-extrude `slices`
+down from an initial attempt that was far higher resolution than
+needed and didn't finish in a reasonable time.
+
 ## Standoff screw fit test — throwaway PLA coupons for today's temporary fastening
 
 New file, `cad/standoff_screw_fit_test.scad` — not part of the robot,
