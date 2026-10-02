@@ -69,6 +69,18 @@ module magnet_pocket_ring(n, r, start_angle = 90) {
 // needed. bore_len = how far the shaft inserts; screw_z = height (in
 // this module's local frame) of the set-screw hole above the bore's
 // open face.
+//
+// set_screw_pilot_d: this used to be 3.2mm — a standard M3 CLEARANCE
+// size (for a screw passing through metal into a nut or tapped hole
+// elsewhere), not a thread-forming pilot. With nothing threaded on
+// either side, that hole let an M3 set screw slide straight through
+// with zero grip — it could never actually clamp onto the shaft.
+// 2.6mm is the right size for an M3 screw to cut/form its own threads
+// directly in printed PETG as it's driven in (a "thread-forming" or
+// "self-tapping" fit, standard practice for light-duty printed
+// fasteners). A cone-point or cup-point set screw starts into this
+// much more easily than a flat-tip one. See docs/housing_decisions.md.
+set_screw_pilot_d = 2.6;
 module dshaft_bore(bore_len = 10, screw_z = 6) {
     fit = 0.15; // mm radial printing clearance
     union() {
@@ -78,10 +90,12 @@ module dshaft_bore(bore_len = 10, screw_z = 6) {
         // dimension, over the flat's known length from the shaft tip
         translate([-(nema17_shaft_d/2 + 2), nema17_shaft_flat - nema17_shaft_d/2 - fit, -eps_c])
             cube([nema17_shaft_d + 4, nema17_shaft_d, min(bore_len, nema17_flat_len) + eps_c]);
-        // M3 set screw, radial, through the side wall, centered on the flat
+        // M3 set screw, radial, through the side wall, centered on the
+        // flat — self-taps into the hub's own wall (see set_screw_pilot_d
+        // above), not a clearance hole into anything threaded.
         translate([0, 0, screw_z])
             rotate([90, 0, 0])
-                cylinder(d = 3.2, h = nema17_body, center = true, $fn = 24);
+                cylinder(d = set_screw_pilot_d, h = nema17_body, center = true, $fn = 24);
     }
 }
 

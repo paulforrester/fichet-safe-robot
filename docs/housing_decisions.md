@@ -6,6 +6,67 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## Key-turner v0.2 — added the missing motor shaft hole; set-screw fix shared with the dial unit
+
+Paul printed all the parts for both units for a first test assembly.
+The dial unit "seems to be in good shape." The key-turner
+(`key_turner_housing.scad`) was not: no way for the motor to actually
+reach or drive the gripper. Checked by reading the file rather than
+guessing, and both turned out to be real, confirmed gaps:
+
+**1. `frame()` had no shaft hole at all.** It bolts the motor to a
+raised boss (`nema17_bolt_holes()`), but the only things ever cut from
+that boss+plate were the bolt holes and the magnet ring — nothing for
+the shaft itself. The motor mounts on the boss's outer face and needs
+its shaft to reach all the way through to the door-facing side where
+`gripper_hub()` lives; with no hole, the shaft would have driven
+straight into solid plastic. This wasn't a sizing mistake, just a
+missing cut — fixed by adding a `nema17_shaft_d + 2` clearance hole
+through the full `plate_thickness + boss_h` (11mm).
+
+Checked this closes geometrically rather than assuming it does: the
+real motor's shaft protrusion is 24mm (STEPPERONLINE 55Ncm/2A, same
+source as v0.4's can-length figure). 24mm − 11mm (through `frame()`) =
+13mm left for the washer/spacer gap + `gripper_hub()`'s own 10mm-deep
+bore — about 3mm of spacer budget, enough for one thin washer, not
+several stacked. Noted directly in the file so it isn't rediscovered
+the hard way at assembly.
+
+**2. The set-screw hole (`dshaft_bore()` in `common_mounts.scad`,
+shared by both units) was a dead end.** It was sized at 3.2mm — a
+standard M3 *clearance* size, meant for a screw passing through into
+something already threaded. Nothing on either side of that hole was
+threaded (no nut, no insert), so a set screw would have slid straight
+through with zero grip — it could never have clamped onto the motor
+shaft's flat, on either unit. Fixed by shrinking it to 2.6mm, the
+right pilot size for an M3 screw to self-tap/thread-form directly into
+printed PETG. Because `dshaft_bore()` is shared, this one fix covers
+the dial unit's `oldham_motor_hub()` *and* the key-turner's
+`gripper_hub()` — worth reprinting both hub parts before relying on the
+set screw for anything beyond a loose test fit. Thread engagement once
+self-tapped is generous either way — the dial unit's hub wall is
+~10.9mm thick there, the key-turner's ~14.4mm, both well past the usual
+~4.5mm (1.5x diameter) minimum for M3. A cone-point or cup-point set
+screw starts into a self-tapped hole far more easily than a flat-tip
+one.
+
+**Verified** with the same render + trimesh check as the dial unit: 3
+disconnected, watertight bodies for the key-turner (frame, gripper hub,
+clamp bar), 12 for the dial unit (unchanged count — this was a hole
+resize, not a structural change), plus a visual render confirming the
+through-hole is actually open in `frame()`.
+
+**Not yet done:** same bench-fit caveat as the rest of v0.1 — the key
+bow's real dimensions are still unmeasured (`slot_width_max`/
+`slot_depth` are placeholders), and the 24mm-shaft/3mm-spacer math
+above hasn't been checked against a real assembled stack yet.
+
+**Naming:** this file and the rest of the repo already call it the
+key-turner unit / `key_turner_housing.scad` — worth standardizing on
+that rather than "door bolt turner" elsewhere, since it's the name
+already used throughout `control/sequence.md`, the README, and this
+doc.
+
 ## v0.4 addendum — screw length corrected to M3x8 (was wrongly M3x10/M3x12)
 
 Asked while Paul was about to do a real test assembly, so it got

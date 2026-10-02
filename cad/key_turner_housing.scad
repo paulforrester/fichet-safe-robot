@@ -89,16 +89,27 @@ module clamp_bar() {
 // Static frame: mounting plate (magnets) + NEMA17 boss, directly
 // behind the gripper hub — no offset needed for a single motor.
 // ============================================================
+boss_h = 6;
 module frame() {
     difference() {
         union() {
             cylinder(d = plate_dia, h = plate_thickness, $fn = 64);
             translate([0, 0, plate_thickness - eps_c])
-                cylinder(d = nema17_bolt_square + 10, h = 6, $fn = 64);
+                cylinder(d = nema17_bolt_square + 10, h = boss_h, $fn = 64);
         }
         magnet_pocket_ring(3, plate_dia/2 - 6);
         translate([0, 0, plate_thickness])
             nema17_bolt_holes(depth = 12);
+        // Motor shaft clearance, straight through the boss AND the
+        // plate. The motor bolts to the boss's outer (away-from-door)
+        // face; its shaft has to reach all the way through to the
+        // door-facing side to drive gripper_hub() there. This was
+        // missing entirely in the v0.1 pass — the only things cut here
+        // were the bolt holes and the magnet ring, so the shaft would
+        // have driven straight into solid plastic. See
+        // docs/housing_decisions.md.
+        translate([0, 0, -eps_c])
+            cylinder(d = nema17_shaft_d + 2, h = plate_thickness + boss_h + 2*eps_c, $fn = 24);
     }
 }
 // Note: the gripper hub is a separate printed part (below), not
@@ -108,6 +119,13 @@ module frame() {
 // directly into the plate; it was purely cosmetic (a fraction of a
 // mm) and produced a degenerate coplanar sliver in the exported STL,
 // so it was dropped rather than fought.
+//
+// Shaft-length check (real motor: STEPPERONLINE 55Ncm/2A, 24mm shaft
+// protrusion — see docs/housing_decisions.md for the source): 24mm
+// total, minus plate_thickness + boss_h (11mm) to clear frame() above,
+// leaves 13mm for the washer/spacer gap plus gripper_hub()'s own
+// shaft_len (10mm) bore — about 3mm of spacer budget. A single thin
+// washer fits that comfortably; don't stack multiple washers here.
 
 // ---- output: static frame, gripper hub, and clamp bar as 3 loose parts ----
 frame();
