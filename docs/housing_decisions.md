@@ -6,6 +6,45 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## Standoff screw fit test — throwaway PLA coupons for today's temporary fastening
+
+New file, `cad/standoff_screw_fit_test.scad` — not part of the robot,
+a bench aid for the "1. Temporary fastening for today" question raised
+in the v0.4 addendum below (self-tapping into the standoff legs' 4.2mm
+x 6mm blind bore with an on-hand screw while the real M3 brass
+heat-set inserts are still on order).
+
+Paul has two 1080pc assortment boxes on hand (M3/M4/M5/M6, same length
+breakdown): black label = countersunk hex-socket, red label = Phillips
+pan/round head. Of those, only M5 and M6 are big enough to self-tap the
+existing 4.2mm hole at all — M3 and M4 are at or under that diameter
+and would just rattle, so they're excluded rather than silently
+skipped (noted in the file header). That leaves 4 combinations to
+bench-test: M5 pan, M5 countersunk, M6 pan, M6 countersunk.
+
+Each combination prints as two small parts, not the real legs — a
+stand-in leg stub (just `leg_dia` + the real `insert_hole_d`/
+`insert_hole_depth` bore, copied from `dial_unit_housing.scad` by hand
+since those are plain variables there, not shared module state) and a
+stand-in cap (a clearance hole + a head pocket sized for that screw —
+flat counterbore for pan/round heads, a 90° conical countersink for
+the countersunk ones). Head-pocket sizing used current ISO 7045 (pan)
+/ ISO 10642 (countersunk) catalog head dimensions rather than guessed
+numbers, plus margin since these are generic assortment-box screws,
+not parts actually certified to either standard. Each part carries a
+small recessed-text ID tag off to the side (same convention as
+`tube_socket_test_key.scad`'s engraving), kept off the bore/pocket
+being tested so labeling can't skew the fit or crack result.
+
+**Verified** the same way as the structural note below: rendered,
+exported to STL, and checked with `trimesh` rather than trusting
+OpenSCAD's own "Volumes" count — 8 watertight, correctly separated
+bodies (4 legs + 4 caps), matching the 8 intended parts.
+
+**Not a design change** — whichever screw wins on the bench is for
+today's test assembly only; the real joint is still M3x8 DIN 912 +
+M3 brass heat-set insert, per the v0.4 addendum below.
+
 ## Key-turner v0.2 — added the missing motor shaft hole; set-screw fix shared with the dial unit
 
 Paul printed all the parts for both units for a first test assembly.
