@@ -6,6 +6,40 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## Standoff self-tap test results — the 4.2mm leg bore is too tight by hand; 5.4mm self-taps M6 well with a driver
+
+Paul printed `standoff_screw_fit_test.scad` and reported back:
+
+**The actual leg stubs (4.2mm/6mm bore) didn't work** — none of the
+M5/M6 screws, pan or countersunk, could cut in by hand. Too tight.
+Confirms the "today only, don't trust it" framing that test was given
+was the right call — the real fix is still the M3x8 + heat-set insert
+hardware.
+
+**Unplanned but useful result**: driving an M6 screw (both pan and
+countersunk head, with a power driver — some real torque needed to
+start the cut) into the *M5 cap's* 5.4mm clearance hole worked well —
+bit cleanly into the PLA, no cracking, and the resulting thread was
+reusable (removed and re-driven without stripping). The M6 cap's own
+6.4mm hole behaved as the plain clearance fit it was designed to be,
+as expected.
+
+**Caveat worth flagging before reusing this number on the real
+legs**: the M5 cap that worked has a lot more meat around its hole
+than the real standoff leg does — `cap_dia` 18mm around a 5.4mm hole
+is roughly 6.3mm of wall, versus the real leg's `leg_dia` 12mm around
+its bore, ~3.9mm of wall (see the self-tap test's own header). A
+power driver biting cleanly into 6.3mm of wall doesn't necessarily
+mean it's equally safe on 3.9mm — that's a real difference in crack
+risk, not just a detail. If this gets tried on the actual legs, worth
+either hand-driving it first (slower, more control) or bumping the
+real leg's bore from 4.2mm toward ~5.4mm if self-tapping M6 becomes
+the intended path rather than a one-off bench finding.
+
+**Takeaway**: 5.4mm is a good self-tap pilot diameter for M6 (pan or
+countersunk) in PLA with a driver, generously walled. Not yet
+confirmed on the real, thinner-walled leg geometry.
+
 ## Printed internal thread fit test — can a real M5/M6 screw thread directly into PLA?
 
 New file, `cad/printed_thread_test.scad`. Different question from the
