@@ -6,6 +6,70 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## Dialer base changed to a circle, front-to-rear joint relocated (2026-10-03): the old joint sat right where the real motors now reach
+
+Paul printed `rear_assembly()` with every fix through the previous
+entry and reported a new problem: "there are no standoff holes to
+attach the dialer base that attaches to the safe door to the motor
+sled. As the motors were shuffled around, the old hole were taken."
+
+**Diagnosis.** "The old holes" is `front_standoff_legs()`/the M3+insert
+joint that bolts `front_plate()` (the "dialer base" — it carries the 3
+dial couplers and mounts to the safe door) onto `motor_plate()`. Those
+joint positions (`plate_corner_pts`, now `joint_pts`) were fixed at
+`ring_points(3, plate_reach, 90)` — the SAME 3 angles (90/210/330deg) as
+the motors themselves (`motor_pts`), just ~24mm farther out along the
+same ray from center. That was harmless when first drawn, but the
+motor-reorientation fix (two entries below) later rotated each motor's
+body-clearance square up to 70deg about its own axis — on at least one
+of the 3 motors, that rotated square now reaches out along that same
+ray far enough to occupy the old joint's position. Nobody re-checked
+the joint against the rotated motors when that fix landed, because at
+the time nothing else had moved into its way yet — this is the same
+class of problem as the deck-standoff-leg crowding two entries below,
+just a different pair of features that drifted into collision as the
+design evolved piecewise.
+
+**Fix, in two parts, both requested by Paul:**
+
+1. `front_plate()` becomes a plain **150mm-diameter circle**
+   (`front_plate_outline()`), replacing the rounded-triangle outline it
+   used to share with `motor_plate()`. This was Paul's own call, not
+   forced by the clearance problem — but it helps the fix, because it
+   decouples the joint's position from also having to define that
+   plate's own shape. The old triangular outline only needed to be big
+   enough to cover `hole_ring_r` + the coupler bushings + a magnet ring
+   (~35.5mm of radius) — the 150mm circle is far more than that, all
+   headroom Paul asked for on purpose.
+
+2. The joint itself (`joint_pts`) moved off the motors' rays entirely.
+   Found the same brute-force way as the deck-leg and Mega-rotation
+   fixes earlier today (`scratchpad/joint_pts_sweep.py`): swept radius
+   (capped at 61mm, so the joint's own 14mm corner-circle pad — the
+   same convention the old corners used — stays inside the new circle's
+   75mm radius with no extra bump needed) together with start angle,
+   maximizing the worst-case clearance against all 3 rotated motor-body
+   squares, all 3 boss recesses, and all 3 deck-leg pads. Best found:
+   **61mm radius, 54deg start angle** — worst-case clearance **+5.5mm**
+   (against motor 0's body), comfortably positive and not a bare-minimum
+   number. Every motor/leg/boss position already sits on one of 6
+   directions 60deg apart around this plate (motors at 90/210/330, deck
+   legs at 150/270/30); 54/174/294 splits the difference between
+   neighboring pairs rather than landing on either.
+
+`motor_plate_outline()` (renamed from `plate_outline()`, since
+`front_plate()` no longer uses it) keeps its hull-of-corner-circles
+shape, just with the corners now at `joint_pts` instead of the old
+`plate_corner_pts`.
+
+**Verification**: re-rendered (clean/manifold) and re-ran the trimesh
+watertightness check — still 12 separate bodies, all watertight.
+Rendered isolated previews of both `front_assembly()` (confirms a clean
+150mm circle with the 3 legs well clear of the coupler bushings) and
+`rear_assembly()` (confirms the 3 new joint holes land at the plate's
+corners, clear of the boss recesses and the deck legs) to visually
+sanity-check the sweep's numbers before shipping them.
+
 ## Real motor spec confirmed (2026-10-03): STEPPERONLINE 17HE19-2004S, cross-checked against common_mounts.scad's NEMA17 numbers
 
 Closes the open item at the end of the entry below (real motor

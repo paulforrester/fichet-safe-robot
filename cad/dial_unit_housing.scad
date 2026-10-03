@@ -46,7 +46,7 @@
 // of the above): (1) the deck standoff legs sat close enough to the
 // motors to physically crowd 2 of the 3 — fixed by moving deck_leg_r
 // out from 28mm to 46mm (see that variable's comment) and padding
-// plate_outline() to match; (2) the real motors have a 22mm x 2mm
+// motor_plate_outline() to match; (2) the real motors have a 22mm x 2mm
 // pilot/register boss around the shaft that held them proud of the
 // plate and let them tilt under the first mounting screws — fixed with
 // a matching recess in motor_plate() (see boss_recess_d/_h,
@@ -55,6 +55,19 @@
 // 2560 hole pattern isn't one — fixed with the real hole coordinates
 // (see mega_hole_pts). See docs/housing_decisions.md for the full
 // writeup and sourcing on all three.
+//
+// THIRD ROUND (2026-10-03, same day, after printing the above): the
+// front-to-rear joint (plate_corner_pts, now joint_pts) used to sit on
+// the SAME ray from center as each motor — fine when it was drawn, but
+// the rotated real motor bodies (fixed in the first round, above) reach
+// out far enough along that ray to occupy the joint's old position,
+// so "there are no standoff holes to attach the dialer base ... the old
+// holes were taken." Paul also asked for front_plate() to become a
+// plain 150mm-diameter circle rather than sharing motor_plate()'s
+// triangular outline. Both addressed together: front_plate_outline()
+// is now that circle, and joint_pts moved to a newly-swept position
+// (61mm radius, 54deg) clear of every motor/leg/boss on the plate — see
+// joint_pts' own comment, below, for the sweep and the margin it found.
 //
 // Prints as several separate bodies (see the bottom of this file):
 // front_assembly() (front plate + 3 standoff legs), rear_assembly()
@@ -246,18 +259,65 @@ m6_clear_d    = 6.4;  // mm, M6 clearance through electronics_deck() (same value
 m6_csk_top_d  = 14.0; // mm, ISO 10642 M6 countersunk head dk(max) 13.44mm + margin (same sourcing as standoff_screw_fit_test.scad)
 m6_csk_depth  = (m6_csk_top_d - m6_clear_d) / 2; // mm, 90-degree countersink cone depth, ~3.8mm
 
-// ---- plate outline: rounded triangle-ish blob big enough for the
-// hole cluster + bushings + a magnet ring, via hull of 3 corner circles
-plate_reach = hole_ring_r + coupler_bore_clear/2 + 16; // outer radius the plate must cover
-plate_corner_pts = ring_points(3, plate_reach, 90);
+// ---- front_plate() outline: a plain 150mm-diameter CIRCLE, Paul's own
+// call (2026-10-03) — see joint_pts' comment just below for the full
+// story of why front_plate() stopped sharing motor_plate()'s rounded-
+// triangle outline. Decoupled from every other dimension on this plate:
+// the old triangular outline was sized (plate_reach, now retired) to
+// just cover hole_ring_r + coupler_bore_clear + a magnet ring, which
+// only needed ~35.5mm of radius — this circle's 75mm is far more than
+// that, all extra room Paul asked for on purpose, not a sizing
+// consequence of anything else on the plate.
+front_plate_dia = 150; // mm, Paul's requested diameter
+front_plate_r   = front_plate_dia / 2;
+
+module front_plate_outline() {
+    circle(r = front_plate_r, $fn = 96);
+}
+
+// ---- motor_plate() outline: still a rounded triangle-ish blob (NOT a
+// circle — only front_plate() changed, above), hull of 3 corner circles
+// at joint_pts.
+//
+// joint_pts carries the front-to-rear M3+heat-set-insert joint
+// (front_standoff_legs() grows from front_plate() here; motor_plate()
+// gets the matching clearance+counterbore here) — this used to be
+// plate_corner_pts, fixed at the same angles as the motors themselves
+// (ring_points(3, plate_reach, 90), radius ~51.46mm). A REAL bench
+// finding (2026-10-03, Paul, after re-printing with every fix through
+// this point): "there are no standoff holes to attach the dialer base
+// ... as the motors were shuffled around, the old holes were taken."
+// Checked the geometry: plate_corner_pts sat on the SAME ray from
+// center as each motor (both at angle 90/210/330), just 23.75mm farther
+// out — and each motor's body-clearance square, rotated up to 70deg
+// (motor_rotation), reaches well past that distance along at least one
+// direction. The old joint was never re-checked against the rotated
+// motor positions when that fix landed, because at the time nothing
+// else had moved into its way yet.
+//
+// Paul also asked that front_plate() become the 150mm circle above —
+// freeing this joint from needing to double as that plate's own outline
+// corners meant it could move to wherever actually clears the motors,
+// not just somewhere on the old triangle. Found by the same brute-force
+// 2D sweep approach as every other clearance fix in this file
+// (scratchpad/joint_pts_sweep.py): swept radius (capped at 61mm, so the
+// joint's own 14mm corner-circle pad stays inside front_plate_r's 75mm
+// with no bump needed) and start_angle together, maximizing the
+// worst-case clearance against all 3 rotated motor-body squares, all 3
+// boss recesses, and all 3 deck-leg pads. Best within that radius cap:
+// 61mm at 54deg, worst-case clearance +5.5mm (motor0's body) — a
+// genuinely comfortable margin, not a bare-minimum one, and clear of
+// every motor/leg/boss angle on the plate (all 6 of those already sit
+// every 60deg around the ring; 54/174/294 split the difference).
+joint_r           = 61;  // mm
+joint_start_angle = 54;  // degrees
+joint_pts = ring_points(3, joint_r, joint_start_angle);
 
 // pad_deck_legs: adds a small hull-padding circle at each deck_leg_pts
 // position (same technique deck_outline() already uses to pad around
-// its own posts), so the plate's own edge grows out to meet a standoff
-// leg sitting out near deck_leg_r rather than leaving it hanging past
-// the plain 3-corner hull. Only motor_plate() needs this (that's the
-// plate the deck legs actually grow from) — front_plate() has nothing
-// out there, so it keeps the plain 3-corner outline by default.
+// its own posts), so motor_plate()'s own edge grows out to meet a
+// standoff leg sitting out near deck_leg_r rather than leaving it
+// hanging past the plain 3-corner hull.
 // deck_leg_pad_r is sized to put just leg_edge_margin of material
 // beyond the leg's own surface, per Paul's "only 1mm from the edge"
 // (2026-10-03) — this one feature is deliberately a tight skin, not
@@ -265,9 +325,9 @@ plate_corner_pts = ring_points(3, plate_reach, 90);
 leg_edge_margin = 1; // mm, Paul's requested plate-edge-to-leg-surface margin
 deck_leg_pad_r  = leg_dia/2 + leg_edge_margin;
 
-module plate_outline(r_pad = 0, pad_deck_legs = false) {
+module motor_plate_outline(r_pad = 0, pad_deck_legs = false) {
     hull() {
-        for (p = plate_corner_pts)
+        for (p = joint_pts)
             translate(p) circle(r = 14 + r_pad, $fn = 48);
         if (pad_deck_legs)
             for (p = deck_leg_pts)
@@ -312,8 +372,10 @@ deck_standoff_h   = nema17_can_length + deck_clearance;
 // Offset 60 deg from the motor positions (motor_pts uses start_angle
 // 90; this uses 150) so these legs land in the gaps BETWEEN motors —
 // motor_plate has no cutouts at all in these 3 directions (the bolt
-// patterns, shaft holes, and front-to-rear M3 holes all sit at the
-// motor_pts/plate_corner_pts angles), confirmed by render.
+// patterns and shaft holes sit at the motor_pts angles), confirmed by
+// render. (The front-to-rear M3 joint used to sit at these same motor
+// angles too, at plate_corner_pts — since moved to joint_pts/54deg
+// start angle for an unrelated reason, see that variable's comment.)
 //
 // deck_leg_r WAS 28mm (same angular slots, closer in) — a REAL bench
 // fit-test (2026-10-03, Paul) found that's too close: the leg body
@@ -335,7 +397,7 @@ deck_standoff_h   = nema17_can_length + deck_clearance;
 // case +4.8mm leg-to-motor-body, +8.8mm leg-to-bolt-hole — chosen over
 // the next few mm up specifically to stop at "comfortable", not
 // "maximal" (every extra mm out here also grows the plate below, see
-// plate_outline()'s pad_deck_legs).
+// motor_plate_outline()'s pad_deck_legs).
 deck_leg_r   = 46;
 deck_leg_pts = ring_points(3, deck_leg_r, 150);
 
@@ -380,20 +442,19 @@ module dial_coupler() {
 module front_plate() {
     difference() {
         linear_extrude(height = plate_thickness)
-            plate_outline();
+            front_plate_outline();
         // 3 coupler bushing bores, through the plate
         for (p = hole_pts)
             translate([p[0], p[1], -eps_c])
                 cylinder(d = coupler_bore_clear, h = plate_thickness + 2*eps_c, $fn = 64);
         // magnet ring around the outside, on the door-facing (z=0) side
         translate([0, 0, 0])
-            magnet_pocket_ring(6, plate_reach - 6);
+            magnet_pocket_ring(6, front_plate_r - 6);
     }
 }
 
-// Motor plate: a SOLID plate using the same outline/footprint as
-// front_plate() (not 3 separate floating bosses — those wouldn't be
-// physically connected to anything), with the 3 NEMA17 bolt patterns
+// Motor plate: a SOLID plate (not 3 separate floating bosses — those
+// wouldn't be physically connected to anything), with the 3 NEMA17 bolt patterns
 // + body clearance cut into it at the fanned-out motor positions, plus
 // a small through-hole per motor for its shaft (just the shaft — Hub A
 // mounts on the shaft in the open gap in front of this plate, it
@@ -412,7 +473,7 @@ module motor_plate(h = 6) {
     translate([0, 0, plate_thickness + rear_standoff]) {
         difference() {
             linear_extrude(height = h)
-                plate_outline(pad_deck_legs = true);
+                motor_plate_outline(pad_deck_legs = true);
             for (i = [0 : 2]) {
                 p = motor_pts[i];
                 translate([p[0], p[1], 0]) {
@@ -437,13 +498,13 @@ module motor_plate(h = 6) {
                 }
             }
             // M3 mounting holes to front_assembly()'s standoff legs, at
-            // the same corner positions the legs use — clearance hole
+            // the same joint_pts positions the legs use — clearance hole
             // through the full plate + a counterbore on this plate's
             // OUTER face (h-side, away from front_plate) so a socket-cap
             // screw head sits flush. This is the accessible face once
             // assembled (the back of the whole unit), so screws thread
             // in from here toward the legs below.
-            for (p = plate_corner_pts)
+            for (p = joint_pts)
                 translate([p[0], p[1], -eps_c]) {
                     cylinder(d = m3_clear_d, h = h + 2*eps_c, $fn = 24);
                     translate([0, 0, h - m3_head_depth + eps_c])
@@ -453,16 +514,17 @@ module motor_plate(h = 6) {
     }
 }
 
-// 3 standoff legs growing straight up from front_plate at the same
-// corner positions the old (v0.2) support_pillars used — a plate with
-// posts on it is fully self-supporting, no bridging involved. Each leg
-// carries a blind bore for an M3 heat-set insert, opening on its top
-// (mating) face, so a screw driven in from motor_plate()'s outer face
-// can draw the two assemblies together. See docs/housing_decisions.md v0.3.
+// 3 standoff legs growing straight up from front_plate at joint_pts
+// (originally the old (v0.2) support_pillars' corner positions, since
+// moved — see joint_pts' comment) — a plate with posts on it is fully
+// self-supporting, no bridging involved. Each leg carries a blind bore
+// for an M3 heat-set insert, opening on its top (mating) face, so a
+// screw driven in from motor_plate()'s outer face can draw the two
+// assemblies together. See docs/housing_decisions.md v0.3.
 motor_plate_h = 6;
 module front_standoff_legs() {
     leg_h = rear_standoff + eps_c; // overlaps into the plate, like the old pillars did
-    for (p = plate_corner_pts)
+    for (p = joint_pts)
         translate([p[0], p[1], plate_thickness - eps_c])
             difference() {
                 cylinder(d = leg_dia, h = leg_h, $fn = 32);
@@ -618,11 +680,16 @@ module rear_assembly() {
 // is its own disconnected body in the exported STL — use Bambu
 // Studio's "Split to Objects" to separate them for slicing/orientation,
 // same as the v0.2 file already relied on for the drivetrain parts.
-bound_r = plate_reach + 14; // plate_outline()'s outer extent from its own center
-                            // (the deck-leg padding added to motor_plate()'s
-                            // own outline, deck_leg_r+deck_leg_pad_r ~= 53mm,
-                            // stays well inside this corner-driven figure, so
-                            // it doesn't need its own term here)
+// Largest outer extent of EITHER printed plate from its own center:
+// front_plate_outline() is now just its own radius (a plain circle,
+// joint_pts' legs sit well inside it by construction — see that
+// variable's comment); motor_plate_outline() is the farther of its
+// corner joints (joint_r+14) or its deck-leg pads (deck_leg_r+deck_leg_pad_r,
+// ~53mm, smaller either way). front_plate_r and joint_r+14 come out
+// equal (75mm) by construction (joint_r was capped there on purpose),
+// so this works out to 75mm today, but it's left as a real max() rather
+// than a restated number so it can't quietly go stale if either changes.
+bound_r = max(front_plate_r, joint_r + 14, deck_leg_r + deck_leg_pad_r);
 // deck_outline()'s outer extent from its own center — real Mega hole
 // positions (mega_hole_pts) are no longer a tidy symmetric inset, so this
 // takes the actual farthest point among both feature sets rather than a
