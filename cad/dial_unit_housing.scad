@@ -325,10 +325,48 @@ joint_pts = ring_points(3, joint_r, joint_start_angle);
 leg_edge_margin = 1; // mm, Paul's requested plate-edge-to-leg-surface margin
 deck_leg_pad_r  = leg_dia/2 + leg_edge_margin;
 
+// REGRESSION, caught by Paul on the 54deg/61mm joint_pts fix above
+// (2026-10-03): "the motor sled reverted to a triangle that was an
+// issue ... one screw if each motor mount goes through the edge of
+// the sled." Checked (scratchpad/check_plate_coverage.py) against the
+// actual motor_plate_outline() hull (joint_pts corner circles + the
+// deck-leg pads, nothing else) and all 12 real (rotated) motor
+// bolt-hole positions: for each motor, exactly the bolt hole nearest
+// that motor's own 90/210/330deg ray sat at 0.01mm from the edge —
+// i.e. on it, matching what Paul saw.
+//
+// Root cause: the OLD joint (plate_corner_pts, retired above) sat at
+// those SAME 90/210/330deg motor angles, just farther out — so its
+// corner circles happened to extend the hull exactly in the direction
+// each motor's farthest bolt hole needed. Moving the joint to
+// 54/174/294deg (to clear the motor bodies, per joint_pts' own
+// comment) was correct for THAT collision, but silently removed this
+// accidental coverage — a second, separate requirement
+// (motor_plate_outline() must contain every motor bolt hole) that
+// nothing in the joint_pts sweep had checked.
+//
+// Fix: pad the hull with a THIRD set of circles, centered on motor_pts
+// itself (not the bolt holes, and not tied to motor_rotation's current
+// 40/70/10deg values) — rotation-invariant by construction, so a
+// future change to motor_rotation can't silently reopen this. Sized
+// to fully contain nema17_body_clearance()'s rotated square (the
+// widest thing on the motor, already bigger than the bolt square) at
+// ANY rotation: a square of half-width `half` reaches `half*sqrt(2)`
+// from its own center at its corners, worst case, regardless of
+// orientation; +2mm on top is margin, not a fitted number.
+// Verified (scratchpad/check_plate_coverage2.py): all 12 bolt holes
+// now clear the edge by 11.33mm worst case (was 0.01mm) — re-checked
+// that this doesn't reopen the joint-vs-motor-body or
+// leg-vs-motor-body collisions the other two fixes above solved for
+// (same script, same hull, all three exclusion pairs together).
+motor_pad_r = ((nema17_body + 1.5)/2) * sqrt(2) + 2; // mm, ~32.97mm
+
 module motor_plate_outline(r_pad = 0, pad_deck_legs = false) {
     hull() {
         for (p = joint_pts)
             translate(p) circle(r = 14 + r_pad, $fn = 48);
+        for (p = motor_pts)
+            translate(p) circle(r = motor_pad_r + r_pad, $fn = 48);
         if (pad_deck_legs)
             for (p = deck_leg_pts)
                 translate(p) circle(r = deck_leg_pad_r + r_pad, $fn = 32);
@@ -683,13 +721,17 @@ module rear_assembly() {
 // Largest outer extent of EITHER printed plate from its own center:
 // front_plate_outline() is now just its own radius (a plain circle,
 // joint_pts' legs sit well inside it by construction — see that
-// variable's comment); motor_plate_outline() is the farther of its
-// corner joints (joint_r+14) or its deck-leg pads (deck_leg_r+deck_leg_pad_r,
-// ~53mm, smaller either way). front_plate_r and joint_r+14 come out
-// equal (75mm) by construction (joint_r was capped there on purpose),
-// so this works out to 75mm today, but it's left as a real max() rather
-// than a restated number so it can't quietly go stale if either changes.
-bound_r = max(front_plate_r, joint_r + 14, deck_leg_r + deck_leg_pad_r);
+// variable's comment); motor_plate_outline() is the farthest of its
+// corner joints (joint_r+14), its deck-leg pads
+// (deck_leg_r+deck_leg_pad_r, ~53mm), or its motor pads
+// (motor_ring_r+motor_pad_r, ~60.7mm, added with the motor_pad_r fix
+// above — still smaller than joint_r+14 today, but included so this
+// can't quietly go stale if motor_ring_r or motor_pad_r change).
+// front_plate_r and joint_r+14 come out equal (75mm) by construction
+// (joint_r was capped there on purpose), so this works out to 75mm
+// today, but it's left as a real max() rather than a restated number
+// so it can't quietly go stale if any of these change.
+bound_r = max(front_plate_r, joint_r + 14, deck_leg_r + deck_leg_pad_r, motor_ring_r + motor_pad_r);
 // deck_outline()'s outer extent from its own center — real Mega hole
 // positions (mega_hole_pts) are no longer a tidy symmetric inset, so this
 // takes the actual farthest point among both feature sets rather than a
