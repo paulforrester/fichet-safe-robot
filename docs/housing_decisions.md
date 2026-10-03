@@ -6,6 +6,90 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## Motor-sled bench fit (2026-10-03): motor reorientation, deck standoffs switched to M5 self-tap, and a flagged mounting-weight problem
+
+Paul printed and bench-fit `rear_assembly()` (motor plate + 3
+`deck_standoff_legs()`) with 3 real STEPPERONLINE NEMA17 motors. Two
+findings, from photos + his own description:
+
+**Bad news, now fixed**: at the design's default (unrotated) motor
+mounting, a motor can physically fouls a `deck_standoff_legs()` post —
+the real can and the leg occupy the same space. **Good news**: rotating
+each motor about its own shaft axis (no translation) clears all 3 legs
+*and* all 3 motors clear each other, while keeping every drive shaft
+exactly centered on its hole (translation was never needed — only
+rotation).
+
+The 3 rotation angles (`motor_rotation = [40, 70, 10]` in
+`dial_unit_housing.scad`) aren't eyeballed off the photos — found by a
+brute-force 2D collision search (`scratchpad/motor_indep_sweep.py` this
+session, not checked into the repo): model each motor as the real
+42.3mm `nema17_body` square, each leg as its 12mm-diameter circle,
+search all 3 motors' rotations independently for the one that maximizes
+the *worst-case* clearance across every motor-leg and motor-motor pair.
+Worth being honest about the result: even at the best rotation found,
+the idealized sharp-corner model still shows about **-1.17mm** (a
+motor's own corner vs. its neighbor) — technically still interference,
+not a clean positive margin. Corner rounding on the real motor can
+doesn't rescue this (tested — the binding point isn't near a corner), so
+this is a genuinely tight fit, not a modeling approximation that's
+secretly fine. The honest read: `motor_min_spacing` (48mm, set when the
+motor tier was first fanned out — see the Oldham coupler entry below)
+was sized assuming face-to-face clearance between adjacent motors, which
+only holds if they sit in a straight line — on a 3-point *ring* 120°
+apart, the real closest-approach direction isn't face-on, so that
+48mm figure was never quite as safe as its own comment claimed. Fixing
+it properly (growing `motor_min_spacing`) was considered and rejected:
+it directly grows `oldham_offset`, which was already flagged as "fairly
+large relative to the ~36mm hole spacing" — growing it further pushes
+the front-plate coupler bushings into colliding with *each other*
+instead, trading one tight fit for a worse one. Given Paul's real,
+assembled, PETG-printed bench test confirms it physically fits — which
+is the actual ground truth, not the idealized flat-square model — this
+revision trusts that result and ships the best rotation the search
+found, rather than second-guessing a working physical test. Flagged in
+`dial_unit_housing.scad`'s print notes: confirm the real fit again after
+the next print, since there's no spare margin by design here.
+
+**Deck standoffs switched from M3 + heat-set insert to M5 self-tap.**
+Paul's call (he has both pan and countersunk M5/M6 screws on hand — the
+same assortment boxes `standoff_screw_fit_test.scad` bench-tested
+earlier) was to use whichever head style works best, since source stock
+covers either. Went with **countersunk**: this joint exists specifically
+to get 3 motor shafts precisely, repeatably centered on their couplers,
+and a countersunk screw self-centers via its cone seat with zero radial
+play once seated — pan head's looseness is exactly the wrong property
+once the alignment is dialed in, including across future
+disassembly/reassembly for maintenance. Pilot hole sized from ACCU's
+published self-tapping pilot-hole table (PP/ABS/PETG row): **M5 →
+3.7mm**, not a reuse of the 4.2mm bore `standoff_screw_fit_test.scad`
+happened to test into (that bore was sized for an M3 insert OD, not a
+from-scratch M5 pilot — https://accu-components.com/us/p/128-how-to-use-self-tapping-screws).
+Engagement depth (10mm, ~2x the M5 major diameter) is a reasoned
+rule-of-thumb, not a sourced number — no published minimum engagement
+length was found, so this is worth a pull-out check on the bench if the
+joint ever feels loose. Screw length: M5x13 to M5x16 all clear without
+bottoming (deck_thickness 5mm + up to ~11mm engagement, pilot hole 12mm
+deep) — pick whichever's on hand closest to 15mm. **Front standoffs
+(`front_standoff_legs()`, front-to-rear joint) are UNCHANGED** — still
+M3 + heat-set insert + M3x8, per the original v0.3/v0.4 design below;
+only the rear-to-deck joint moved to M5. The M3 insert/screw kits
+ordered for this project (see `docs/bom.md`) are still needed for that
+front joint plus other M3 uses (e.g. `electronics_deck()`'s Mega
+corner posts), not wasted by this change.
+
+**Open problem, not solved here: bottom-plate mounting.** Paul flagged
+that `front_plate()`'s magnet ring — sized and confirmed back when this
+unit was envisioned as light (see the Mounting section below) — almost
+certainly can't hold the weight of the full assembled unit (3 motors +
+electronics_deck) hanging off the door by magnets alone. His own
+expectation is "probably a combination of magnets on the base and then
+an arm/magnet combination that transfers the weight to the top of the
+safe" — not designed yet, and deliberately not attempted in this
+revision (no real dimensions or constraints for a top-of-safe arm exist
+yet). Logged here as a known TODO so it doesn't get lost, same as the
+`dial_spacing` bench-fit TODO already tracked below.
+
 ## Printed internal thread fit test — can a real M5/M6 screw thread directly into PLA?
 
 New file, `cad/printed_thread_test.scad`. Different question from the

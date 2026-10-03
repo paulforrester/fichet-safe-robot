@@ -46,9 +46,13 @@
 // front_assembly() (front plate + 3 standoff legs), rear_assembly()
 // (motor plate + 3 taller standoff legs for the deck below), and
 // electronics_deck() (Mega/RAMPS mounting plate) — three SEPARATE
-// printed parts that bolt together after printing (M3 screws into
-// heat-set inserts, at 2 different sets of 3 leg positions), instead
-// of any of them being fused into the same printed object. See
+// printed parts that bolt together after printing, at 2 different sets
+// of 3 leg positions, instead of any of them being fused into the same
+// printed object. The two joints use DIFFERENT hardware as of
+// 2026-10-03: front-to-rear is still M3 screws into M3 heat-set
+// inserts; rear-to-deck switched to M5 self-tapping screws directly
+// into the leg (no insert) — see deck_standoff_legs()'s comment and
+// docs/housing_decisions.md for why. See
 // docs/housing_decisions.md v0.3 and v0.4 for why: v0.3 split front
 // from rear because fusing them left motor_plate bridging in mid-air
 // between 3 thin pillars; v0.4 did the same for the electronics
@@ -102,6 +106,32 @@ motor_ring_r = motor_min_spacing / sqrt(3);  // circumradius of the fanned-out m
 hole_pts  = ring_points(3, hole_ring_r, 90);
 motor_pts = ring_points(3, motor_ring_r, 90);  // same angles -> pure radial (parallel) offset only
 
+// Per-motor rotation (about each motor's own shaft axis, applied to its
+// bolt pattern + body-clearance relief only — NOT to motor_pts itself,
+// so the shaft stays exactly centered). Needed because deck_leg_r (28mm,
+// below) sits almost exactly at the same radius as motor_ring_r
+// (27.7mm), just 60deg offset — a REAL bench fit-test (2026-10-03,
+// Paul) found the motor can physically fouls a deck standoff leg at the
+// default (unrotated) orientation, and that rotating each motor clears
+// it while keeping the shaft centered (no need to also shift motor_pts).
+// These three values aren't a guess: found by brute-force 2D collision
+// search (motor body modeled as the real 42.3mm nema17_body square vs.
+// each deck_leg_pts circle AND vs. the other two motors' squares, see
+// scratchpad/motor_rotation_sweep.py) over all 3 motors' rotations
+// independently, maximizing the worst-case clearance. Best found:
+// worst-case clearance -1.17mm (motor0-motor1/motor0-motor2, i.e. the
+// motors' own corners, not a leg) — still technically negative in this
+// idealized sharp-corner model, but Paul's physical PETG-printed test
+// (real NEMA17 cans, which have some corner rounding this flat-square
+// model doesn't capture) confirms it actually fits. Growing
+// motor_min_spacing to fully clear this in the idealized model was
+// considered and rejected: it directly grows oldham_offset (already
+// flagged above as "fairly large relative to the ~36mm hole spacing"),
+// which would then collide the front_plate() coupler bushings with each
+// other instead — trading one tight fit for a worse one. Trusting the
+// real bench result over the idealized model here.
+motor_rotation = [40, 70, 10]; // degrees, indexed with motor_pts
+
 oldham_offset = motor_ring_r - hole_ring_r;  // mm, the parallel misalignment each coupler bridges
 oldham_hub_d  = oldham_hub_dia(oldham_offset); // from common_mounts.scad
 
@@ -142,6 +172,42 @@ insert_hole_depth = 6;    // mm, blind hole depth in the leg, opens on
 m3_clear_d        = 3.4;  // mm, M3 clearance hole through the motor plate
 m3_head_d         = 6.2;  // mm, socket-cap-head counterbore diameter
 m3_head_depth     = 3.2;  // mm, counterbore depth (screw head sits flush)
+
+// ---- rear/deck mounting hardware, 2026-10-03 rework: M5 self-tap,
+// NOT M3 + heat-set insert like the front joint above. Paul's call —
+// he has both pan and countersunk M5/M6 screws on hand (the same
+// assortment boxes `standoff_screw_fit_test.scad` bench-tested) and
+// asked for whichever style works best. Going with COUNTERSUNK: this
+// joint's whole reason for existing right now is to get the 3 motors'
+// drive shafts precisely, repeatably centered on their couplers — a
+// countersunk screw draws itself (and the plate) into the same
+// position every time via the cone seat, with zero radial play once
+// seated. Pan head would give a little wiggle room, which is exactly
+// what's NOT wanted once the alignment is dialed in; countersunk's
+// self-centering action is the better match for "fits exactly, every
+// time", including after the joint is taken apart for maintenance.
+//
+// Pilot hole 3.7mm, not the front joint's 4.2mm M3-insert bore: that
+// 4.2mm is sized for an M3 insert OD and was only ever a stand-in bore
+// for `standoff_screw_fit_test.scad`'s bench test, not a from-scratch
+// M5 self-tap pilot. Real number instead, from ACCU/Polyfix's published
+// self-tapping pilot-hole table for soft plastic (PP/ABS/PETG, which
+// this housing prints in): M5 -> 3.7mm.
+// https://accu-components.com/us/p/128-how-to-use-self-tapping-screws
+m5_selftap_pilot_d = 3.7;  // mm, self-tap pilot into the leg (soft-plastic/PETG row)
+m5_selftap_depth   = 12;   // mm, blind hole depth — sized for ~10mm thread
+                            // engagement (2x the M5 major diameter, a
+                            // generous rule-of-thumb for thread-forming
+                            // screws in plastic — no published minimum
+                            // engagement length was found to cite here,
+                            // so treat this one number as reasoned, not
+                            // sourced, and worth a pull-out check on the
+                            // bench if the joint ever feels loose) plus
+                            // ~2mm so the screw tip doesn't bottom out
+                            // before the countersunk head seats flush.
+m5_clear_d    = 5.4;  // mm, M5 clearance through electronics_deck() (same value as standoff_screw_fit_test.scad's m5_clear_d)
+m5_csk_top_d  = 11.7; // mm, ISO 10642 M5 countersunk head dk(max) 11.2mm + ~0.5mm margin (same sourcing as standoff_screw_fit_test.scad)
+m5_csk_depth  = (m5_csk_top_d - m5_clear_d) / 2; // mm, 90-degree countersink cone depth, ~3.15mm
 
 // ---- plate outline: rounded triangle-ish blob big enough for the
 // hole cluster + bushings + a magnet ring, via hull of 3 corner circles
@@ -249,14 +315,23 @@ module motor_plate(h = 6) {
         difference() {
             linear_extrude(height = h)
                 plate_outline();
-            for (p = motor_pts)
+            for (i = [0 : 2]) {
+                p = motor_pts[i];
                 translate([p[0], p[1], 0]) {
-                    nema17_bolt_holes(depth = h + 4);
-                    translate([0, 0, -eps_c])
-                        nema17_body_clearance(h = 0.1, clearance = 1.5); // face clearance only, not a through-hole
+                    // Rotated about the motor's own shaft axis only — the
+                    // shaft clearance hole below is circular (rotation
+                    // doesn't move it) and p itself is untouched, so the
+                    // shaft stays exactly centered. See motor_rotation's
+                    // definition above for why this rotation exists.
+                    rotate([0, 0, motor_rotation[i]]) {
+                        nema17_bolt_holes(depth = h + 4);
+                        translate([0, 0, -eps_c])
+                            nema17_body_clearance(h = 0.1, clearance = 1.5); // face clearance only, not a through-hole
+                    }
                     translate([0, 0, -eps_c])
                         cylinder(d = nema17_shaft_d + 2, h = h + 2*eps_c, $fn = 24); // bare shaft clearance
                 }
+            }
             // M3 mounting holes to front_assembly()'s standoff legs, at
             // the same corner positions the legs use — clearance hole
             // through the full plate + a counterbore on this plate's
@@ -296,8 +371,9 @@ module front_standoff_legs() {
 // face at deck_leg_pts, tall enough (deck_standoff_h) to clear the
 // full NEMA17 can length before electronics_deck() begins — see the
 // deck-mounting section above and docs/housing_decisions.md v0.4.
-// Structurally identical to front_standoff_legs(), just a different
-// base plate/position/height.
+// Same leg_dia/position as before, but the fastening itself changed
+// 2026-10-03: M5 self-tap (m5_selftap_pilot_d/_depth) instead of an M3
+// heat-set insert — see that section's comment above for why.
 module deck_standoff_legs() {
     leg_h  = deck_standoff_h + eps_c;
     base_z = plate_thickness + rear_standoff + motor_plate_h - eps_c;
@@ -305,8 +381,8 @@ module deck_standoff_legs() {
         translate([p[0], p[1], base_z])
             difference() {
                 cylinder(d = leg_dia, h = leg_h, $fn = 32);
-                translate([0, 0, leg_h - insert_hole_depth])
-                    cylinder(d = insert_hole_d, h = insert_hole_depth + eps_c, $fn = 24);
+                translate([0, 0, leg_h - m5_selftap_depth])
+                    cylinder(d = m5_selftap_pilot_d, h = m5_selftap_depth + eps_c, $fn = 24);
             }
 }
 
@@ -338,15 +414,17 @@ module electronics_deck() {
         difference() {
             linear_extrude(height = deck_thickness)
                 deck_outline();
-            // M3 mounting holes to deck_standoff_legs(), clearance
-            // through the plate + a counterbore on the OUTER face (the
-            // outermost face of the whole assembly once bolted
-            // together) so screw heads sit flush and stay accessible.
+            // M5 mounting holes to deck_standoff_legs() (2026-10-03
+            // rework, see that module) — clearance through the plate +
+            // a 90-degree COUNTERSINK on the OUTER face (same face as
+            // before: the outermost face of the whole assembly once
+            // bolted together) so the countersunk screw head seats flush
+            // and self-centers the joint every time it's reassembled.
             for (p = deck_leg_pts)
                 translate([p[0], p[1], -eps_c]) {
-                    cylinder(d = m3_clear_d, h = deck_thickness + 2*eps_c, $fn = 24);
-                    translate([0, 0, deck_thickness - m3_head_depth + eps_c])
-                        cylinder(d = m3_head_d, h = m3_head_depth + eps_c, $fn = 24);
+                    cylinder(d = m5_clear_d, h = deck_thickness + 2*eps_c, $fn = 24);
+                    translate([0, 0, deck_thickness - m5_csk_depth + eps_c])
+                        cylinder(d1 = m5_clear_d, d2 = m5_csk_top_d, h = m5_csk_depth + eps_c, $fn = 48);
                 }
         }
         // 4 corner standoffs for the Mega, generic M3 self-tap posts
@@ -430,24 +508,30 @@ for (i = [0 : 2]) {
 //    motor_plate, physically collided with a motor can on the real
 //    print — the housing never modeled the NEMA17's real ~48mm body
 //    length there).
-//  - Hardware to join them: 6x M3 brass heat-set threaded inserts
-//    (4.2mm OD, ~5mm length — fits insert_hole_depth's 6mm blind bore
-//    with a little clearance — 3 for front_standoff_legs(), 3 for
-//    deck_standoff_legs()) + 6x M3x8 DIN 912 / ISO 4762 socket-head
-//    cap screws, machine-thread (not self-tapping — they thread into
-//    the brass insert, not the plastic). Press the inserts in with a
-//    soldering iron after printing, before final assembly.
-//    LENGTH MATTERS here, corrected from an earlier (wrong) M3x10/12
-//    note: a too-long screw bottoms on the leg's solid floor *before*
-//    its head seats in the counterbore, leaving the joint proud and
-//    not actually clamped. Max screw length before that happens: ~8.8mm
-//    for the front-to-rear joint (motor_plate is 6mm thick, minus the
-//    3.2mm counterbore, plus the 6mm leg bore = 2.8+6), and only ~7.8mm
-//    for the rear-to-deck joint (electronics_deck is 5mm thick: 1.8+6).
-//    M3x8 clears both with a standard ~5mm insert and doesn't bottom
-//    out on either joint. If your inserts turn out longer (6-8mm), the
-//    math above still applies — don't just size the screw to the plate
-//    + full insert length without checking it against those ceilings.
+//  - Hardware to join them — TWO DIFFERENT joints as of 2026-10-03:
+//    * front-to-rear (front_standoff_legs()): 3x M3 brass heat-set
+//      threaded inserts (4.2mm OD, ~5mm length, in insert_hole_depth's
+//      6mm blind bore) + 3x M3x8 DIN 912 / ISO 4762 socket-head cap
+//      screws, machine-thread (not self-tapping — threads into the
+//      brass insert). Press the inserts in with a soldering iron after
+//      printing, before final assembly. LENGTH MATTERS: a too-long
+//      screw bottoms on the leg's solid floor *before* its head seats
+//      in the counterbore, leaving the joint proud and not actually
+//      clamped. Max before that happens: ~8.8mm (motor_plate is 6mm
+//      thick, minus the 3.2mm counterbore, plus the 6mm leg bore =
+//      2.8+6). M3x8 clears this with a standard ~5mm insert.
+//    * rear-to-deck (deck_standoff_legs()): no insert — 3x M5 screws
+//      self-tapping directly into m5_selftap_pilot_d (3.7mm). Head
+//      style is COUNTERSUNK (see deck_standoff_legs()/electronics_deck()
+//      comments for why — self-centering > pan head's wiggle room, for
+//      a joint whose whole job is repeatable shaft alignment). Length:
+//      deck_thickness (5mm) + ~10mm thread engagement = ~15mm works
+//      without bottoming (m5_selftap_depth's 12mm pilot leaves ~2mm
+//      spare below a 10mm-engaged screw); anywhere from M5x13 to M5x16
+//      is fine — pick whichever's in Paul's on-hand assortment box
+//      closest to 15mm. Thread straight into the PETG leg by hand, same
+//      caution as every other self-tap hole in this project (power
+//      driver risks splitting the leg before you'd feel it going wrong).
 //  - Build order matters for electronics_deck: bolt it onto
 //    deck_standoff_legs() BEFORE mounting the Arduino Mega on its own
 //    4 corner posts — 2 of the 3 deck-to-leg screws land under the
@@ -468,6 +552,27 @@ for (i = [0 : 2]) {
 //  - No longer needed: the off-the-shelf flexible shaft coupler this
 //    file used to call for — replaced by the printed Oldham joint
 //    above. docs/bom.md's follow-up item for it should come off.
+//  - Motor orientation (motor_rotation, near the top of this file):
+//    each motor's bolt pattern + body relief is rotated about its own
+//    shaft axis (40/70/10 degrees) so the real NEMA17 can clears
+//    deck_standoff_legs() and its two neighboring motors — see that
+//    variable's comment for the full reasoning and how the numbers were
+//    found. This was derived from a 2D geometry sweep, not measured off
+//    Paul's bench photos, so after printing: confirm the real motor can
+//    still clears the leg and the other motors by eye/feel before
+//    buttoning the unit up, and flag it here if it doesn't quite match
+//    what the bench test showed — the idealized model's own worst case
+//    is only -1.17mm (see the comment), i.e. this is a tight fit by
+//    design, not one with comfortable margin to spare.
+//  - Bottom-plate mounting: front_plate()'s magnet ring
+//    (magnet_pocket_ring) is sized for the LIGHT front_assembly alone,
+//    not for the full assembled weight of 3 motors + electronics_deck
+//    hanging off it from inside the safe door. Paul flagged
+//    (2026-10-03) that the magnets alone likely can't hold that much
+//    weight — probably needs magnets PLUS some kind of arm/bracket that
+//    transfers load to the top of the safe. NOT designed yet — this is
+//    an open TODO, not solved by this revision. See
+//    docs/housing_decisions.md.
 //  - Bench-fit TODO before trusting dial_spacing: confirm the 36mm
 //    triangle with calipers directly on the door (see header). Also
 //    test-fit the Oldham disc in its hubs, and the leg/insert/screw
