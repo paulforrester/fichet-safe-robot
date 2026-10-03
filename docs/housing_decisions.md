@@ -6,6 +6,48 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## Real motor spec confirmed (2026-10-03): STEPPERONLINE 17HE19-2004S, cross-checked against common_mounts.scad's NEMA17 numbers
+
+Closes the open item at the end of the entry below (real motor
+measurements were the most valuable outstanding confirmation). Paul
+identified his actual motor's exact part number — STEPPERONLINE
+17HE19-2004S, bipolar/4-wire, 59Ncm/2A — and checked its manufacturer
+dimensional drawing against the real motor with calipers: "lines up."
+Product page (has the dimensional drawing under its "Dimensions" tab):
+https://www.omc-stepperonline.com/fr/e-serie-nema-17-bipolaire-59ncm-84oz-in-2a-42x48mm-4-fils-avec-1m-de-cable-et-connecteur-17he19-2004s
+
+This is a strictly better source than what `nema17_can_length`'s
+comment in `dial_unit_housing.scad` had been citing — "the well-known
+17HS19-2004S1," an inference from an eBay listing's torque/current
+class, not a confirmed match to the part actually on hand. Replaced
+that citation with the real one.
+
+Every NEMA17 figure already in `common_mounts.scad` checks out against
+the drawing: 42.3mm body (42.3MAX), bolt spacing (drawing: 31±0.2mm —
+tightened `nema17_bolt_square` from 31.04, a generic "typical" figure,
+to the drawing's own 31mm nominal, still inside its own tolerance band
+either way), 5mm shaft, 4.5mm flat, 15mm flat length, 48mm body length.
+The 22mm×2mm pilot boss from the entry below — measured by Paul with no
+vendor drawing available at the time — is also exactly on the drawing
+(Ø22 0/-0.05 × 2mm), so that recess fix is now doubly confirmed, not
+just caliper-measured. One new figure the drawing gives that wasn't
+previously named: 24±0.5mm shaft protrusion from the mounting face —
+checked against the drivetrain stack-up (`motor_plate_h` 6mm +
+`motor_hub_len` 6mm = 12mm of shaft needed past the face) and it's well
+inside the real 24mm, so no geometry change needed there, just a
+confirmation nothing was secretly tight.
+
+Net effect: no new clearance problems, and the `motor_rotation` fit
+(entry below, idealized worst-case -1.17mm, flagged repeatedly as
+having zero spare margin) now rests on a confirmed real `nema17_body`
+figure rather than a generic one — doesn't change the number, but
+removes the "what if the real motor is bigger than modeled" risk that
+number carried.
+
+Re-rendered and re-verified after retightening `nema17_bolt_square`
+(31.04mm → 31mm): clean/manifold render, trimesh confirms the same 12
+separate watertight bodies as before.
+
 ## Second motor-sled bench fit (2026-10-03): deck standoffs crowding motors, a real NEMA17 pilot boss, and the Arduino Mega's real (non-rectangular) hole pattern
 
 Paul printed `rear_assembly()` with the motor-reorientation fix below and

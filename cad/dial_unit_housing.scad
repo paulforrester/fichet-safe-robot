@@ -286,12 +286,25 @@ module plate_outline(r_pad = 0, pad_deck_legs = false) {
 // (common_mounts.scad's nema17_body_clearance() is a deliberate 0.1mm
 // face-clearance pocket, not the real depth), which is why the v0.3
 // electronics_tray (only 4mm proud of motor_plate) physically
-// collided with a motor can on the actual print. Sourced from the
-// exact part in docs/bom.md ("STEPPERONLINE 55Ncm 2A, pack of 5"),
-// listed as 42x48mm: https://www.ebay.de/itm/204638353437 — matches
-// the well-known 17HS19-2004S1 (48mm body, 0.59Nm/59Ncm class,
-// 24mm shaft protrusion), whose datasheet confirms the same 48mm:
-// https://static.maritex.eu/file/display/5sXxpHH1SP-JwnhJEZ0lhfX-xdYKZRi3/17HS19-2004S1_Full_Datasheet.pdf
+// collided with a motor can on the actual print.
+//
+// CONFIRMED 2026-10-03: Paul identified his actual motor's exact part
+// number (STEPPERONLINE 17HE19-2004S, bipolar/4-wire, 59Ncm/2A) and
+// cross-checked its manufacturer dimensional drawing against his own
+// real motor with calipers — a strictly better source than the earlier
+// "well-known 17HS19-2004S1" guess this comment used to cite (right
+// torque/current class, but not confirmed as the actual part on hand).
+// Product page (has the dimensional drawing tab):
+// https://www.omc-stepperonline.com/fr/e-serie-nema-17-bipolaire-59ncm-84oz-in-2a-42x48mm-4-fils-avec-1m-de-cable-et-connecteur-17he19-2004s
+// The drawing confirms every NEMA17 figure already in
+// common_mounts.scad (42.3MAX body, 31±0.2mm bolt spacing, 5mm shaft,
+// 4.5mm flat, 15mm flat length, 48MAX body length) plus the 22mm pilot
+// boss Paul measured separately (drawing: Ø22 0/-0.05 x 2mm — see
+// nema17_boss_d/_h in common_mounts.scad) and a 24±0.5mm shaft
+// protrusion (not currently a named constant — checked against the
+// drivetrain stack-up below: motor_plate_h (6mm) + motor_hub_len (6mm)
+// = 12mm of shaft needed past the mounting face, well inside the real
+// 24mm, so no change needed there).
 nema17_can_length = 48; // mm, motor body length behind the mounting face
 deck_clearance    = 6;  // mm, margin past the can length for connectors/wiring
 deck_standoff_h   = nema17_can_length + deck_clearance;
