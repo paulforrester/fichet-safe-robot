@@ -6,7 +6,7 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
-## Motor-sled bench fit (2026-10-03): motor reorientation, deck standoffs switched to M5 self-tap, and a flagged mounting-weight problem
+## Motor-sled bench fit (2026-10-03): motor reorientation, deck standoffs switched to M6 self-tap, and a flagged mounting-weight problem
 
 Paul printed and bench-fit `rear_assembly()` (motor plate + 3
 `deck_standoff_legs()`) with 3 real STEPPERONLINE NEMA17 motors. Two
@@ -60,23 +60,57 @@ to get 3 motor shafts precisely, repeatably centered on their couplers,
 and a countersunk screw self-centers via its cone seat with zero radial
 play once seated — pan head's looseness is exactly the wrong property
 once the alignment is dialed in, including across future
-disassembly/reassembly for maintenance. Pilot hole sized from ACCU's
-published self-tapping pilot-hole table (PP/ABS/PETG row): **M5 →
-3.7mm**, not a reuse of the 4.2mm bore `standoff_screw_fit_test.scad`
-happened to test into (that bore was sized for an M3 insert OD, not a
-from-scratch M5 pilot — https://accu-components.com/us/p/128-how-to-use-self-tapping-screws).
-Engagement depth (10mm, ~2x the M5 major diameter) is a reasoned
-rule-of-thumb, not a sourced number — no published minimum engagement
-length was found, so this is worth a pull-out check on the bench if the
-joint ever feels loose. Screw length: M5x13 to M5x16 all clear without
-bottoming (deck_thickness 5mm + up to ~11mm engagement, pilot hole 12mm
-deep) — pick whichever's on hand closest to 15mm. **Front standoffs
-(`front_standoff_legs()`, front-to-rear joint) are UNCHANGED** — still
-M3 + heat-set insert + M3x8, per the original v0.3/v0.4 design below;
-only the rear-to-deck joint moved to M5. The M3 insert/screw kits
-ordered for this project (see `docs/bom.md`) are still needed for that
-front joint plus other M3 uses (e.g. `electronics_deck()`'s Mega
-corner posts), not wasted by this change.
+disassembly/reassembly for maintenance.
+
+**Correction while writing this up**: the first pass of this entry
+picked M5 at a generic rule-of-thumb pilot size (3.7mm, from a published
+soft-plastic self-tapping table), without having read the "Standoff
+self-tap test results" entry just below — that PR (#3) merged into
+`main` while this one was still in progress, so it wasn't visible yet
+when the M5 choice was made. That entry is Paul's own real bench data,
+and it says something different: **M5 didn't work at all** (too tight
+to self-tap by hand, in either head style, at the 4.2mm bore tested),
+while **M6 at a 5.4mm pilot worked well** (both head styles, bit in
+cleanly, reusable thread). Going with the real result over the generic
+table: **switched to M6**, pilot hole **5.4mm**
+(`m6_selftap_pilot_d`), reusing `standoff_screw_fit_test.scad`'s own
+already-sourced M6 countersunk head dimensions (`m6_csk_top_d` 14.0mm —
+ISO 10642 dk(max) 13.44mm + margin) for the countersink pocket rather
+than re-deriving them.
+
+**This isn't a fully closed question, though** — flagging the same
+caveat that entry raised, because it applies here *more* strongly, not
+less: that bench test's 5.4mm hole was cut into the self-tap test's M5
+cap, which has ~6.3mm of wall around it (`cap_dia` 18mm). The real
+`deck_standoff_legs()` leg is `leg_dia` 12mm, so a 5.4mm bore there
+leaves only **~3.3mm of wall** — thinner than even the 3.9mm the
+original entry was already unsure about, let alone the 6.3mm that
+actually got tested. `leg_dia` was deliberately NOT grown to compensate
+(e.g. to 14 or 15mm for a safer wall): that would eat directly into the
+motor-clearance margin from this same revision (above), which is
+already down to about -1.17mm in the idealized model and relies on
+Paul's bench-confirmed fit at the CURRENT 12mm leg diameter — growing
+the leg would invalidate that result. So: self-tap into a thinner wall
+than anything bench-tested so far, with a bigger (M6, more torque)
+screw than what that wall has seen. Start this one BY HAND, not a power
+driver (the test entry's own suggestion for exactly this situation),
+and treat the first real leg as a crack-risk check, not a foregone
+conclusion — if it splits, the fallback is reverting this joint to M3 +
+heat-set insert like the front joint, not pushing to a bigger bore (that
+fights the motor clearance again).
+
+Engagement depth (`m6_selftap_depth`, 12mm, ~2x the M6 major diameter)
+is a reasoned rule-of-thumb, not a sourced number — no published minimum
+engagement length was found, so this is worth a pull-out check on the
+bench alongside the crack-risk check above. Screw length: M6x13 to
+M6x16 all clear without bottoming (deck_thickness 5mm + up to ~11mm
+engagement, pilot hole 12mm deep) — pick whichever's on hand closest to
+15mm. **Front standoffs (`front_standoff_legs()`, front-to-rear joint)
+are UNCHANGED** — still M3 + heat-set insert + M3x8, per the original
+v0.3/v0.4 design below; only the rear-to-deck joint moved to M6. The M3
+insert/screw kits ordered for this project (see `docs/bom.md`) are still
+needed for that front joint plus other M3 uses (e.g.
+`electronics_deck()`'s Mega corner posts), not wasted by this change.
 
 **Open problem, not solved here: bottom-plate mounting.** Paul flagged
 that `front_plate()`'s magnet ring — sized and confirmed back when this
@@ -89,6 +123,40 @@ safe" — not designed yet, and deliberately not attempted in this
 revision (no real dimensions or constraints for a top-of-safe arm exist
 yet). Logged here as a known TODO so it doesn't get lost, same as the
 `dial_spacing` bench-fit TODO already tracked below.
+
+## Standoff self-tap test results — the 4.2mm leg bore is too tight by hand; 5.4mm self-taps M6 well with a driver
+
+Paul printed `standoff_screw_fit_test.scad` and reported back:
+
+**The actual leg stubs (4.2mm/6mm bore) didn't work** — none of the
+M5/M6 screws, pan or countersunk, could cut in by hand. Too tight.
+Confirms the "today only, don't trust it" framing that test was given
+was the right call — the real fix is still the M3x8 + heat-set insert
+hardware.
+
+**Unplanned but useful result**: driving an M6 screw (both pan and
+countersunk head, with a power driver — some real torque needed to
+start the cut) into the *M5 cap's* 5.4mm clearance hole worked well —
+bit cleanly into the PLA, no cracking, and the resulting thread was
+reusable (removed and re-driven without stripping). The M6 cap's own
+6.4mm hole behaved as the plain clearance fit it was designed to be,
+as expected.
+
+**Caveat worth flagging before reusing this number on the real
+legs**: the M5 cap that worked has a lot more meat around its hole
+than the real standoff leg does — `cap_dia` 18mm around a 5.4mm hole
+is roughly 6.3mm of wall, versus the real leg's `leg_dia` 12mm around
+its bore, ~3.9mm of wall (see the self-tap test's own header). A
+power driver biting cleanly into 6.3mm of wall doesn't necessarily
+mean it's equally safe on 3.9mm — that's a real difference in crack
+risk, not just a detail. If this gets tried on the actual legs, worth
+either hand-driving it first (slower, more control) or bumping the
+real leg's bore from 4.2mm toward ~5.4mm if self-tapping M6 becomes
+the intended path rather than a one-off bench finding.
+
+**Takeaway**: 5.4mm is a good self-tap pilot diameter for M6 (pan or
+countersunk) in PLA with a driver, generously walled. Not yet
+confirmed on the real, thinner-walled leg geometry.
 
 ## Printed internal thread fit test — can a real M5/M6 screw thread directly into PLA?
 
