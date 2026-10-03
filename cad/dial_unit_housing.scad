@@ -42,6 +42,20 @@
 // full reasoning and the sizing trade-off this creates (the hub ends
 // up fairly large relative to the ~36mm hole spacing).
 //
+// SECOND ROUND of real bench-fit findings (2026-10-03, after a 3D-print
+// of the above): (1) the deck standoff legs sat close enough to the
+// motors to physically crowd 2 of the 3 — fixed by moving deck_leg_r
+// out from 28mm to 46mm (see that variable's comment) and padding
+// plate_outline() to match; (2) the real motors have a 22mm x 2mm
+// pilot/register boss around the shaft that held them proud of the
+// plate and let them tilt under the first mounting screws — fixed with
+// a matching recess in motor_plate() (see boss_recess_d/_h,
+// common_mounts.scad's nema17_boss_d/_h); (3) electronics_deck()'s Mega
+// mounting holes were a guessed symmetric rectangle, and the real Mega
+// 2560 hole pattern isn't one — fixed with the real hole coordinates
+// (see mega_hole_pts). See docs/housing_decisions.md for the full
+// writeup and sourcing on all three.
+//
 // Prints as several separate bodies (see the bottom of this file):
 // front_assembly() (front plate + 3 standoff legs), rear_assembly()
 // (motor plate + 3 taller standoff legs for the deck below), and
@@ -50,9 +64,10 @@
 // of 3 leg positions, instead of any of them being fused into the same
 // printed object. The two joints use DIFFERENT hardware as of
 // 2026-10-03: front-to-rear is still M3 screws into M3 heat-set
-// inserts; rear-to-deck switched to M5 self-tapping screws directly
-// into the leg (no insert) — see deck_standoff_legs()'s comment and
-// docs/housing_decisions.md for why. See
+// inserts; rear-to-deck switched to M6 self-tapping screws directly
+// into the leg (no insert, corrected from an initial M5 draft after
+// real bench self-tap testing — see deck_standoff_legs()'s comment)
+// — see that module's comment and docs/housing_decisions.md for why. See
 // docs/housing_decisions.md v0.3 and v0.4 for why: v0.3 split front
 // from rear because fusing them left motor_plate bridging in mid-air
 // between 3 thin pillars; v0.4 did the same for the electronics
@@ -108,28 +123,38 @@ motor_pts = ring_points(3, motor_ring_r, 90);  // same angles -> pure radial (pa
 
 // Per-motor rotation (about each motor's own shaft axis, applied to its
 // bolt pattern + body-clearance relief only — NOT to motor_pts itself,
-// so the shaft stays exactly centered). Needed because deck_leg_r (28mm,
-// below) sits almost exactly at the same radius as motor_ring_r
-// (27.7mm), just 60deg offset — a REAL bench fit-test (2026-10-03,
-// Paul) found the motor can physically fouls a deck standoff leg at the
-// default (unrotated) orientation, and that rotating each motor clears
-// it while keeping the shaft centered (no need to also shift motor_pts).
-// These three values aren't a guess: found by brute-force 2D collision
-// search (motor body modeled as the real 42.3mm nema17_body square vs.
-// each deck_leg_pts circle AND vs. the other two motors' squares, see
-// scratchpad/motor_rotation_sweep.py) over all 3 motors' rotations
-// independently, maximizing the worst-case clearance. Best found:
-// worst-case clearance -1.17mm (motor0-motor1/motor0-motor2, i.e. the
-// motors' own corners, not a leg) — still technically negative in this
-// idealized sharp-corner model, but Paul's physical PETG-printed test
-// (real NEMA17 cans, which have some corner rounding this flat-square
-// model doesn't capture) confirms it actually fits. Growing
-// motor_min_spacing to fully clear this in the idealized model was
-// considered and rejected: it directly grows oldham_offset (already
-// flagged above as "fairly large relative to the ~36mm hole spacing"),
-// which would then collide the front_plate() coupler bushings with each
-// other instead — trading one tight fit for a worse one. Trusting the
-// real bench result over the idealized model here.
+// so the shaft stays exactly centered). Originally added because
+// deck_leg_r (28mm, at the time) sat almost exactly at the same radius
+// as motor_ring_r (27.7mm), just 60deg offset — a REAL bench fit-test
+// (2026-10-03, Paul) found the motor can physically fouls a deck
+// standoff leg at the default (unrotated) orientation, and that
+// rotating each motor clears it while keeping the shaft centered (no
+// need to also shift motor_pts). These three values aren't a guess:
+// found by brute-force 2D collision search (motor body modeled as the
+// real 42.3mm nema17_body square vs. each deck_leg_pts circle AND vs.
+// the other two motors' squares, see scratchpad/motor_rotation_sweep.py)
+// over all 3 motors' rotations independently, maximizing the worst-case
+// clearance. Best found: worst-case clearance -1.17mm
+// (motor0-motor1/motor0-motor2, i.e. the motors' own corners, not a
+// leg) — still technically negative in this idealized sharp-corner
+// model, but Paul's physical PETG-printed test (real NEMA17 cans,
+// which have some corner rounding this flat-square model doesn't
+// capture) confirms it actually fits. Growing motor_min_spacing to
+// fully clear this in the idealized model was considered and rejected:
+// it directly grows oldham_offset (already flagged above as "fairly
+// large relative to the ~36mm hole spacing"), which would then collide
+// the front_plate() coupler bushings with each other instead — trading
+// one tight fit for a worse one. Trusting the real bench result over
+// the idealized model here.
+//
+// KEPT UNCHANGED in the 2026-10-03 deck_leg_r rework below (28mm -> 46mm):
+// the worst case driving this rotation was always motor-to-motor (the
+// line above), not the leg, so moving the leg doesn't retire this fix —
+// and Paul's own bench report on this same round of fixes confirms the
+// CURRENT rotated motor positions already give perfect shaft-to-dial-hole
+// alignment ("if the standoffs were not there, it would be a perfect
+// alignment"), so there's no reason to re-derive it now that the leg
+// collision it also used to clear is gone.
 motor_rotation = [40, 70, 10]; // degrees, indexed with motor_pts
 
 oldham_offset = motor_ring_r - hole_ring_r;  // mm, the parallel misalignment each coupler bridges
@@ -226,10 +251,27 @@ m6_csk_depth  = (m6_csk_top_d - m6_clear_d) / 2; // mm, 90-degree countersink co
 plate_reach = hole_ring_r + coupler_bore_clear/2 + 16; // outer radius the plate must cover
 plate_corner_pts = ring_points(3, plate_reach, 90);
 
-module plate_outline(r_pad = 0) {
+// pad_deck_legs: adds a small hull-padding circle at each deck_leg_pts
+// position (same technique deck_outline() already uses to pad around
+// its own posts), so the plate's own edge grows out to meet a standoff
+// leg sitting out near deck_leg_r rather than leaving it hanging past
+// the plain 3-corner hull. Only motor_plate() needs this (that's the
+// plate the deck legs actually grow from) — front_plate() has nothing
+// out there, so it keeps the plain 3-corner outline by default.
+// deck_leg_pad_r is sized to put just leg_edge_margin of material
+// beyond the leg's own surface, per Paul's "only 1mm from the edge"
+// (2026-10-03) — this one feature is deliberately a tight skin, not
+// the generous corner padding (14mm) used elsewhere on this outline.
+leg_edge_margin = 1; // mm, Paul's requested plate-edge-to-leg-surface margin
+deck_leg_pad_r  = leg_dia/2 + leg_edge_margin;
+
+module plate_outline(r_pad = 0, pad_deck_legs = false) {
     hull() {
         for (p = plate_corner_pts)
             translate(p) circle(r = 14 + r_pad, $fn = 48);
+        if (pad_deck_legs)
+            for (p = deck_leg_pts)
+                translate(p) circle(r = deck_leg_pad_r + r_pad, $fn = 32);
     }
 }
 
@@ -244,12 +286,25 @@ module plate_outline(r_pad = 0) {
 // (common_mounts.scad's nema17_body_clearance() is a deliberate 0.1mm
 // face-clearance pocket, not the real depth), which is why the v0.3
 // electronics_tray (only 4mm proud of motor_plate) physically
-// collided with a motor can on the actual print. Sourced from the
-// exact part in docs/bom.md ("STEPPERONLINE 55Ncm 2A, pack of 5"),
-// listed as 42x48mm: https://www.ebay.de/itm/204638353437 — matches
-// the well-known 17HS19-2004S1 (48mm body, 0.59Nm/59Ncm class,
-// 24mm shaft protrusion), whose datasheet confirms the same 48mm:
-// https://static.maritex.eu/file/display/5sXxpHH1SP-JwnhJEZ0lhfX-xdYKZRi3/17HS19-2004S1_Full_Datasheet.pdf
+// collided with a motor can on the actual print.
+//
+// CONFIRMED 2026-10-03: Paul identified his actual motor's exact part
+// number (STEPPERONLINE 17HE19-2004S, bipolar/4-wire, 59Ncm/2A) and
+// cross-checked its manufacturer dimensional drawing against his own
+// real motor with calipers — a strictly better source than the earlier
+// "well-known 17HS19-2004S1" guess this comment used to cite (right
+// torque/current class, but not confirmed as the actual part on hand).
+// Product page (has the dimensional drawing tab):
+// https://www.omc-stepperonline.com/fr/e-serie-nema-17-bipolaire-59ncm-84oz-in-2a-42x48mm-4-fils-avec-1m-de-cable-et-connecteur-17he19-2004s
+// The drawing confirms every NEMA17 figure already in
+// common_mounts.scad (42.3MAX body, 31±0.2mm bolt spacing, 5mm shaft,
+// 4.5mm flat, 15mm flat length, 48MAX body length) plus the 22mm pilot
+// boss Paul measured separately (drawing: Ø22 0/-0.05 x 2mm — see
+// nema17_boss_d/_h in common_mounts.scad) and a 24±0.5mm shaft
+// protrusion (not currently a named constant — checked against the
+// drivetrain stack-up below: motor_plate_h (6mm) + motor_hub_len (6mm)
+// = 12mm of shaft needed past the mounting face, well inside the real
+// 24mm, so no change needed there).
 nema17_can_length = 48; // mm, motor body length behind the mounting face
 deck_clearance    = 6;  // mm, margin past the can length for connectors/wiring
 deck_standoff_h   = nema17_can_length + deck_clearance;
@@ -259,7 +314,29 @@ deck_standoff_h   = nema17_can_length + deck_clearance;
 // motor_plate has no cutouts at all in these 3 directions (the bolt
 // patterns, shaft holes, and front-to-rear M3 holes all sit at the
 // motor_pts/plate_corner_pts angles), confirmed by render.
-deck_leg_r   = 28;
+//
+// deck_leg_r WAS 28mm (same angular slots, closer in) — a REAL bench
+// fit-test (2026-10-03, Paul) found that's too close: the leg body
+// crowds 2 of the 3 motors badly enough that they can't seat flush or
+// have their mounting screws reached at all, and Paul's own read on it
+// ("if the standoffs were not there, it would be a perfect alignment")
+// pins the leg itself, not the motor positions/rotation, as the actual
+// obstruction. Re-checked the leg-vs-motor geometry the same rigorous
+// way the motor_rotation fix above was found — brute-force 2D distance
+// sweep (scratchpad/deck_leg_sweep2.py) of deck_leg_r against both (a)
+// each leg's clearance to the nearest rotated motor body-clearance
+// square (42.3+1.5mm, same square motor_plate() already cuts) and (b)
+// each leg's clearance to the nearest motor's own bolt-hole center,
+// with a 5mm driver-access radius around each hole (generous room for
+// a screwdriver/hex-driver bit, not just the bare 3.4mm clearance
+// hole). At the old 28mm the body-square margin was already NEGATIVE
+// (-1.8mm — i.e. actually overlapping, not just tight), confirming
+// Paul's report. 46mm clears both with real margin to spare: worst
+// case +4.8mm leg-to-motor-body, +8.8mm leg-to-bolt-hole — chosen over
+// the next few mm up specifically to stop at "comfortable", not
+// "maximal" (every extra mm out here also grows the plate below, see
+// plate_outline()'s pad_deck_legs).
+deck_leg_r   = 46;
 deck_leg_pts = ring_points(3, deck_leg_r, 150);
 
 // ============================================================
@@ -322,11 +399,20 @@ module front_plate() {
 // mounts on the shaft in the open gap in front of this plate, it
 // doesn't need to pass through the plate itself, only the bare shaft
 // does).
+// Recess for the real motor's pilot/register boss (see
+// common_mounts.scad's nema17_boss_d/_h) — Paul's own requested sizing
+// (2026-10-03): +1mm on diameter, +0.5mm on depth past the measured
+// boss, a non-interference running clearance rather than a tight
+// register, so the boss drops fully into the pocket and the motor's
+// flat face lands on the plate instead of standing off on the boss.
+boss_recess_d = nema17_boss_d + 1;    // mm
+boss_recess_h = nema17_boss_h + 0.5;  // mm
+
 module motor_plate(h = 6) {
     translate([0, 0, plate_thickness + rear_standoff]) {
         difference() {
             linear_extrude(height = h)
-                plate_outline();
+                plate_outline(pad_deck_legs = true);
             for (i = [0 : 2]) {
                 p = motor_pts[i];
                 translate([p[0], p[1], 0]) {
@@ -340,6 +426,12 @@ module motor_plate(h = 6) {
                         translate([0, 0, -eps_c])
                             nema17_body_clearance(h = 0.1, clearance = 1.5); // face clearance only, not a through-hole
                     }
+                    // Boss recess — round, so it doesn't need motor_rotation
+                    // (concentric on the shaft either way). Cut from the
+                    // OUTER (motor-facing) face only, same shallow-pocket
+                    // style as the body clearance above, not a through-hole.
+                    translate([0, 0, h - boss_recess_h + eps_c])
+                        cylinder(d = boss_recess_d, h = boss_recess_h, $fn = 48);
                     translate([0, 0, -eps_c])
                         cylinder(d = nema17_shaft_d + 2, h = h + 2*eps_c, $fn = 24); // bare shaft clearance
                 }
@@ -409,12 +501,60 @@ module deck_standoff_legs() {
 mega_x = 101.52; mega_y = 53.3; tray_post_h = 8;
 deck_thickness = 5;
 
+// Real Arduino Mega 2560 mounting-hole pattern — REPLACES the old
+// 4-corner-inset guess (symmetric rectangle, mega_x/mega_y each inset
+// 5mm), which this file's own prior comment already flagged as "no
+// exact Mega hole pattern yet." Paul's bench fit-test (2026-10-03)
+// confirmed that guess was simply wrong: the Mega's 4 real holes are
+// NOT a symmetric rectangle at all — this is a known, long-standing
+// quirk of the Arduino Uno/Mega board family (the hole nearest the
+// power-jack/USB end is set in further than a plain rectangle would
+// put it, to clear those connectors), not a sign of a different motor
+// or model. Coordinates below are the real Eagle-PCB-file hole centers
+// for the Mega board (2560 is pin/hole-compatible with the original
+// 1280, confirmed by both sources), independently reported the same
+// way by two sources (both ultimately reading the same official Eagle
+// board file, not a photo/caliper guess):
+//   https://softsolder.com/2010/09/02/arduino-connector-hole-coordinates-mega-1280-board/
+//   https://forum.arduino.cc/t/arduino-mega-mounting-hole-dimensions/17099
+// Both give, in mil, origin at the board's lower-left corner (by the
+// power jack): (600,100) (600,2000) (3550,2000) (3800,100) — hole dia
+// 0.125in/3.175mm. Converted to mm and re-centered on the mega_x x
+// mega_y footprint's own centroid (same origin convention as every
+// other point list in this file):
+mega_hole_pts = [
+    [-35.52, -24.11],  // near the power-jack/USB end
+    [-35.52,  24.15],  // near the power-jack/USB end
+    [ 39.41,  24.15],  // near the analog-pin end — NOT aligned with either
+    [ 45.76, -24.11]   // of the two holes above: this is the real asymmetry
+];
+
+// The Mega's rotation ON the deck is otherwise free (nothing else in
+// this file ties it to a particular facing), so it's used here purely
+// to dodge a real clearance problem: at rotation 0, mega_hole_pts[2]
+// (39.41, 24.15, radius ~46.2mm from center) lands only ~1.2mm from
+// deck_leg_pts' 30deg leg (radius 46mm) — close enough that the leg's
+// own M6 countersink cut (electronics_deck(), below) undercuts that
+// Mega post's base and leaves it floating, disconnected from the deck
+// plate (caught by render + trimesh, not by eye — see
+// docs/housing_decisions.md). Found by the same brute-force sweep
+// approach as elsewhere in this file (scratchpad/mega_rotation_sweep.py):
+// swept rotation 0-359deg, maximizing the worst-case (nearest
+// hole-to-leg) clearance. 30deg isn't the mathematical best (88deg is,
+// at +24.3mm) but it clears comfortably (+20.1mm, around 2x the
+// ~10.5mm actually needed) and is a plain, easy-to-reproduce number —
+// not chosen for any cable-routing/orientation reason, which hasn't
+// been considered yet (open item, see docs/housing_decisions.md).
+mega_rotation = 30; // degrees, about the deck's own center (origin)
+mega_hole_pts_rot = [for (p = mega_hole_pts)
+    [p[0]*cos(mega_rotation) - p[1]*sin(mega_rotation),
+     p[0]*sin(mega_rotation) + p[1]*cos(mega_rotation)]];
+
 module deck_outline() {
     hull() {
-        // pad around each Mega corner-standoff position
-        for (x = [-1, 1]) for (y = [-1, 1])
-            translate([x * (mega_x/2 - 5), y * (mega_y/2 - 5)])
-                circle(r = 11, $fn = 32);
+        // pad around each real (now rotated) Mega mounting-hole position
+        for (p = mega_hole_pts_rot)
+            translate(p) circle(r = 11, $fn = 32);
         // the 3 leg-mounting positions
         for (p = deck_leg_pts)
             translate(p) circle(r = 14, $fn = 48);
@@ -440,10 +580,11 @@ module electronics_deck() {
                         cylinder(d1 = m6_clear_d, d2 = m6_csk_top_d, h = m6_csk_depth + eps_c, $fn = 48);
                 }
         }
-        // 4 corner standoffs for the Mega, generic M3 self-tap posts
-        // (no exact Mega hole pattern yet — see docs/decisions.md TODO)
-        for (x = [-1, 1]) for (y = [-1, 1])
-            translate([x * (mega_x/2 - 5), y * (mega_y/2 - 5), deck_thickness - eps_c])
+        // 4 standoffs for the Mega, at its REAL hole positions
+        // (mega_hole_pts_rot, above) — M3 self-tap posts, same pilot
+        // sizing as electronics_deck()'s other self-tap posts already used.
+        for (p = mega_hole_pts_rot)
+            translate([p[0], p[1], deck_thickness - eps_c])
                 difference() {
                     cylinder(d = 7, h = tray_post_h, $fn = 24);
                     translate([0, 0, -eps_c]) cylinder(d = 2.6, h = tray_post_h + 2*eps_c, $fn = 16); // M3 self-tap pilot
@@ -477,8 +618,19 @@ module rear_assembly() {
 // is its own disconnected body in the exported STL — use Bambu
 // Studio's "Split to Objects" to separate them for slicing/orientation,
 // same as the v0.2 file already relied on for the drivetrain parts.
-bound_r      = plate_reach + 14; // plate_outline()'s outer extent from its own center
-deck_bound_r = max(mega_x/2 - 5, mega_y/2 - 5) + 11; // deck_outline()'s outer extent from its own center
+bound_r = plate_reach + 14; // plate_outline()'s outer extent from its own center
+                            // (the deck-leg padding added to motor_plate()'s
+                            // own outline, deck_leg_r+deck_leg_pad_r ~= 53mm,
+                            // stays well inside this corner-driven figure, so
+                            // it doesn't need its own term here)
+// deck_outline()'s outer extent from its own center — real Mega hole
+// positions (mega_hole_pts) are no longer a tidy symmetric inset, so this
+// takes the actual farthest point among both feature sets rather than a
+// mega_x/mega_y formula.
+deck_bound_r = max(
+    max([for (p = mega_hole_pts_rot) norm(p)]) + 11,
+    deck_leg_r + 14
+);
 
 // front_assembly() sits at the origin (native position).
 front_assembly();
@@ -573,16 +725,29 @@ for (i = [0 : 2]) {
 //    above. docs/bom.md's follow-up item for it should come off.
 //  - Motor orientation (motor_rotation, near the top of this file):
 //    each motor's bolt pattern + body relief is rotated about its own
-//    shaft axis (40/70/10 degrees) so the real NEMA17 can clears
-//    deck_standoff_legs() and its two neighboring motors — see that
-//    variable's comment for the full reasoning and how the numbers were
-//    found. This was derived from a 2D geometry sweep, not measured off
-//    Paul's bench photos, so after printing: confirm the real motor can
-//    still clears the leg and the other motors by eye/feel before
-//    buttoning the unit up, and flag it here if it doesn't quite match
-//    what the bench test showed — the idealized model's own worst case
-//    is only -1.17mm (see the comment), i.e. this is a tight fit by
-//    design, not one with comfortable margin to spare.
+//    shaft axis (40/70/10 degrees) — originally to clear both
+//    deck_standoff_legs() AND its two neighboring motors, now (after
+//    deck_leg_r moved out to 46mm, see below) only the neighboring
+//    motors are the tight constraint. See that variable's comment for
+//    the full reasoning and how the numbers were found — the
+//    motor-to-motor worst case is only -1.17mm in the idealized sharp-
+//    corner model, i.e. this is a tight fit by design there, not one
+//    with comfortable margin to spare, even though the leg clearance
+//    itself is comfortable now. Paul's own bench report on this round
+//    of fixes confirms the rotated positions are correct (perfect
+//    shaft-to-dial-hole alignment); no need to re-run this search.
+//  - Round 2 bench-fit fixes (2026-10-03, this revision): deck_leg_r
+//    28mm -> 46mm (standoffs were crowding 2 of 3 motors — now +4.8mm
+//    worst-case clearance to the nearest motor body, +8.8mm to the
+//    nearest bolt hole, see deck_leg_r's comment); a 23mm x 2.5mm
+//    recess added to motor_plate() for the real motor's pilot boss
+//    (22mm x 2mm, measured) so motors seat flush instead of standing
+//    off and tilting under the first screws; electronics_deck()'s Mega
+//    mounting holes moved to the real (non-rectangular) Mega 2560
+//    pattern (mega_hole_pts) instead of a guessed symmetric inset.
+//    Re-render + re-check fit on all three before trusting this is the
+//    last pass — same iterate-on-clearance approach as every other fix
+//    in this file.
 //  - Bottom-plate mounting: front_plate()'s magnet ring
 //    (magnet_pocket_ring) is sized for the LIGHT front_assembly alone,
 //    not for the full assembled weight of 3 motors + electronics_deck

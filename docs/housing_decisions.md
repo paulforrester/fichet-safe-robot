@@ -6,6 +6,167 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## Real motor spec confirmed (2026-10-03): STEPPERONLINE 17HE19-2004S, cross-checked against common_mounts.scad's NEMA17 numbers
+
+Closes the open item at the end of the entry below (real motor
+measurements were the most valuable outstanding confirmation). Paul
+identified his actual motor's exact part number — STEPPERONLINE
+17HE19-2004S, bipolar/4-wire, 59Ncm/2A — and checked its manufacturer
+dimensional drawing against the real motor with calipers: "lines up."
+Product page (has the dimensional drawing under its "Dimensions" tab):
+https://www.omc-stepperonline.com/fr/e-serie-nema-17-bipolaire-59ncm-84oz-in-2a-42x48mm-4-fils-avec-1m-de-cable-et-connecteur-17he19-2004s
+
+This is a strictly better source than what `nema17_can_length`'s
+comment in `dial_unit_housing.scad` had been citing — "the well-known
+17HS19-2004S1," an inference from an eBay listing's torque/current
+class, not a confirmed match to the part actually on hand. Replaced
+that citation with the real one.
+
+Every NEMA17 figure already in `common_mounts.scad` checks out against
+the drawing: 42.3mm body (42.3MAX), bolt spacing (drawing: 31±0.2mm —
+tightened `nema17_bolt_square` from 31.04, a generic "typical" figure,
+to the drawing's own 31mm nominal, still inside its own tolerance band
+either way), 5mm shaft, 4.5mm flat, 15mm flat length, 48mm body length.
+The 22mm×2mm pilot boss from the entry below — measured by Paul with no
+vendor drawing available at the time — is also exactly on the drawing
+(Ø22 0/-0.05 × 2mm), so that recess fix is now doubly confirmed, not
+just caliper-measured. One new figure the drawing gives that wasn't
+previously named: 24±0.5mm shaft protrusion from the mounting face —
+checked against the drivetrain stack-up (`motor_plate_h` 6mm +
+`motor_hub_len` 6mm = 12mm of shaft needed past the face) and it's well
+inside the real 24mm, so no geometry change needed there, just a
+confirmation nothing was secretly tight.
+
+Net effect: no new clearance problems, and the `motor_rotation` fit
+(entry below, idealized worst-case -1.17mm, flagged repeatedly as
+having zero spare margin) now rests on a confirmed real `nema17_body`
+figure rather than a generic one — doesn't change the number, but
+removes the "what if the real motor is bigger than modeled" risk that
+number carried.
+
+Re-rendered and re-verified after retightening `nema17_bolt_square`
+(31.04mm → 31mm): clean/manifold render, trimesh confirms the same 12
+separate watertight bodies as before.
+
+## Second motor-sled bench fit (2026-10-03): deck standoffs crowding motors, a real NEMA17 pilot boss, and the Arduino Mega's real (non-rectangular) hole pattern
+
+Paul printed `rear_assembly()` with the motor-reorientation fix below and
+test-fit the real motors again, plus did a first real joint test of
+`deck_standoff_legs()` to `electronics_deck()`. Three new problems, one
+piece of good news:
+
+**Good news first**: the M6 countersunk self-tap joint from the entry
+below (switched from M5 after real bench data) worked as designed —
+"the M6 screws nicely tapped the standoff screw hole" attaching
+`electronics_deck()` to the motor sled. No crack reported on the first,
+hand-started screw (the untested-thin-wall caveat logged below), so
+that fix is holding up under its first real test — still only one data
+point, so the caution in that entry's print notes stays in place until
+more of the joints are assembled.
+
+**Problem 1 — standoffs crowding the motors.** 2 of the 3 motors
+couldn't reach their own mounting screws because a `deck_standoff_legs()`
+post was in the way, badly enough that Paul's own read on it was "if the
+standoffs were not there, it would be a perfect alignment of the motors
+to the motor holes" — i.e. the motor positions/rotation from the entry
+below are right, the legs are the problem. Re-ran the same style of
+brute-force 2D clearance sweep used for that motor rotation
+(`scratchpad/deck_leg_sweep2.py` this session), checking `deck_leg_r`
+against (a) each leg's clearance to the nearest rotated motor's
+42.3+1.5mm body-clearance square and (b) each leg's clearance to the
+nearest motor bolt-hole center, with a 5mm driver-access radius around
+each hole. At the old `deck_leg_r` (28mm) the body-square margin was
+already **-1.8mm** — genuinely overlapping, not just tight, which
+matches Paul's report of the legs physically blocking the motors rather
+than just making the screws awkward to reach. Moved `deck_leg_r` to
+**46mm**: worst case **+4.8mm** to the nearest motor body, **+8.8mm** to
+the nearest bolt hole — comfortable margin, chosen to stop there rather
+than push further out and grow the plate more than needed.
+`plate_outline()` grew a new `pad_deck_legs` option (same hull-padding
+technique `deck_outline()` already used for its own posts) so
+`motor_plate()`'s edge follows the legs out to their new position,
+sized to leave exactly 1mm of material past each leg's surface per
+Paul's own suggestion ("only 1mm from the edge") rather than the
+corner's more generous padding. `motor_rotation` itself
+(`[40, 70, 10]`) is unchanged — its binding case was always motor-to-motor,
+not a leg (see the entry below), so moving the legs doesn't retire it,
+and Paul's report above confirms the rotated positions are still
+correct.
+
+**Problem 2 — a real pilot/register boss nobody had modeled.** The real
+motor has a round boss around the shaft, raised off the mounting face —
+Paul measured it directly: **22mm diameter x 2mm tall**. Nothing in
+`common_mounts.scad`'s NEMA17 dimensions covered this (the existing
+`nema17_body_clearance()` relief is a flat 0.1mm face-touch pocket for
+the square can outline only), so the boss was holding each motor proud
+of the plate by 2mm, and tightening the first corner screw would tip it
+off-perpendicular before the others could pull it flat. Added
+`nema17_boss_d`/`nema17_boss_h` (22/2mm, measured — not a datasheet
+figure, flagged as such) to `common_mounts.scad`, and a matching recess
+in `motor_plate()` at Paul's own requested size — **23mm dia x 2.5mm
+deep** (`boss_recess_d`/`_h` = measured + 1mm dia / + 0.5mm depth, a
+non-interference running clearance, not a tight register).
+
+**Problem 3 — the Arduino Mega's hole pattern was never real.**
+`electronics_deck()`'s 4 corner posts were always a guessed symmetric
+rectangle (`mega_x`/`mega_y`, each inset 5mm) — flagged as a guess in
+the file's own comment since it was written, never sourced. Paul's
+question ("perhaps the specs you were going from are for a different
+model?") had the right instinct but not quite the right diagnosis: it's
+the right model, the Mega's real mounting-hole pattern is just
+genuinely **not a rectangle** — a known quirk of the Arduino Uno/Mega
+board family (the hole nearest the power-jack/USB end sits in further
+than a plain rectangle would put it, to clear those connectors).
+Sourced the real hole centers from the Eagle PCB layout, independently
+reported the same way by two write-ups (both reading the same official
+board file, not a photo/caliper guess):
+- https://softsolder.com/2010/09/02/arduino-connector-hole-coordinates-mega-1280-board/
+- https://forum.arduino.cc/t/arduino-mega-mounting-hole-dimensions/17099
+
+Both give (600,100) (600,2000) (3550,2000) (3800,100) mil from the
+board's lower-left corner (by the power jack) — the Mega 2560 is
+pin/hole-compatible with the 1280 these describe, per both sources.
+Converted to mm and re-centered on the board footprint's own centroid
+as `mega_hole_pts` in `dial_unit_housing.scad`. Fitting these in also
+surfaced a second clearance problem: at the Mega's natural (unrotated)
+placement, one of its real holes landed only ~1.2mm from a deck leg —
+close enough that the leg's own M6 countersink cut undercut that post
+and left it floating, disconnected from the deck plate (caught by the
+render + trimesh check below, not visible by eye in the CAD). Fixed by
+rotating the Mega's hole pattern 30° about the deck's center
+(`mega_rotation`, found the same brute-force way, see that variable's
+comment) — not the mathematical optimum, just a plain number with a
+comfortable ~20mm margin, about 2x what's actually needed. **Open
+item**: this rotation was picked purely to clear the standoff legs, not
+for any cable-routing/connector-access reason — not yet checked against
+how the USB/power/shield headers will actually face once the RAMPS
+stack and wiring are in.
+
+**Verification**: re-rendered `dial_unit_housing.scad` after all three
+fixes (`openscad`, clean/manifold, no warnings) and re-ran the project's
+usual trimesh watertightness check — 12 separate bodies, all watertight
+(`front_assembly`, `rear_assembly`, `electronics_deck`, plus 3 complete
+sets of `dial_coupler`/`oldham_motor_hub`/`oldham_disc`), matching what
+should be printed. The first render after the Mega-hole fix (before the
+30° rotation) came back with 13 bodies — one non-watertight-adjacent
+floating piece — which is exactly how the leg/post collision above was
+actually caught, not by inspection.
+
+**On Paul's question** (does he need to take more measurements/photos
+of the motors or the Mega): the Mega fix above didn't need new photos —
+it's a standardized part with a sourceable, citable hole pattern, now
+fixed from that source rather than a guess. The motors are a different
+story: `common_mounts.scad`'s `nema17_body` (42.3mm) and
+`nema17_bolt_square` (31.04mm) are still generic NEMA17 datasheet
+figures, not measured off Paul's actual motors, and Paul's own earlier
+comment ("it may be that the motors I received have a slightly different
+size spec") is a real possibility worth closing out — especially since
+`motor_rotation`'s -1.17mm idealized worst-case (above) has zero spare
+margin to absorb a real motor running larger than spec. A caliper
+measurement of the actual bolt-hole spacing and body width on one real
+motor would be the most valuable single confirmation outstanding right
+now.
+
 ## Motor-sled bench fit (2026-10-03): motor reorientation, deck standoffs switched to M6 self-tap, and a flagged mounting-weight problem
 
 Paul printed and bench-fit `rear_assembly()` (motor plate + 3

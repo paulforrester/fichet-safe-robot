@@ -12,15 +12,44 @@
 
 eps_c = 0.1; // generic small overlap, same role as `eps` in tube_socket_test_key.scad
 
-// ---- NEMA17 — standard part dimensions, not measured off anything.
-// Matches the STEPPERONLINE 55Ncm/2A motors in docs/bom.md, and NEMA17
-// is a standardized mounting footprint across vendors regardless.
-nema17_body        = 42.3;   // mm, square motor face (for clearance, not a tight fit)
-nema17_bolt_square = 31.04;  // mm, bolt-hole center spacing (square pattern)
-nema17_bolt_clear  = 3.4;    // mm, M3 clearance hole
-nema17_shaft_d     = 5.0;    // mm, shaft diameter
-nema17_shaft_flat  = 4.5;    // mm, across-the-flat dimension (D-shaft), typical
-nema17_flat_len    = 15;     // mm, length of the flat back from the shaft tip
+// ---- NEMA17 — dimensions below were generic/standard-part figures
+// until 2026-10-03, when Paul identified his actual motor's exact part
+// (STEPPERONLINE 17HE19-2004S, bipolar/4-wire, 59Ncm/2A) and
+// cross-checked its manufacturer dimensional drawing against the real
+// motor with calipers — "lines up." Product page (dimensional drawing
+// under its "Dimensions" tab):
+// https://www.omc-stepperonline.com/fr/e-serie-nema-17-bipolaire-59ncm-84oz-in-2a-42x48mm-4-fils-avec-1m-de-cable-et-connecteur-17he19-2004s
+// Every figure below is now a confirmed match to that drawing, not just
+// a generic NEMA17 assumption (NEMA17 is a standardized footprint
+// across vendors regardless, but it's better to know this one's
+// actually on spec than to rely on that alone):
+nema17_body        = 42.3;  // mm, square motor face — drawing: 42.3MAX
+nema17_bolt_square = 31;    // mm, bolt-hole center spacing — drawing: 31+/-0.2mm
+                             // (was 31.04, a generic "typical" figure;
+                             // tightened to the drawing's own nominal,
+                             // still well inside its tolerance band)
+nema17_bolt_clear  = 3.4;   // mm, M3 clearance hole — drawing calls the
+                             // motor's own holes "4-M3 DEPTH 4.5MIN"
+                             // (tapped into the can, not a clearance
+                             // hole — 3.4mm is this file's own M3
+                             // clearance choice for the printed plate)
+nema17_shaft_d     = 5.0;   // mm, shaft diameter — drawing: dia5 0/-0.012
+nema17_shaft_flat  = 4.5;   // mm, across-the-flat dimension (D-shaft) — drawing: 4.5+/-0.1
+nema17_flat_len    = 15;    // mm, length of the flat back from the shaft tip — drawing: 15+/-0.25
+
+// Pilot/register boss: a shallow round step raised around the shaft on
+// the motor's mounting face — NOT in any of the generic NEMA17 numbers
+// above, and nema17_body_clearance() below only relieves the square can
+// outline (a flat 0.1mm face-touch pocket), so it does nothing for this
+// round boss. Real finding (bench fit test, 2026-10-03, Paul): the boss
+// holds the motor's face proud of the plate by its own height, so the 4
+// mounting screws draw down unevenly and tip the motor off-perpendicular
+// before it seats. Originally MEASURED directly off the real part (no
+// vendor drawing was found for it at the time); now doubly confirmed —
+// the dimensional drawing cited above shows the same boss at dia22
+// 0/-0.05 x 2mm, matching Paul's caliper reading exactly:
+nema17_boss_d = 22;  // mm, measured + drawing-confirmed
+nema17_boss_h = 2;   // mm, measured + drawing-confirmed
 
 // 4-hole M3 bolt pattern, centered on the origin, in the XY plane.
 module nema17_bolt_holes(depth = 20) {
