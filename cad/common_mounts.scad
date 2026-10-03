@@ -22,6 +22,19 @@ nema17_shaft_d     = 5.0;    // mm, shaft diameter
 nema17_shaft_flat  = 4.5;    // mm, across-the-flat dimension (D-shaft), typical
 nema17_flat_len    = 15;     // mm, length of the flat back from the shaft tip
 
+// Pilot/register boss: a shallow round step raised around the shaft on
+// the motor's mounting face, present on the real STEPPERONLINE motors
+// Paul has on hand but NOT in any of the generic NEMA17 numbers above —
+// nema17_body_clearance() below only relieves the square can outline,
+// a flat 0.1mm face-touch pocket, so it does nothing for this round
+// boss. Real finding (bench fit test, 2026-10-03, Paul): the boss holds
+// the motor's face proud of the plate by its own height, so the 4
+// mounting screws draw down unevenly and tip the motor off-perpendicular
+// before it seats — not a generic NEMA17 spec, MEASURED directly off
+// the real part (no vendor drawing for this exact unit shows it):
+nema17_boss_d = 22;  // mm, measured
+nema17_boss_h = 2;   // mm, measured
+
 // 4-hole M3 bolt pattern, centered on the origin, in the XY plane.
 module nema17_bolt_holes(depth = 20) {
     for (x = [-1, 1]) for (y = [-1, 1])
