@@ -66,8 +66,20 @@
 // plain 150mm-diameter circle rather than sharing motor_plate()'s
 // triangular outline. Both addressed together: front_plate_outline()
 // is now that circle, and joint_pts moved to a newly-swept position
-// (61mm radius, 54deg) clear of every motor/leg/boss on the plate — see
+// (61mm radius, 54deg; re-keyed asymmetric on 2026-10-04, see the FOURTH
+// ROUND paragraph below) clear of every motor/leg/boss on the plate — see
 // joint_pts' own comment, below, for the sweep and the margin it found.
+//
+// FOURTH ROUND (2026-10-04, Paul's feedback on the above): (1) the
+// front-to-rear joint is now M6 COUNTERSUNK self-tap screws (same hardware
+// as the deck joint) instead of M3 + heat-set insert, for repeatable
+// self-centering alignment; (2) joint_pts is no longer 120deg-symmetric, so
+// the motor sled can only be bolted on ONE way — the same motor always
+// lands over the same dial coupler; (3) front_plate() gets an arrow-shaped
+// pointer tab on its rim (toward dial 1, +Y) so the dialer assembly can
+// always be oriented the same way on the safe door; (4) the door-facing
+// face is now packed with as many 8mm magnet pockets as fit
+// (magnet_pts) instead of a ring of 6. See docs/housing_decisions.md.
 //
 // Prints as several separate bodies (see the bottom of this file):
 // front_assembly() (front plate + 3 standoff legs), rear_assembly()
@@ -75,11 +87,12 @@
 // electronics_deck() (Mega/RAMPS mounting plate) — three SEPARATE
 // printed parts that bolt together after printing, at 2 different sets
 // of 3 leg positions, instead of any of them being fused into the same
-// printed object. The two joints use DIFFERENT hardware as of
-// 2026-10-03: front-to-rear is still M3 screws into M3 heat-set
-// inserts; rear-to-deck switched to M6 self-tapping screws directly
-// into the leg (no insert, corrected from an initial M5 draft after
-// real bench self-tap testing — see deck_standoff_legs()'s comment)
+// printed object. Both joints now use the SAME hardware (as of
+// 2026-10-04): M6 countersunk screws self-tapping directly into the leg
+// (no insert; the front-to-rear joint used to be M3 + heat-set insert,
+// the rear-to-deck joint switched to M6 on 2026-10-03, corrected from an
+// initial M5 draft after real bench self-tap testing — see
+// deck_standoff_legs()'s comment)
 // — see that module's comment and docs/housing_decisions.md for why. See
 // docs/housing_decisions.md v0.3 and v0.4 for why: v0.3 split front
 // from rear because fusing them left motor_plate bridging in mid-air
@@ -196,23 +209,23 @@ neck_len = plate_thickness + 2;
 // face, and the neck starts counting from the plate's FRONT face).
 rear_standoff = (neck_len + dial_hub_len + oldham_gap + motor_hub_len) - plate_thickness;
 
-// ---- front/rear mounting: M3 screws into heat-set inserts ----
+// ---- standoff leg size (shared by both joints) ----
 // Joins front_assembly()'s standoff legs to rear_assembly()'s motor
 // plate — replaces the v0.2 printed pillars/bridge that fused both
 // plates into one object with an unsupported span. See
 // docs/housing_decisions.md v0.3.
+// (The front-to-rear joint's hardware used to be M3 screws into M3
+// heat-set inserts — insert_hole_d/_depth and m3_clear_d/m3_head_d/
+// m3_head_depth lived here — retired 2026-10-04 in favor of the same M6
+// countersunk self-tap joint as the deck, see m6_* below.)
 leg_dia           = 12;   // mm, standoff leg / boss diameter (was 10mm
-                           // as a plain pillar; a bit more meat now that
-                           // it carries a heat-set insert)
-insert_hole_d     = 4.2;  // mm, brass M3 heat-set insert OD (typical)
-insert_hole_depth = 6;    // mm, blind hole depth in the leg, opens on
-                           // the leg's top (mating) face
-m3_clear_d        = 3.4;  // mm, M3 clearance hole through the motor plate
-m3_head_d         = 6.2;  // mm, socket-cap-head counterbore diameter
-m3_head_depth     = 3.2;  // mm, counterbore depth (screw head sits flush)
+                           // as a plain pillar, then 12mm to carry a
+                           // heat-set insert; now sized around the M6
+                           // self-tap pilot below)
 
-// ---- rear/deck mounting hardware, 2026-10-03 rework: self-tap, NOT
-// M3 + heat-set insert like the front joint above. Paul's call on head
+// ---- joint hardware (BOTH joints as of 2026-10-04; started as the
+// rear/deck joint's hardware on 2026-10-03): self-tap, NOT M3 +
+// heat-set insert. Paul's call on head
 // style — he has both pan and countersunk M5/M6 screws on hand (the
 // same assortment boxes `standoff_screw_fit_test.scad` bench-tested)
 // and asked for whichever works best. Going with COUNTERSUNK: this
@@ -243,7 +256,15 @@ m3_head_depth     = 3.2;  // mm, counterbore depth (screw head sits flush)
 // Start this self-tap BY HAND, not a power driver, and treat the first
 // real leg as a crack-risk check, not a sure thing — see
 // docs/housing_decisions.md for the full reasoning and the fallback
-// (revert to M3 + heat-set insert here too) if it splits.
+// (M3 + heat-set insert — see git history for the old front joint) if it
+// splits.
+//
+// UPDATE 2026-10-04: Paul's bench report on the printed deck legs —
+// "the electronics sled fits on top using the m6 cs-screws" — is the
+// first real evidence the 12mm leg handles this self-tap without
+// splitting, which is why the front joint was moved onto it too (those
+// 3 legs are the same 12mm diameter). Still 3.3mm of wall, still worth
+// threading the first front-joint screw in by hand.
 m6_selftap_pilot_d = 5.4;  // mm, self-tap pilot into the leg — bench-confirmed size (see above), not a table lookup
 m6_selftap_depth   = 12;   // mm, blind hole depth — sized for ~10mm thread
                             // engagement (2x the M6 major diameter, a
@@ -271,18 +292,73 @@ m6_csk_depth  = (m6_csk_top_d - m6_clear_d) / 2; // mm, 90-degree countersink co
 front_plate_dia = 150; // mm, Paul's requested diameter
 front_plate_r   = front_plate_dia / 2;
 
+// Orientation pointer (2026-10-04, Paul: "a key or arrow on the base
+// plate so that we can always orient the dialer assembly correctly when
+// attaching it to the door"). A plain flat arrowhead-shaped tab sticking
+// out of the rim at +Y (the direction of hole_pts[0], i.e. dial 1) —
+// part of the outline itself, so it's visible from both faces, prints in
+// the same layers as the plate (no supports, no raised feature to
+// interfere with the door-facing face or the magnets), and doesn't need a
+// font. The back face's free space is only ~6-10mm wide between the
+// motor plate's outline and the rim (checked in shapely), too small for
+// a legible engraved/raised arrow there, which is why this is a rim tab
+// and not a drawn arrow. Whether +Y is actually "up" on the real safe
+// door hasn't been confirmed — hole_pts' own start angle (90deg, apex up)
+// is the only basis, so check the arrow against the door before the first
+// mount and re-aim it (pointer_angle) if the door's triangle is rotated.
+pointer_len   = 10;  // mm, how far the tip sticks out past the rim
+pointer_w     = 16;  // mm, width of the arrowhead's base (inside the rim)
+pointer_angle = 90;  // degrees, direction it points (90 = +Y = toward dial 1)
+
 module front_plate_outline() {
     circle(r = front_plate_r, $fn = 96);
+    rotate([0, 0, pointer_angle - 90])
+        polygon([[-pointer_w/2, front_plate_r - 5],
+                 [ pointer_w/2, front_plate_r - 5],
+                 [0, front_plate_r + pointer_len]]);
 }
+
+// ---- magnet pocket field (2026-10-04, Paul: "as many magnet pockets as
+// feasible" on the door-facing face, to experiment with mixes of screws
+// and see whether magnets alone can keep the robot on the door). A
+// hexagonal lattice, pocket centers magnet_pitch apart (pocket diameter
+// + magnet_wall of plastic between neighbors), clipped to stay
+// magnet_rim_wall inside the rim and magnet_wall clear of each coupler
+// bushing bore (coupler_bore_clear). Lattice rotation 0 / offset (5, 3)
+// weren't picked by eye: brute-force searched rotation (0-60deg) and
+// offset over the unit cell for the highest count
+// (scratchpad/magnet_pack.py) — 135 pockets, vs 136 from a greedy
+// per-pocket fill that needs a hardcoded point list; one pocket isn't
+// worth that, so the parametric lattice stays.
+// magnet_wall 2mm: a plain judgment call, NOT a bench-tested number — the
+// pocket is an interference (press-fit) fit, which stresses the wall
+// between neighbors, and 2mm is 5 perimeters at 0.4mm. If a wall cracks
+// while pressing magnets in, raise this (every +1mm costs roughly 15-20
+// pockets) — it's the one knob that trades pocket count for wall strength.
+magnet_wall      = 2;    // mm, plastic between neighboring pockets / bores
+magnet_rim_wall  = 2.5;  // mm, plastic between a pocket and the plate edge
+magnet_pitch     = magnet_pocket_d + magnet_wall;
+magnet_offset    = [5, 3]; // mm, lattice origin offset (searched, see above)
+
+function magnet_ok(p) =
+    norm(p) <= front_plate_r - magnet_rim_wall - magnet_pocket_d/2
+    && min([for (h = hole_pts) norm(p - h)])
+           >= coupler_bore_clear/2 + magnet_wall + magnet_pocket_d/2;
+
+magnet_pts = [for (i = [-12 : 12]) for (j = [-12 : 12])
+    let(p = [(i + j/2) * magnet_pitch + magnet_offset[0],
+             j * magnet_pitch * sqrt(3)/2 + magnet_offset[1]])
+    if (magnet_ok(p)) p];
+echo(magnet_pocket_count = len(magnet_pts));
 
 // ---- motor_plate() outline: still a rounded triangle-ish blob (NOT a
 // circle — only front_plate() changed, above), hull of 3 corner circles
 // at joint_pts.
 //
-// joint_pts carries the front-to-rear M3+heat-set-insert joint
-// (front_standoff_legs() grows from front_plate() here; motor_plate()
-// gets the matching clearance+counterbore here) — this used to be
-// plate_corner_pts, fixed at the same angles as the motors themselves
+// joint_pts carries the front-to-rear joint (front_standoff_legs() grows
+// from front_plate() here; motor_plate() gets the matching M6 countersunk
+// clearance hole here) — this used to be plate_corner_pts, fixed at the
+// same angles as the motors themselves
 // (ring_points(3, plate_reach, 90), radius ~51.46mm). A REAL bench
 // finding (2026-10-03, Paul, after re-printing with every fix through
 // this point): "there are no standoff holes to attach the dialer base
@@ -295,23 +371,36 @@ module front_plate_outline() {
 // motor positions when that fix landed, because at the time nothing
 // else had moved into its way yet.
 //
-// Paul also asked that front_plate() become the 150mm circle above —
-// freeing this joint from needing to double as that plate's own outline
-// corners meant it could move to wherever actually clears the motors,
-// not just somewhere on the old triangle. Found by the same brute-force
-// 2D sweep approach as every other clearance fix in this file
-// (scratchpad/joint_pts_sweep.py): swept radius (capped at 61mm, so the
-// joint's own 14mm corner-circle pad stays inside front_plate_r's 75mm
-// with no bump needed) and start_angle together, maximizing the
-// worst-case clearance against all 3 rotated motor-body squares, all 3
-// boss recesses, and all 3 deck-leg pads. Best within that radius cap:
-// 61mm at 54deg, worst-case clearance +5.5mm (motor0's body) — a
-// genuinely comfortable margin, not a bare-minimum one, and clear of
-// every motor/leg/boss angle on the plate (all 6 of those already sit
-// every 60deg around the ring; 54/174/294 split the difference).
-joint_r           = 61;  // mm
-joint_start_angle = 54;  // degrees
-joint_pts = ring_points(3, joint_r, joint_start_angle);
+// That fix (2026-10-03) moved the joint to a symmetric 61mm / 54deg ring
+// (scratchpad/joint_pts_sweep.py). 2026-10-04 revision, Paul's request:
+// the motor sled has to bolt on in exactly ONE orientation, so "the same
+// motor is always aligned with the same dialer" — a 120deg-symmetric
+// joint pattern fits in 3 orientations (each of which still lines the
+// shafts up with the couplers, just with the motors swapped between
+// dials: a silent wrong-assembly, not an obvious one). Breaking the
+// symmetry makes the screw holes themselves the key: try the wrong
+// orientation and at least one leg is 14.6mm away from any hole.
+// Found by the same brute-force approach as every clearance fix in this
+// file (scratchpad/joint_keyed_sweep.py): simulated-annealing-style
+// search over each joint's own radius and angle (not forced equal),
+// maximizing worst-case clearance subject to (a) the M6 countersink's
+// 7mm radius + 3mm driver access clear of every rotated motor-body square
+// (they sit on this same face), (b) countersink + 1.5mm wall clear of
+// every boss recess and deck-leg footprint, (c) leg + 3mm inside the
+// 150mm front circle, (d) joints >= 85mm apart (alignment accuracy:
+// spread-out cones locate the plate better than clustered ones), and
+// (e) the keying mismatch (Hausdorff distance between the pattern and
+// itself rotated +/-120deg) >= 10mm. Result, rounded to plain numbers:
+// all three at 60mm radius (the search landed on this on its own: it's
+// where the leg-to-front-circle-edge margin, 75 - 3 - 6 - r = 6mm here,
+// balances against the motor/boss/deck-leg margins), at 62 / 172 / 288
+// degrees. Worst-case clearance +5.92mm
+// (against the criteria above, which include the 3mm driver-access
+// margin — the bare collision margin is bigger), keying mismatch
+// 14.6mm. Angular gaps 110 / 116 / 134deg — deliberately uneven.
+joint_r      = 60;                // mm, all three
+joint_angles = [62, 172, 288];    // degrees, one per joint
+joint_pts = [for (a = joint_angles) [joint_r * cos(a), joint_r * sin(a)]];
 
 // pad_deck_legs: adds a small hull-padding circle at each deck_leg_pts
 // position (same technique deck_outline() already uses to pad around
@@ -373,11 +462,11 @@ module motor_plate_outline(r_pad = 0, pad_deck_legs = false) {
     }
 }
 
-// ---- rear/deck mounting: second M3 + heat-set-insert tier ----
+// ---- rear/deck mounting: second tier (M6 countersunk self-tap, same as the front joint) ----
 // electronics_deck() bolts onto motor_plate() the same way
 // front_assembly bolts to it (deck_standoff_legs() grows from
 // motor_plate; electronics_deck() gets the matching clearance +
-// counterbore holes) — see docs/housing_decisions.md v0.4.
+// countersunk holes) — see docs/housing_decisions.md v0.4.
 //
 // Real STEPPERONLINE 55Ncm/2A NEMA17 body length (the "L" dimension,
 // motor can only, not the shaft) — this was NEVER modeled before
@@ -411,9 +500,9 @@ deck_standoff_h   = nema17_can_length + deck_clearance;
 // 90; this uses 150) so these legs land in the gaps BETWEEN motors —
 // motor_plate has no cutouts at all in these 3 directions (the bolt
 // patterns and shaft holes sit at the motor_pts angles), confirmed by
-// render. (The front-to-rear M3 joint used to sit at these same motor
-// angles too, at plate_corner_pts — since moved to joint_pts/54deg
-// start angle for an unrelated reason, see that variable's comment.)
+// render. (The front-to-rear joint used to sit at these same motor
+// angles too, at plate_corner_pts — since moved to joint_pts for an
+// unrelated reason, see that variable's comment.)
 //
 // deck_leg_r WAS 28mm (same angular slots, closer in) — a REAL bench
 // fit-test (2026-10-03, Paul) found that's too close: the leg body
@@ -485,9 +574,11 @@ module front_plate() {
         for (p = hole_pts)
             translate([p[0], p[1], -eps_c])
                 cylinder(d = coupler_bore_clear, h = plate_thickness + 2*eps_c, $fn = 64);
-        // magnet ring around the outside, on the door-facing (z=0) side
-        translate([0, 0, 0])
-            magnet_pocket_ring(6, front_plate_r - 6);
+        // magnet pocket field on the door-facing (z=0) side — see
+        // magnet_pts above (replaces the old 6-pocket ring)
+        for (p = magnet_pts)
+            translate([p[0], p[1], -eps_c])
+                magnet_pocket();
     }
 }
 
@@ -535,18 +626,22 @@ module motor_plate(h = 6) {
                         cylinder(d = nema17_shaft_d + 2, h = h + 2*eps_c, $fn = 24); // bare shaft clearance
                 }
             }
-            // M3 mounting holes to front_assembly()'s standoff legs, at
-            // the same joint_pts positions the legs use — clearance hole
-            // through the full plate + a counterbore on this plate's
-            // OUTER face (h-side, away from front_plate) so a socket-cap
-            // screw head sits flush. This is the accessible face once
-            // assembled (the back of the whole unit), so screws thread
-            // in from here toward the legs below.
+            // M6 countersunk mounting holes to front_assembly()'s
+            // standoff legs, at the same joint_pts positions the legs
+            // use (2026-10-04: was M3 + counterbore into a heat-set
+            // insert). Clearance through the full plate + a 90-degree
+            // COUNTERSINK on this plate's OUTER face (h-side, away from
+            // front_plate) — same cone as electronics_deck()'s, same
+            // reason: the cone seat self-centers every screw, so the
+            // plate lands in the same place every time it's bolted on.
+            // The outer face is the accessible one once assembled (the
+            // back of the whole unit), so screws thread in from here
+            // toward the legs below.
             for (p = joint_pts)
                 translate([p[0], p[1], -eps_c]) {
-                    cylinder(d = m3_clear_d, h = h + 2*eps_c, $fn = 24);
-                    translate([0, 0, h - m3_head_depth + eps_c])
-                        cylinder(d = m3_head_d, h = m3_head_depth + eps_c, $fn = 24);
+                    cylinder(d = m6_clear_d, h = h + 2*eps_c, $fn = 24);
+                    translate([0, 0, h - m6_csk_depth + eps_c])
+                        cylinder(d1 = m6_clear_d, d2 = m6_csk_top_d, h = m6_csk_depth + eps_c, $fn = 48);
                 }
         }
     }
@@ -555,10 +650,13 @@ module motor_plate(h = 6) {
 // 3 standoff legs growing straight up from front_plate at joint_pts
 // (originally the old (v0.2) support_pillars' corner positions, since
 // moved — see joint_pts' comment) — a plate with posts on it is fully
-// self-supporting, no bridging involved. Each leg carries a blind bore
-// for an M3 heat-set insert, opening on its top (mating) face, so a
-// screw driven in from motor_plate()'s outer face can draw the two
-// assemblies together. See docs/housing_decisions.md v0.3.
+// self-supporting, no bridging involved. Each leg carries a blind M6
+// self-tap pilot (m6_selftap_pilot_d / m6_selftap_depth — the same bore
+// deck_standoff_legs() uses), opening on its top (mating) face, so a
+// countersunk screw driven in from motor_plate()'s outer face can draw
+// the two assemblies together. (Was an M3 heat-set-insert bore until
+// 2026-10-04.) See docs/housing_decisions.md v0.3 and the 2026-10-04
+// entry.
 motor_plate_h = 6;
 module front_standoff_legs() {
     leg_h = rear_standoff + eps_c; // overlaps into the plate, like the old pillars did
@@ -566,8 +664,8 @@ module front_standoff_legs() {
         translate([p[0], p[1], plate_thickness - eps_c])
             difference() {
                 cylinder(d = leg_dia, h = leg_h, $fn = 32);
-                translate([0, 0, leg_h - insert_hole_depth])
-                    cylinder(d = insert_hole_d, h = insert_hole_depth + eps_c, $fn = 24);
+                translate([0, 0, leg_h - m6_selftap_depth])
+                    cylinder(d = m6_selftap_pilot_d, h = m6_selftap_depth + eps_c, $fn = 24);
             }
 }
 
@@ -650,11 +748,72 @@ mega_hole_pts_rot = [for (p = mega_hole_pts)
     [p[0]*cos(mega_rotation) - p[1]*sin(mega_rotation),
      p[0]*sin(mega_rotation) + p[1]*cos(mega_rotation)]];
 
+// ---- Arduino Mega "base plate" mounting (2026-10-04, Paul's request):
+// instead of 4 standoff posts + the board screwed straight to them (the
+// screw heads hit the board's connectors), screw the Mega's own clear
+// plastic base plate to the deck with M3 self-tap screws and let the board
+// sit on the base as shipped. mega_base_mount selects the style:
+//   true  = base-plate version (this section; holes only, no posts)
+//   false = the previous 4-post version (mega_hole_pts_rot, unchanged)
+// DEFAULT IS THE PREVIOUS 4-POST VERSION (false) until the measured hole
+// positions below are bench-checked against the real base plate — see
+// cad/mega_base_fit_test.scad, a small coupon for exactly that. Flip to
+// true once the coupon fits.
+//
+// WHERE THE HOLES COME FROM — NOT a manufacturer drawing (none exists
+// that could be found: SparkFun's own forum says "we don't have a drawing
+// for the plastic base", and nothing else turned up — see
+// docs/housing_decisions.md). Measured from Paul's straight-on photo of
+// the real part with a mm ruler alongside (2026-10-04): hole centers
+// picked in the 2048x1536 photo, then mapped to the Mega board's own
+// coordinate frame by a rotation+scale fit through the 6 base-plate holes
+// whose real positions are published (the 4 PCB holes, (600,100) (600,2000)
+// (3550,2000) (3800,100) mil — same Eagle-file numbers as mega_hole_pts
+// above — plus the 2 Uno-compatible holes at (66.04, 7.62) and
+// (66.04, 35.56)mm). That fit is a self-check: it comes out at 16.78 px/mm
+// (the ruler's own tick spacing gives 17.02 — a 1.4% disagreement, probably
+// the plate's raised features sitting at a different height from the
+// ruler's top face) and the 6 reference holes land within 0.52mm max,
+// 0.38mm RMS of their published positions, so treat every position below
+// as good to about +/-0.4mm, NOT caliper-grade. The clear plastic made the
+// hole edges hard to pick precisely; that's the main error source.
+// Which holes: the 4 below are the base's surface-mounting holes, not its
+// PCB-attach holes — two plain 3.1mm holes inside U-shaped rims, mid-plate,
+// and two ringed holes on the end flange just past the board's
+// jack/USB end. (Mounting-purpose is inferred from their position and
+// style — the plain U-rim holes carry no PCB hole's published position,
+// and the Arduino forum calls the base's surface-mount holes M3 — not
+// from a drawing.) Coordinates are in this file's deck frame (same origin
+// and axes as mega_hole_pts: board frame minus (50.76, 26.65)), then
+// rotated by mega_rotation exactly like the Mega holes are.
+mega_base_mount = false;
+mega_base_hole_pts = [
+    [   5.6, -19.3],  // U-rim hole, mid-plate  (board frame 56.4,  7.4)
+    [   5.4,  18.7],  // U-rim hole, mid-plate  (board frame 56.2, 45.4)
+    [ -56.3, -25.0],  // end-flange hole        (board frame -5.5,  1.6)
+    [ -56.1,  24.0]   // end-flange hole        (board frame -5.3, 50.7)
+];
+mega_base_hole_pts_rot = [for (p = mega_base_hole_pts)
+    [p[0]*cos(mega_rotation) - p[1]*sin(mega_rotation),
+     p[0]*sin(mega_rotation) + p[1]*cos(mega_rotation)]];
+// M3 self-tap pilot: reuse common_mounts.scad's set_screw_pilot_d (2.6mm,
+// "the right size for an M3 screw to cut/form its own threads directly in
+// printed PETG", already used for the old Mega posts) — through the whole
+// deck (not blind) so M3x6 to ~M3x10 all work; a screw tip poking a
+// couple of mm out the underside lands in the 6mm clearance above the
+// motor cans, not on anything.
+mega_base_pilot_d = set_screw_pilot_d;
+
 module deck_outline() {
     hull() {
         // pad around each real (now rotated) Mega mounting-hole position
         for (p = mega_hole_pts_rot)
             translate(p) circle(r = 11, $fn = 32);
+        // base-plate mode: also pad around the 4 base-plate screw holes
+        // (the two end-flange ones sit just outside the plain Mega-hole hull)
+        if (mega_base_mount)
+            for (p = mega_base_hole_pts_rot)
+                translate(p) circle(r = 7.5, $fn = 32);
         // the 3 leg-mounting positions
         for (p = deck_leg_pts)
             translate(p) circle(r = 14, $fn = 48);
@@ -679,16 +838,25 @@ module electronics_deck() {
                     translate([0, 0, deck_thickness - m6_csk_depth + eps_c])
                         cylinder(d1 = m6_clear_d, d2 = m6_csk_top_d, h = m6_csk_depth + eps_c, $fn = 48);
                 }
+            // base-plate mode: M3 self-tap pilot holes for the Mega base
+            // plate, straight through the deck (see mega_base_pilot_d)
+            if (mega_base_mount)
+                for (p = mega_base_hole_pts_rot)
+                    translate([p[0], p[1], -eps_c])
+                        cylinder(d = mega_base_pilot_d, h = deck_thickness + 2*eps_c, $fn = 24);
         }
-        // 4 standoffs for the Mega, at its REAL hole positions
-        // (mega_hole_pts_rot, above) — M3 self-tap posts, same pilot
-        // sizing as electronics_deck()'s other self-tap posts already used.
-        for (p = mega_hole_pts_rot)
-            translate([p[0], p[1], deck_thickness - eps_c])
-                difference() {
-                    cylinder(d = 7, h = tray_post_h, $fn = 24);
-                    translate([0, 0, -eps_c]) cylinder(d = 2.6, h = tray_post_h + 2*eps_c, $fn = 16); // M3 self-tap pilot
-                }
+        // Mega mounting, one of two styles (see mega_base_mount, above):
+        if (!mega_base_mount) {
+            // 4 standoffs for the Mega, at its REAL hole positions
+            // (mega_hole_pts_rot, above) — M3 self-tap posts, same pilot
+            // sizing as electronics_deck()'s other self-tap posts already used.
+            for (p = mega_hole_pts_rot)
+                translate([p[0], p[1], deck_thickness - eps_c])
+                    difference() {
+                        cylinder(d = 7, h = tray_post_h, $fn = 24);
+                        translate([0, 0, -eps_c]) cylinder(d = 2.6, h = tray_post_h + 2*eps_c, $fn = 16); // M3 self-tap pilot
+                    }
+        }
     }
 }
 
@@ -705,7 +873,7 @@ module front_assembly() {
 // Rear: motor plate + 3 taller standoff legs for the electronics deck
 // below. Self-supporting on its own (flat plate + posts, same idea as
 // front_assembly) — print with motor_plate's mating face (the one
-// with the front-to-rear M3 counterbores) down.
+// with the front-to-rear M6 countersinks) down.
 module rear_assembly() {
     union() {
         motor_plate(h = motor_plate_h);
@@ -731,6 +899,8 @@ module rear_assembly() {
 // (joint_r was capped there on purpose), so this works out to 75mm
 // today, but it's left as a real max() rather than a restated number
 // so it can't quietly go stale if any of these change.
+// (front_plate()'s pointer tab sticks out pointer_len further along +Y
+// only — not counted here, since the layout below spaces parts along X.)
 bound_r = max(front_plate_r, joint_r + 14, deck_leg_r + deck_leg_pad_r, motor_ring_r + motor_pad_r);
 // deck_outline()'s outer extent from its own center — real Mega hole
 // positions (mega_hole_pts) are no longer a tidy symmetric inset, so this
@@ -738,7 +908,8 @@ bound_r = max(front_plate_r, joint_r + 14, deck_leg_r + deck_leg_pad_r, motor_ri
 // mega_x/mega_y formula.
 deck_bound_r = max(
     max([for (p = mega_hole_pts_rot) norm(p)]) + 11,
-    deck_leg_r + 14
+    deck_leg_r + 14,
+    mega_base_mount ? max([for (p = mega_base_hole_pts_rot) norm(p)]) + 7.5 : 0
 );
 
 // front_assembly() sits at the origin (native position).
@@ -772,8 +943,8 @@ for (i = [0 : 2]) {
 //    (split to objects, see above) — each is self-supporting in its
 //    natural orientation: front_assembly face-down on its door-facing
 //    face (as v0.2 was), rear_assembly face-down on motor_plate's
-//    mating (front-to-rear-counterbored) face, electronics_deck
-//    face-down on its mating (deck-leg-counterbored) face. None should
+//    mating (front-to-rear-countersunk) face, electronics_deck
+//    face-down on its mating (deck-leg-countersunk) face. None should
 //    need support material for the plate/leg/deck geometry itself. See
 //    docs/housing_decisions.md v0.3 for why front/rear were split
 //    (fusing them left motor_plate bridging unsupported between 3 thin
@@ -782,36 +953,39 @@ for (i = [0 : 2]) {
 //    motor_plate, physically collided with a motor can on the real
 //    print — the housing never modeled the NEMA17's real ~48mm body
 //    length there).
-//  - Hardware to join them — TWO DIFFERENT joints as of 2026-10-03:
-//    * front-to-rear (front_standoff_legs()): 3x M3 brass heat-set
-//      threaded inserts (4.2mm OD, ~5mm length, in insert_hole_depth's
-//      6mm blind bore) + 3x M3x8 DIN 912 / ISO 4762 socket-head cap
-//      screws, machine-thread (not self-tapping — threads into the
-//      brass insert). Press the inserts in with a soldering iron after
-//      printing, before final assembly. LENGTH MATTERS: a too-long
-//      screw bottoms on the leg's solid floor *before* its head seats
-//      in the counterbore, leaving the joint proud and not actually
-//      clamped. Max before that happens: ~8.8mm (motor_plate is 6mm
-//      thick, minus the 3.2mm counterbore, plus the 6mm leg bore =
-//      2.8+6). M3x8 clears this with a standard ~5mm insert.
-//    * rear-to-deck (deck_standoff_legs()): no insert — 3x M6 screws
-//      self-tapping directly into m6_selftap_pilot_d (5.4mm — Paul's own
-//      bench-confirmed size, see docs/housing_decisions.md, NOT a
-//      generic table value). Head style is COUNTERSUNK (see
-//      deck_standoff_legs()/electronics_deck() comments for why —
-//      self-centering > pan head's wiggle room, for a joint whose whole
-//      job is repeatable shaft alignment). Length: deck_thickness (5mm)
-//      + ~10mm thread engagement = ~15mm works without bottoming
-//      (m6_selftap_depth's 12mm pilot leaves ~2mm spare below a
-//      10mm-engaged screw); anywhere from M6x13 to M6x16 is fine — pick
-//      whichever's in Paul's on-hand assortment box closest to 15mm.
-//      UNTESTED AT THIS WALL THICKNESS (~3.3mm around the 5.4mm bore in
-//      the 12mm leg — the bench test that validated 5.4mm used a much
-//      thicker-walled cap, see docs/housing_decisions.md): thread the
-//      FIRST one in BY HAND, not a power driver, and check for cracking
-//      before trusting the rest. If it splits, fall back to M3 +
-//      heat-set insert here too rather than growing leg_dia (which
-//      would eat into the motor-clearance margin above).
+//  - Hardware to join them — as of 2026-10-04 BOTH joints are the same:
+//    6x M6 countersunk screws (3 front-to-rear through motor_plate() into
+//    front_standoff_legs(); 3 rear-to-deck through electronics_deck()
+//    into deck_standoff_legs()), each self-tapping directly into
+//    m6_selftap_pilot_d (5.4mm — Paul's own bench-confirmed size, see
+//    docs/housing_decisions.md, NOT a generic table value). Head style is
+//    COUNTERSUNK (see the m6_* comment block above for why —
+//    self-centering > pan head's wiggle room, for joints whose whole job
+//    is repeatable alignment). No inserts anywhere (the front joint's M3
+//    heat-set inserts + M3x8 screws were retired 2026-10-04).
+//    Length: plate thickness + ~10mm thread engagement works without
+//    bottoming (m6_selftap_depth's 12mm pilot leaves ~2mm spare below a
+//    10mm-engaged screw) — deck joint: 5mm deck_thickness + 10 = ~15mm;
+//    front joint: 6mm motor_plate_h + 10 = ~16mm; anywhere from about
+//    M6x13 to M6x18 is fine at either (max before the front joint
+//    bottoms: 6 + 12 = 18mm) — pick whichever's in Paul's on-hand
+//    assortment box closest to 15-16mm.
+//    The FRONT-TO-REAR joint is also the motor sled's orientation key:
+//    joint_pts is deliberately not 120deg-symmetric, so the sled only
+//    bolts on one way and motor N always lands over dial N. If a screw
+//    won't line up with its leg, the sled is on the wrong way round —
+//    don't force it.
+//    UNTESTED AT THIS WALL THICKNESS for the FRONT legs specifically
+//    (~3.3mm around the 5.4mm bore in the 12mm leg) — though the deck
+//    legs, same dimensions, took the same screws fine on Paul's
+//    2026-10-03 print. Thread the FIRST front screw in BY HAND, not a
+//    power driver, and check for cracking before trusting the rest. If
+//    it splits, fall back to M3 + heat-set insert (git history has the
+//    old front joint) rather than growing leg_dia (which would eat into
+//    the motor-clearance margin above).
+//  - Orienting the dialer assembly on the door: front_plate()'s pointer
+//    tab (pointer_angle, +Y = toward dial 1) is the "up" mark. Confirm
+//    which way is actually up on the real door before the first mount.
 //  - Build order matters for electronics_deck: bolt it onto
 //    deck_standoff_legs() BEFORE mounting the Arduino Mega on its own
 //    4 corner posts — 2 of the 3 deck-to-leg screws land under the
@@ -857,18 +1031,21 @@ for (i = [0 : 2]) {
 //    Re-render + re-check fit on all three before trusting this is the
 //    last pass — same iterate-on-clearance approach as every other fix
 //    in this file.
-//  - Bottom-plate mounting: front_plate()'s magnet ring
-//    (magnet_pocket_ring) is sized for the LIGHT front_assembly alone,
-//    not for the full assembled weight of 3 motors + electronics_deck
-//    hanging off it from inside the safe door. Paul flagged
-//    (2026-10-03) that the magnets alone likely can't hold that much
-//    weight — probably needs magnets PLUS some kind of arm/bracket that
-//    transfers load to the top of the safe. NOT designed yet — this is
-//    an open TODO, not solved by this revision. See
+//  - Bottom-plate mounting: front_plate()'s magnet field (magnet_pts,
+//    135 pockets as of 2026-10-04 — Paul wants to experiment with
+//    mixes of screws and magnets to see how much the magnets alone can
+//    hold) is NOT necessarily enough for the full assembled weight of
+//    3 motors + electronics_deck hanging off it from inside the safe
+//    door. Paul flagged (2026-10-03) that the magnets alone likely can't
+//    hold that much weight — probably needs magnets PLUS some kind of
+//    arm/bracket that transfers load to the top of the safe. NOT
+//    designed yet; the pocket field exists so the magnet/screw mix can
+//    be tested on the bench. 135 pockets is more magnets than the ~100
+//    on hand (docs/bom.md) — leave some pockets empty or buy more. See
 //    docs/housing_decisions.md.
 //  - Bench-fit TODO before trusting dial_spacing: confirm the 36mm
 //    triangle with calipers directly on the door (see header). Also
-//    test-fit the Oldham disc in its hubs, and the leg/insert/screw
+//    test-fit the Oldham disc in its hubs, and the leg/screw
 //    fit joining the two assemblies, before committing to a full
 //    print — same iterate-on-clearance approach already used for the
 //    spline key (docs/decisions.md).
