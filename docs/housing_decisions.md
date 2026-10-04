@@ -6,6 +6,167 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## Fourth round (2026-10-04): countersunk keyed joint, pointer tab, magnet field, and a Mega base-plate mount
+
+Paul's feedback after the previous round was merged (PR #6):
+
+1. Use countersunk screws for the base-plate-to-motor-sled mount "to
+   ensure accurate alignment every time", make the sled fit so "the
+   same motor is always aligned with the same dialer", and add a key or
+   arrow on the base plate so the dialer assembly can always be oriented
+   the same way on the safe door.
+2. Check for a drawing of the plastic base that ships with the Arduino
+   Mega 2560, and try an electronics sled with no standoffs: the base
+   plate screwed to the sled with M3 self-tap screws.
+3. Fill the base plate's door-facing face with as many magnet pockets as
+   feasible, to experiment with screw/magnet mixes.
+
+**1a. Joint hardware: M6 countersunk self-tap, same as the deck.** The
+front-to-rear joint was M3 screws into heat-set inserts. It's now 3 M6
+countersunk screws through `motor_plate()` (90-degree countersink on the
+outer face, `m6_csk_*`) into the same 5.4mm M6 self-tap pilot the deck
+legs use (`front_standoff_legs()`). Same reasoning as the deck joint
+(logged in the 2026-10-03 entries): the cone seat self-centers each
+screw, so the sled lands in the same place every time. The 12mm legs
+leave ~3.3mm of wall around the pilot, the case flagged as untested on
+2026-10-03. Paul's report that the electronics sled "fits on top using
+the m6 cs-screws" is the first real evidence that the deck legs (same
+dimensions) are fine, which is why it's safe to reuse here. Still:
+thread the first front screw in by hand. Screw length ~15-16mm (6mm plate
++ ~10mm engagement; the 12mm pilot bottoms a screw longer than ~18mm).
+The M3 inserts and M3x8 screws are no longer used here (BOM updated).
+
+**1b. Keying: the joint pattern is deliberately not symmetric.** With
+the old 61mm/54-degree ring (120-degree symmetric), the motor sled bolted
+on in three different rotations. Each of those still lines the shafts up
+with the couplers, just with the motors swapped between dials, so a wrong
+assembly would look right and quietly mix up the motors. Searched
+(`scratchpad/joint_keyed_sweep.py`, same brute-force approach as every
+other clearance fix) over each joint's own radius and angle, maximizing
+worst-case clearance subject to: M6 countersink (7mm radius) + 3mm
+driver access clear of all 3 rotated motor-body squares (motors sit on
+this same face); countersink + 1.5mm wall clear of the boss recesses and
+deck-leg footprints; leg + 3mm inside the 150mm circle; joints >= 85mm
+apart (spread-out cones locate the plate better); and a keying mismatch
+(Hausdorff distance between the pattern and itself rotated +/-120
+degrees) >= 10mm. Result: all three at 60mm radius, at **62 / 172 / 288
+degrees** (gaps 110/116/134). Rechecked with the exact rounded numbers:
+**keying mismatch 14.6mm** (in a wrong orientation at least one leg is
+14.6mm from every hole, so a screw can't start), and bare clearances from
+each countersink's edge of **8.6mm** (nearest deck leg), **8.9mm**
+(nearest motor body), **19mm** (boss recess), 9mm from each leg to the
+front rim. The earlier regression lesson applies and was checked: the
+motor-plate outline still contains all 12 motor bolt holes by construction
+(`motor_pad_r`, independent of `joint_pts`), and the render shows all
+three countersinks as separate, clean holes (checked by slicing the
+rendered mesh, not just by eye).
+
+Limits worth knowing: this keys *rotation*, not mirror-flipping, but the
+sled can't be flipped (the countersinks are on one face only). It also
+doesn't add a separate locating pin; the three cones do the locating.
+
+**1c. Orientation pointer.** `front_plate()` gets an arrowhead-shaped tab
+on the rim at +Y (toward dial 1, `pointer_angle`): 16mm wide, sticking out
+10mm past the rim (`pointer_len`, `pointer_w`). A tab, not a drawn arrow,
+because the back face's free space (between the motor sled's outline and
+the rim) is only ~6-10mm wide, measured in shapely, too small for a
+legible arrow. The tab is flat, part of the outline, so it needs no
+supports, doesn't interfere with the door-facing magnets, and is visible
+from both faces. **Open question:** which way is "up" on the real safe
+door hasn't been confirmed. `hole_pts` (apex up) is the only basis for
++Y. Check it against the door and change `pointer_angle` if needed. If
+the 10mm sticking out is in the way of anything on the door, shorten
+`pointer_len`.
+
+**3. Magnet pocket field.** Replaced the old ring of 6 pockets with a
+hexagonal lattice of the same 8.00 x 1.9mm press-fit pockets, clipped to
+2.5mm inside the rim and 2mm clear of each coupler bore, 2mm of plastic
+between neighbors (`magnet_wall`). Lattice rotation and offset were
+brute-force searched for the highest count (`scratchpad/magnet_pack.py`):
+**135 pockets** (a hardcoded greedy fill reaches 136, not worth the hand-
+placed list). The render and a slice of the rendered mesh both confirm
+135 pockets, 3 bores, and a minimum wall of 2.00mm between pockets (2.8mm
+to the bores and the rim). Two caveats: **magnet_wall = 2mm is a judgment
+call, not bench-tested**. The pockets are interference fits, which stress
+the wall between neighbors, and if one cracks while pressing magnets in,
+raise `magnet_wall` (each +1mm costs roughly 15-20 pockets). And **135 is
+more than the ~100 magnets on hand** (BOM updated): leave some pockets
+empty or buy more. Paul's earlier point still stands: magnets alone may
+not hold the full assembled weight; this field is for testing the mix.
+
+**2. Arduino Mega base plate: no drawing exists, so the hole positions
+were measured from Paul's photo; the standoff-free sled is built but
+OFF by default until a bench check.** Searched for a drawing or hole
+pattern for the plastic base shipped with the Mega 2560 and found none:
+- SparkFun's community forum, asked directly, says they have no drawing
+  for the plastic base and only gives its overall size, 114mm x 57.5mm:
+  https://community.sparkfun.com/t/arduino-mega-plastic-frame-dimensions/36844
+- Arduino forum thread on mounting to the base: no dimensions; says the
+  base's own holes are M3 size but its PCB-attach holes leave too little
+  clearance for screw heads, which matches Paul's own bench finding
+  (screw heads hitting connectors):
+  https://forum.arduino.cc/t/mounting-arduino-to-base/1018321
+- A vendor listing for the base (reference M-ARD-BASEMEGA) and two
+  community-made 3D-printed Mega stands on Thingiverse: none give hole
+  coordinates, and the Thingiverse ones are the designers' own bases, not
+  copies of the official part:
+  https://store.mectronica.it/en/arduino-accessories/1766-transparent-perforated-plastic-base-for-original-mega-2560-card.html
+
+So Paul photographed the real base straight-on with a mm ruler alongside.
+Method: calibrated the scale from the ruler's ticks (17.02 px/mm), picked
+all 10 hole centers in the 2048x1536 photo, then mapped photo pixels to
+the Mega board's own coordinate frame with a rotation+scale fit through
+the 6 base-plate holes whose real positions are published: the 4 PCB
+holes (same Eagle-file numbers already used for `mega_hole_pts`) and the
+2 Uno-compatible holes at (66.04, 7.62) / (66.04, 35.56)mm. The fit
+doubles as a self-check, and it passed: the photo matches the board's
+published hole pattern (including its mirror-image chirality, which also
+fixes which way the base sits relative to the board), all 6 reference
+holes land within **0.52mm max / 0.38mm RMS** of their published
+positions, and two of them (the Uno holes) weren't used to pick the
+orientation. Honest limits: the fitted scale (16.78 px/mm) disagrees with
+the ruler's (17.02) by 1.4%, probably because the plate's raised features
+sit at a different height than the ruler's top face; hole edges in clear
+plastic are hard to pick; so every position below is good to about
+**+/-0.4mm, not caliper-grade**.
+
+Which holes: besides the 6 PCB/Uno-pattern holes, the base has 4 more:
+two plain ~3.1mm holes inside U-shaped rims at board-frame (56.4, 7.4) and
+(56.2, 45.4)mm, and two ringed holes on the end flange just past the
+board's jack/USB end at (-5.5, 1.6) and (-5.3, 50.7)mm. These are taken to
+be the base's surface-mounting holes (inferred from their position,
+style and size, and from the Arduino forum calling the base's mounting
+holes M3, not from a drawing).
+
+Implementation (`mega_base_mount` in `dial_unit_housing.scad`): when true,
+`electronics_deck()` drops the 4 Mega posts and gets 4 straight-through
+M3 self-tap pilot holes (2.6mm, the same PETG thread-forming size already
+used for the old posts, `set_screw_pilot_d`) at those 4 positions, rotated
+by `mega_rotation` like everything else on the deck; `deck_outline()`
+grows pads around them (the two flange holes sit outside the old hull, so
+the deck gets ~1350mm2 bigger, 8900 -> 10250). Checked in shapely: the new
+holes are 7.5mm+ inside the new edge and 26mm+ from any deck-leg
+countersink. Rendered both ways: 12 watertight bodies each. **The default
+is still the old 4-post version** (`mega_base_mount = false`), because a
+0.4mm error against a 3.1mm hole holding a 3.0mm screw will bind. To
+check before spending a deck print, `cad/mega_base_fit_test.scad` is a
+4mm coupon with just those 4 holes (same orientation as the deck, notch
+on the flange end): lay the real base on it and drive 4 M3 screws by hand.
+Whichever holes bind, and by how much and in which direction, tells me
+what to correct. Then flip `mega_base_mount` to true.
+
+Screw length: M3x6 to ~M3x8 (base plate is a few mm thick, deck is 5mm,
+holes go all the way through, a tip poking out the bottom lands in the
+6mm clearance above the motor cans). The base plate's thickness wasn't
+measured, so that range is an estimate, not a spec.
+
+**Verification:** re-rendered clean (`Simple: yes`); trimesh confirms 12
+separate watertight bodies (default and `mega_base_mount = true`); the
+rendered mesh was sliced to confirm the
+magnet field and the three countersinks directly (above); previews of the
+door-facing face (magnet field, pointer) and the motor sled's outer face
+(countersinks) were rendered and viewed.
+
 ## Motor bolt holes exposed at the plate edge (2026-10-03): a regression in the previous entry's joint relocation, caught by Paul before printing
 
 A regression in the very next entry below, caught by Paul from looking
