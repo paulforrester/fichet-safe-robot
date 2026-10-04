@@ -81,6 +81,13 @@
 // face is now packed with as many 8mm magnet pockets as fit
 // (magnet_pts) instead of a ring of 6. See docs/housing_decisions.md.
 //
+// FIFTH ROUND (2026-10-04, later the same day): Paul bench-checked the
+// motor sled ("the motor fit ... is good") and the Mega base-plate coupon
+// (fits "as placed", 3 of 4 screws go in). electronics_deck() now ONLY
+// mounts the Mega via its own base plate (4 M3 self-tap pilot holes,
+// mega_base_hole_pts); the 4 standoff posts and the mega_base_mount
+// switch are gone. Nothing else changed.
+//
 // Prints as several separate bodies (see the bottom of this file):
 // front_assembly() (front plate + 3 standoff legs), rear_assembly()
 // (motor plate + 3 taller standoff legs for the deck below), and
@@ -696,7 +703,7 @@ module deck_standoff_legs() {
 // replaces) and bolted onto deck_standoff_legs() via M3 screws driven
 // in from this plate's outer face, so it's held clear of every motor
 // can by deck_standoff_h rather than cantilevered past just one of them.
-mega_x = 101.52; mega_y = 53.3; tray_post_h = 8;
+mega_x = 101.52; mega_y = 53.3;
 deck_thickness = 5;
 
 // Real Arduino Mega 2560 mounting-hole pattern — REPLACES the old
@@ -719,7 +726,11 @@ deck_thickness = 5;
 // power jack): (600,100) (600,2000) (3550,2000) (3800,100) — hole dia
 // 0.125in/3.175mm. Converted to mm and re-centered on the mega_x x
 // mega_y footprint's own centroid (same origin convention as every
-// other point list in this file):
+// other point list in this file).
+// (2026-10-04: these 4 are no longer drilled or posted — the board is now
+// held by its own base plate, see mega_base_hole_pts below — they only
+// size the deck outline now, so the deck still extends under the board's
+// own mounting corners.)
 mega_hole_pts = [
     [-35.52, -24.11],  // near the power-jack/USB end
     [-35.52,  24.15],  // near the power-jack/USB end
@@ -743,22 +754,26 @@ mega_hole_pts = [
 // ~10.5mm actually needed) and is a plain, easy-to-reproduce number —
 // not chosen for any cable-routing/orientation reason, which hasn't
 // been considered yet (open item, see docs/housing_decisions.md).
+// 2026-10-04: the Mega posts that undercut is about are gone (base-plate
+// mounting), so the clearance reason is moot — but 30deg stays: the base-
+// plate screw holes below were bench-fit-checked at exactly this rotation
+// and nothing else wants it changed.
 mega_rotation = 30; // degrees, about the deck's own center (origin)
 mega_hole_pts_rot = [for (p = mega_hole_pts)
     [p[0]*cos(mega_rotation) - p[1]*sin(mega_rotation),
      p[0]*sin(mega_rotation) + p[1]*cos(mega_rotation)]];
 
 // ---- Arduino Mega "base plate" mounting (2026-10-04, Paul's request):
-// instead of 4 standoff posts + the board screwed straight to them (the
-// screw heads hit the board's connectors), screw the Mega's own clear
-// plastic base plate to the deck with M3 self-tap screws and let the board
-// sit on the base as shipped. mega_base_mount selects the style:
-//   true  = base-plate version (this section; holes only, no posts)
-//   false = the previous 4-post version (mega_hole_pts_rot, unchanged)
-// DEFAULT IS THE PREVIOUS 4-POST VERSION (false) until the measured hole
-// positions below are bench-checked against the real base plate — see
-// cad/mega_base_fit_test.scad, a small coupon for exactly that. Flip to
-// true once the coupon fits.
+// the Mega's own clear plastic base plate is screwed to the deck with M3
+// self-tap screws, and the board sits on that base as shipped. This
+// REPLACES the earlier 4 standoff posts + board-screwed-straight-to-posts
+// scheme (the screw heads hit the board's connectors), which is gone from
+// electronics_deck() now — see git history / docs/housing_decisions.md.
+// Status: the hole positions were bench-checked on 2026-10-04 with
+// cad/mega_base_fit_test.scad (a 4-hole coupon): Paul reports the real
+// base plate "fits on the screws as placed", though only 3 of the 4 screws
+// would go in (not said which) — 3 is enough to hold it, so all 4 holes
+// stay as they are, and the one that binds is a free spare.
 //
 // WHERE THE HOLES COME FROM — NOT a manufacturer drawing (none exists
 // that could be found: SparkFun's own forum says "we don't have a drawing
@@ -786,7 +801,6 @@ mega_hole_pts_rot = [for (p = mega_hole_pts)
 // from a drawing.) Coordinates are in this file's deck frame (same origin
 // and axes as mega_hole_pts: board frame minus (50.76, 26.65)), then
 // rotated by mega_rotation exactly like the Mega holes are.
-mega_base_mount = false;
 mega_base_hole_pts = [
     [   5.6, -19.3],  // U-rim hole, mid-plate  (board frame 56.4,  7.4)
     [   5.4,  18.7],  // U-rim hole, mid-plate  (board frame 56.2, 45.4)
@@ -809,11 +823,10 @@ module deck_outline() {
         // pad around each real (now rotated) Mega mounting-hole position
         for (p = mega_hole_pts_rot)
             translate(p) circle(r = 11, $fn = 32);
-        // base-plate mode: also pad around the 4 base-plate screw holes
-        // (the two end-flange ones sit just outside the plain Mega-hole hull)
-        if (mega_base_mount)
-            for (p = mega_base_hole_pts_rot)
-                translate(p) circle(r = 7.5, $fn = 32);
+        // pad around the 4 base-plate screw holes (the two end-flange ones
+        // sit just outside the plain Mega-hole hull)
+        for (p = mega_base_hole_pts_rot)
+            translate(p) circle(r = 7.5, $fn = 32);
         // the 3 leg-mounting positions
         for (p = deck_leg_pts)
             translate(p) circle(r = 14, $fn = 48);
@@ -838,24 +851,11 @@ module electronics_deck() {
                     translate([0, 0, deck_thickness - m6_csk_depth + eps_c])
                         cylinder(d1 = m6_clear_d, d2 = m6_csk_top_d, h = m6_csk_depth + eps_c, $fn = 48);
                 }
-            // base-plate mode: M3 self-tap pilot holes for the Mega base
-            // plate, straight through the deck (see mega_base_pilot_d)
-            if (mega_base_mount)
-                for (p = mega_base_hole_pts_rot)
-                    translate([p[0], p[1], -eps_c])
-                        cylinder(d = mega_base_pilot_d, h = deck_thickness + 2*eps_c, $fn = 24);
-        }
-        // Mega mounting, one of two styles (see mega_base_mount, above):
-        if (!mega_base_mount) {
-            // 4 standoffs for the Mega, at its REAL hole positions
-            // (mega_hole_pts_rot, above) — M3 self-tap posts, same pilot
-            // sizing as electronics_deck()'s other self-tap posts already used.
-            for (p = mega_hole_pts_rot)
-                translate([p[0], p[1], deck_thickness - eps_c])
-                    difference() {
-                        cylinder(d = 7, h = tray_post_h, $fn = 24);
-                        translate([0, 0, -eps_c]) cylinder(d = 2.6, h = tray_post_h + 2*eps_c, $fn = 16); // M3 self-tap pilot
-                    }
+            // M3 self-tap pilot holes for the Mega base plate, straight
+            // through the deck (see mega_base_pilot_d)
+            for (p = mega_base_hole_pts_rot)
+                translate([p[0], p[1], -eps_c])
+                    cylinder(d = mega_base_pilot_d, h = deck_thickness + 2*eps_c, $fn = 24);
         }
     }
 }
@@ -909,7 +909,7 @@ bound_r = max(front_plate_r, joint_r + 14, deck_leg_r + deck_leg_pad_r, motor_ri
 deck_bound_r = max(
     max([for (p = mega_hole_pts_rot) norm(p)]) + 11,
     deck_leg_r + 14,
-    mega_base_mount ? max([for (p = mega_base_hole_pts_rot) norm(p)]) + 7.5 : 0
+    max([for (p = mega_base_hole_pts_rot) norm(p)]) + 7.5
 );
 
 // front_assembly() sits at the origin (native position).
@@ -986,13 +986,14 @@ for (i = [0 : 2]) {
 //  - Orienting the dialer assembly on the door: front_plate()'s pointer
 //    tab (pointer_angle, +Y = toward dial 1) is the "up" mark. Confirm
 //    which way is actually up on the real door before the first mount.
-//  - Build order matters for electronics_deck: bolt it onto
-//    deck_standoff_legs() BEFORE mounting the Arduino Mega on its own
-//    4 corner posts — 2 of the 3 deck-to-leg screws land under the
-//    Mega's footprint once it's installed (same accessible-outer-face
-//    logic as the front-to-rear screws, just one Mega-sized board now
-//    sitting on top of them). If those screws ever need to come out
-//    again, remove the Mega (its own 4 screws) first.
+//  - Build order for electronics_deck: bolt it onto
+//    deck_standoff_legs() BEFORE screwing the Mega's base plate onto it —
+//    2 of the 3 deck-to-leg M6 screws land under the base plate's
+//    footprint (their countersunk heads are flush, so the base plate
+//    lies flat over them, but they can't be reached once it's on). If
+//    those screws ever need to come out again, unscrew the base plate
+//    (its own 3-4 M3 screws) first. The Mega board itself just sits on
+//    its base plate, held by the base's own board screws.
 //  - Couplers + Oldham hubs (dial_coupler, oldham_motor_hub): print in
 //    PETG-CF per docs/decisions.md's wear-mitigation decision (Bambu
 //    Lab order already covers this filament + the tungsten-carbide

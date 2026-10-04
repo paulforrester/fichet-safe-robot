@@ -3,7 +3,7 @@
 // the 4 M3 self-tap hole positions in dial_unit_housing.scad's
 // mega_base_hole_pts against the REAL clear plastic base plate that ships
 // with the Arduino Mega 2560, BEFORE printing the whole electronics deck
-// with mega_base_mount = true.
+// with the base-plate mount (now the only Mega mounting).
 //
 // Why a coupon: those 4 positions were not read off a drawing (none was
 // found) — they were measured from a photo of the real base with a ruler
