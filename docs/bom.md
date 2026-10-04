@@ -129,9 +129,9 @@ unmeasured load, so the plan is to bench-test once hardware arrives and
 only revisit if that headroom genuinely isn't enough — at which point
 gearing, not a different motor class, is the likely fix.
 
-## Added 2026-10-04: Mega base-plate mount (optional, `mega_base_mount`)
+## Added 2026-10-04: Mega base-plate mount
 
 | Item | Qty | Cost | Status | Notes |
 |---|---|---|---|---|
-| M3 screws, ~6-8mm, self-tapping into PETG | 4 (+ spares) | €0 | ✅ On hand (the Taiss M3 kit's M3x6/x8) | For `electronics_deck()` in base-plate mode: 4 screws through the Mega's own plastic base into 2.6mm pilot holes. Only needed if the base-plate version is adopted after the `cad/mega_base_fit_test.scad` coupon check. |
+| M3 screws, ~6-8mm, self-tapping into PETG | 4 (+ spares) | €0 | ✅ On hand (the Taiss M3 kit's M3x6/x8) | For `electronics_deck()` in base-plate mode: 4 screws through the Mega's own plastic base into 2.6mm pilot holes. Now the only Mega mounting (coupon check passed 2026-10-04, 3 of 4 screws go in; 3 are enough). |
 

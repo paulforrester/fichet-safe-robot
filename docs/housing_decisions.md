@@ -6,6 +6,36 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## Electronics sled switched to the Mega base-plate mount (2026-10-04): bench results on the coupon and the motor sled
+
+Bench results from Paul, same day as the fourth round below:
+- **Motor sled fit is good** (the latest motor sled, with the
+  `motor_pad_r` outline and the keyed countersunk joint pattern).
+- **Mega base plate vs `cad/mega_base_fit_test.scad`**: the real base
+  plate "fits on the screws as placed", but only 3 of the 4 screws would
+  go in. Paul's call: 3 is enough to hold it. Which hole binds wasn't
+  reported, so the 4 positions are unchanged (a ~0.4mm error against a
+  3.1mm hole was the known risk, see the entry below); it just means one
+  hole is a spare.
+
+Change: `electronics_deck()` now mounts the Mega only through its base
+plate. The 4 standoff posts and the `mega_base_mount` switch are removed;
+the 4 M3 self-tap pilot holes (2.6mm, through the deck) at
+`mega_base_hole_pts` are always present. `mega_hole_pts` (the board's own
+PCB holes) stays only to size the deck outline, and `mega_rotation = 30`
+stays because the coupon was fit-checked at that orientation. The deck
+outline is unchanged from the previous round's base-plate mode (still
+reaching the two end-flange holes). Re-rendered clean; trimesh: 12
+watertight bodies; deck now has exactly 4 x 2.6mm pilot holes plus the 3
+M6 countersunk holes and no posts. Build order note updated: bolt the deck
+to the legs before screwing the base plate on (2 of the 3 M6 screws sit
+under the base plate; their heads are flush, so it lies flat over them).
+
+Still open: the pointer direction on the real door, the 2mm magnet wall
+(`magnet_wall`), and the first front-leg M6 self-tap (thread it in by
+hand). Paul's next step is a full dialer-assembly fit with the new base
+plate and sled.
+
 ## Fourth round (2026-10-04): countersunk keyed joint, pointer tab, magnet field, and a Mega base-plate mount
 
 Paul's feedback after the previous round was merged (PR #6):
@@ -146,9 +176,10 @@ by `mega_rotation` like everything else on the deck; `deck_outline()`
 grows pads around them (the two flange holes sit outside the old hull, so
 the deck gets ~1350mm2 bigger, 8900 -> 10250). Checked in shapely: the new
 holes are 7.5mm+ inside the new edge and 26mm+ from any deck-leg
-countersink. Rendered both ways: 12 watertight bodies each. **The default
-is still the old 4-post version** (`mega_base_mount = false`), because a
-0.4mm error against a 3.1mm hole holding a 3.0mm screw will bind. To
+countersink. Rendered both ways: 12 watertight bodies each. **It was
+first added as an option, default OFF** (`mega_base_mount = false`), because a
+0.4mm error against a 3.1mm hole holding a 3.0mm screw will bind; the
+coupon passed (see the entry above) and it's now the only mode. To
 check before spending a deck print, `cad/mega_base_fit_test.scad` is a
 4mm coupon with just those 4 holes (same orientation as the deck, notch
 on the flange end): lay the real base on it and drive 4 M3 screws by hand.
