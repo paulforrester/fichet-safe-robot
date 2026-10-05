@@ -20,9 +20,9 @@
 //     ran 18mm into a 20.8mm cavity, straight through the motor hub into
 //     the disc and the dial hub.
 //  3. v1's hole pattern (36mm equilateral) was a by-eye photo read that was
-//     never confirmed. Re-measured from the door photos with software tick
-//     detection: an ISOSCELES triangle, ~33.3mm across the top pair and
-//     ~43.3mm from each to the bottom hole — up to ~6mm off v1's plate.
+//     never confirmed. The real pattern, measured with calipers (section 1):
+//     an ISOSCELES triangle, 33.0mm across the top pair and 42.5mm from each
+//     of them down to the bottom hole — up to ~5mm off v1's plate.
 //
 // v2 DRIVETRAIN: each dial gets a gear-shaft (spline plug + 8mm journal +
 // 28T spur gear, one printed piece) running in TWO 608 bearings stacked in
@@ -61,16 +61,22 @@ $fn = 64;
 // ============================================================
 // Centre-to-centre distances between the 3 dial holes, A = top-left,
 // B = top-right, C = bottom (as seen standing in front of the safe).
-// STATUS: PHOTO ESTIMATE, NOT CALIPERS. From docs/photos: dial-holes-ruler-2
-// (all 3 holes + ruler, 7.51 px/mm from 71 detected ticks): AB 33.67,
-// AC 43.31, BC 43.65; dial-holes-ruler-1 (9.64 px/mm): one pair 32.91;
-// dial-holes-ruler-3 (11.3 px/mm): one pair 43.14; the un-scaled closeup
-// and tape photos give the same shape (top pair ~0.80x the other two).
-// Hole centres from Hough circle fits. Treat as +/-0.5mm until Paul's
-// caliper numbers replace them — then re-run cad/tools/dial_layout_check.py.
-dial_ab = 33.3;  // mm, A-B (top pair)
-dial_ac = 43.3;  // mm, A-C
-dial_bc = 43.3;  // mm, B-C
+// MEASURED WITH CALIPERS by Paul, 2026-10-05: for each pair, "far" (inside
+// jaws spread to the far walls of both holes) and "near" (outside jaw tips in
+// both holes, closed on the web between them); centre distance = (far+near)/2,
+// which cancels the jaws sitting off the line of centres (both readings shift
+// by the same amount in opposite directions):
+//   A-B (top pair):   far 45.90, near 20.12 -> 33.01
+//   A-C and B-C:      far 55.0,  near 30.0  -> 42.50 (each)
+// Hole diameters 12.97 (top) / 13.0 (bottom). Cross-check far-near = 2x hole
+// diameter: top pair 25.78 vs 25.94 (agrees); long sides 25.0 vs 25.97 — the
+// jaws were ~1.7mm off the centre line there, which the averaging cancels.
+// Replaces the photo estimates (33.3/43.3/43.3, and 36mm equilateral before
+// that). The shape (isosceles, short side across the top, apex pointing down
+// to the bottom of the safe) is Paul's own description of the door.
+dial_ab = 33.0;  // mm, A-B (top pair)
+dial_ac = 42.5;  // mm, A-C
+dial_bc = 42.5;  // mm, B-C
 
 // [A, B, C] relative to the circumcentre (works for any triangle, not just
 // isosceles, so the caliper numbers can go straight in).
@@ -95,8 +101,8 @@ hole_pts = [for (p = _raw) p - _cc];
 // control/sequence.md), and doubles the torque at the dial — the dial
 // torque is still unmeasured (sequence.md open item), and docs/bom.md
 // already named gearing as the fix if the motor alone isn't enough.
-// Size limit: the two TOP dial gears sit side by side 33.3mm apart, so the
-// 28T tip diameter (29.6mm) leaves 3.7mm between them.
+// Size limit: the two TOP dial gears sit side by side 33.0mm apart, so the
+// 28T tip diameter (29.6mm) leaves 3.4mm between them.
 // Profile shift +0.2 on the pinion / -0.2 on the gear: a 14T pinion cuts
 // into its own tooth roots ("undercut") below about 17T without it
 // (minimum shift (17-14)/17 = 0.18); shifting the gear the other way by the
@@ -193,9 +199,16 @@ plug_len        = 5.0;
 // gear-shaft in its FORWARD position (spacer against the rear bearing):
 gear_z0     = boss_h + spacer_h;        // 17.5, gear front face
 gear_z1     = gear_z0 + gear_face;      // 23.5, gear rear face
-plug_z0     = -2;                       // plug root: same place v1's collar/plug put it
-                                        // (2mm into the door's ~12mm recess, like the
-                                        // hand test key that clicked the dials)
+plug_z0     = -2;                       // plug root: same place v1's collar/plug put it.
+                                        // Paul's calipers (2026-10-05): door hole 13.0 dia,
+                                        // 13.3 deep, star starts 3.14 below the door face.
+                                        // So the 5mm plug (tip at -7) reaches 3.9mm into the
+                                        // star — the same depth as the hand test key (2mm
+                                        // collar + 5mm plug, handle stops on the door face)
+                                        // that clicked the dials. The hole is deep enough to
+                                        // go further if the door test shows it slipping:
+                                        // up to ~3mm longer needs no other change (the spring
+                                        // travel only has to push the tip back to the star face).
 plug_z1     = plug_z0 - plug_len;       // -7, plug tip
 
 pinion_z0   = gear_z0 - 0.5;                       // 17
@@ -554,6 +567,7 @@ echo(LAYOUT = [
     ["m3_cbore_d", m3_cbore_d], ["boss_recess_d", boss_recess_d], ["front_plate_r", front_plate_r],
     ["magnet_count", len(magnet_pts)]
 ]);
+echo(MAGNET_PTS = magnet_pts);
 echo(GEAR_PROFILE = gear_profile(gear_m, gear_teeth, gear_x, gear_pa, gear_backlash));
 echo(PINION_PROFILE = gear_profile(gear_m, pinion_teeth, pinion_x, gear_pa, gear_backlash));
 echo(GEAR_PROFILE_NOBL = gear_profile(gear_m, gear_teeth, gear_x, gear_pa, 0));

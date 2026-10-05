@@ -38,7 +38,15 @@ essentially the full `docs/bom.md`, tracked there against every line.
   - `common_mounts.scad` — shared NEMA17 bolt pattern, magnet-pocket,
     and D-shaft coupler-bore modules, used by both housings below.
   - `dial_unit_housing.scad` / `key_turner_housing.scad` — the two
-    mounting housings (v0.1, first pass — see `docs/housing_decisions.md`).
+    mounting housings (see `docs/housing_decisions.md`). The dial unit is
+    v2 (geared); `dial_unit_assembled.scad` shows it assembled and the
+    `print_*.scad` wrappers export each printable part.
+  - `cad/tools/` — `dial_layout_check.py` (clearances, gear mesh, axial
+    stack, read straight from the SCAD) and `dial_interference_check.py`
+    (3D overlap check of the whole assembly through its range of motion).
+  - `cad/sketchup/` — the build script for a SketchUp review model of the
+    dial unit (run through the SketchUp connector; the SCAD files are what
+    gets printed).
   - `cad/renders/` holds reference renders and STLs of specific
     iterations.
 - `docs/` — dimensional decisions (`decisions.md` for the test key,
@@ -59,6 +67,8 @@ HEIGHT (radial), DEPTH (axial into the socket) — see
 - Bench-fit the v0.1 housings once printed; confirm the placeholder
   dial-hole spacing and key-bow clamp range against the real door/key
   (see `docs/housing_decisions.md`'s "Bench-fit TODO").
-- Order the 3 flexible shaft couplers the dial-unit design surfaced
-  (see `docs/bom.md`'s new-item note).
+- Dial unit v2 (geared, 608 bearings — see `docs/housing_decisions.md`):
+  print the door-pattern test (`cad/print_dial_pattern_test.scad`) and the
+  three gear-shafts first, and check them on the real door, before the
+  big parts. Buy 3 small compression springs.
 - Begin `control/`: firmware for turning and reading each dial.

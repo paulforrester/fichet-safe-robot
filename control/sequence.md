@@ -148,6 +148,20 @@ dial unit — since the real key is already seated in socket #4 by hand
 a much bigger and more forgiving target than the ~8mm star holes the
 dial unit has to register precisely.
 
+## Dial drive (v2 housing, 2026-10-05)
+
+Each dial is driven through a **2:1 spur gear pair** (14T on the motor,
+28T on the dial shaft): one dial turn = 2 motor turns = 400 full steps =
+**20 full steps per dial position**. Motor direction is reversed relative
+to the dial (external gears). The gear-shaft is **spring-loaded**: when the
+unit is put on the door, a plug that doesn't line up with its star is
+pushed back, so the first job of every session is a "seat" routine —
+turn each dial motor slowly (at most 1/8 of a dial turn = 45deg of dial,
+90deg of motor) until its plug drops into the star, then home as below.
+Until the dial torque is measured, run the dial drivers at about 1A RMS:
+the reduction doubles what the motor can put into the printed gear and
+plug teeth.
+
 ## Operating sequence
 
 1. Real key inserted into hole 4 (manual, one-time per session).
@@ -206,17 +220,12 @@ Still open:
       adjustable clamp rather than a fitted pocket — see
       `docs/housing_decisions.md` — but the clamp's own working range
       (9mm slot) still needs the real bow checked against it.
-- [ ] Center-to-center spacing between the 3 dial holes (or a simple
-      coordinate layout) — needed to place the 3 motors in the dial
-      unit's frame. Get this as plain numbers rather than read off
-      ruler photos — same reasoning as the v0.1 bore-diameter mistake
-      in `docs/decisions.md`: a caliper/tape number beats pixel-peeping.
-      `cad/dial_unit_housing.scad` v0.1 uses a 36mm placeholder read
-      (by eye, not calipers) off `docs/photos/dial-holes-ruler-2.jpg`
-      and `star-opening-tape-2.jpg` — good enough to build a first-pass
-      model, explicitly NOT good enough to close this item. See
-      `docs/housing_decisions.md` for the full readout and the real
-      NEMA17-body-collision problem that spacing surfaced.
+- [x] Center-to-center spacing between the 3 dial holes — **measured with
+      calipers 2026-10-05**: isosceles, 33.0mm across the top pair, 42.5mm
+      from each to the bottom hole (apex down). Holes 13.0mm dia, 13.3mm
+      deep, star face 3.14mm below the door face. In
+      `cad/dial_unit_housing.scad` (v2); the 36mm equilateral placeholder
+      was wrong by up to ~5mm. See `docs/housing_decisions.md`.
 - [ ] Rough distance from the dial cluster to socket #4 (doesn't need
       precision — just enough to plan cable length between the two
       units, now that they're not one rigid frame). Same photos give

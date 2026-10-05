@@ -6,6 +6,152 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## v2 (2026-10-05): geared drivetrain on 608 bearings — the Oldham coupler could not have worked, and the hole pattern was wrong
+
+**What prompted it.** Paul, with every printed part in hand: "the motor
+spindles do not line up with the center of the holes for the dial turners
+... see if there is an orientation for the motors where they can all be
+mounted to the same sled and align with the holes. If not ... a flexible
+coupler, but another option would be to add another level to the robot
+and work on gearing ... I do have a stock of 608 bearings ... I want to
+nail this on the first try."
+
+### Findings
+
+1. **No orientation exists.** Two NEMA17 cans (42.3mm square) can't have
+   shafts closer than 42.3mm in any orientation (the narrowest a square
+   gets is its side length). The two top door holes are 33.0mm apart. So
+   at least one motor always has to sit off its dial; a coaxial direct
+   drive would need the motors stacked at two or three depths (+50-100mm
+   of overhang off the door, on magnets) — rejected.
+2. **The v1 Oldham coupler could not have worked.** The disc's tongues
+   were `slot_length - 1` long inside **closed** slots, so the disc could
+   slide only +/-0.5mm, against the +/-6.9mm the 6.93mm offset needs — it
+   would have jammed on the first turn. (`oldham_slot_length()` used the
+   tongue *width* + 2x offset, which is the rule for a short square key,
+   not a full-length tongue.) Separately, the real 24mm motor shaft
+   reaches 18mm past the sled into a 20.8mm cavity: through the motor
+   hub's 3.5mm bore, through the disc and into the dial hub. The modules
+   are removed from `common_mounts.scad` (git history keeps them).
+3. **`dshaft_bore()` cut an open slot, not a D.** Its "flat" was a cube
+   added to the *cut* from 1.85mm off the axis out past the hub wall, so a
+   12mm hub came out as an open "C" (checked with a cross-section render:
+   one contour, no closed bore). Only the set screw's friction could have
+   driven it. Rewritten as a real D (round bore intersected with the flat
+   line at 2.15mm), D only over the flat's length. This also fixes
+   `key_turner_housing.scad`'s gripper hub (STL re-rendered).
+4. **The hole pattern was wrong.** The 36mm equilateral triangle was a by-
+   eye photo read that was never confirmed. Re-measured from the door
+   photos with software tick detection it came out isosceles, then Paul
+   measured with calipers (far/near jaw readings, centre = average, which
+   cancels the jaws sitting off the line of centres):
+
+   | pair | far | near | centre |
+   |---|---|---|---|
+   | A-B (top, left-right) | 45.90 | 20.12 | **33.01** |
+   | A-C, B-C (down to the bottom hole) | 55.0 | 30.0 | **42.50** |
+
+   Holes 12.97 / 13.0mm dia, 13.3mm deep, star starts 3.14mm below the
+   door face; star tip-to-tip at the mouth ~8.92 (hard to measure). The
+   short side runs across the top; the other two meet pointing down to
+   the bottom of the safe (Paul). v1's plate was up to ~5mm off. The two
+   photo methods had disagreed by ~1mm (33.3/43.3 from the old angled
+   photos, ~32.6/42.5 from the new square-on ones once corrected for the
+   scales sitting a few mm above the door), which is why calipers were
+   needed.
+
+### Options considered
+
+- **Fix the Oldham** (open slots or short tongues, longer motor hub):
+  keeps the floating dial coupler, but a ~7mm-offset disc orbiting every
+  turn in PETG-CF, ~2-3deg of backlash from two sliding joints, no torque
+  gain, and three floppy couplers to line up with three sockets by hand.
+- **Stagger the motors axially** for coaxial drive: long overhang (see 1).
+- **Belts**: three belt planes plus tensioners — more parts than gears.
+- **Gear stage on 608 bearings (Paul's suggestion) — chosen.** Each motor
+  can sit anywhere on a circle around its dial, the dial shafts get real
+  bearings, the reduction adds torque headroom (the dial torque is still
+  unmeasured), and printed m1 gears have ~1deg of backlash.
+
+### The design (`cad/dial_unit_housing.scad` v2)
+
+- **Gear-shaft** (x3, PETG-CF, one piece): 8-tooth spline plug (same
+  geometry as the test key) + 7.85mm journal + 1.5mm spacer + **28T module-1
+  spur gear**, 6mm face. Runs in **two stacked 608 bearings** in a 16mm boss
+  on the front plate; a 2mm lip on the door side holds the outer ring (lip
+  hole 19.5mm, between the shield edge D2 19.2 and the abutment limit Da
+  20); the spacer (11mm) bears only on the inner ring (SKF 608-2Z abutment
+  da 10-12mm).
+- **Spring-loaded plug.** The journal is a sliding fit, so the whole
+  gear-shaft slides 7mm. A light compression spring between the gear's
+  rear face and the sled pushes it forward against the rear bearing.
+  Mounting: put the unit on the door; any plug that doesn't line up with
+  its star is pushed back and the plate still seats flush; then turn each
+  motor slowly and its plug snaps in. Plug tip at the forward stop is 7mm
+  below the plate face = 3.9mm into the star (star face is 3.14 deep) —
+  the same depth the hand test key reached.
+- **Pinion** (x3, PETG-CF): **14T module-1**, 14mm face (6mm gear + 7mm
+  travel + 1) so the gear never leaves it. **2:1 reduction**: 400 full
+  steps per dial turn, 20 per dial position. Profile shift +0.2 pinion /
+  -0.2 gear (a 14T pinion undercuts below ~17T; the shifts cancel, so the
+  centre distance stays 21mm). Its D-bore is round for the first 2.5mm and
+  D only where the shaft's flat is, so the end of the flat locates it
+  axially; it is also trapped between the sled and the boss tops, so the
+  set screw is optional (grub screw only — a cap screw's head would hit
+  the gear).
+- **Motors** on a 21mm circle around their dials, directions and rotations
+  from an annealing search over every clearance (below). The cans overlap
+  the dials only in plan view — they sit behind the sled, the gears in
+  front of it.
+- **Front-to-sled joint**: 3 legs + M6 countersunk self-tap (bench-proven
+  in v1), keyed (asymmetric). **Deck**: 3 legs between the cans, Mega base
+  plate re-placed (244deg, offset (-2.5,-5)) so its screws clear the deck
+  countersinks by >21mm.
+- Stack: door 0 | plate 0-5 | bosses to 16 | gear 17.5-23.5 (24.5-30.5
+  pushed back) | pinion 17-31 + hub to 35 | sled 35.5-41.5 | cans to 89.5 |
+  deck 95.5-100.5. Motor shaft tip lands 0.5mm inside the pinion. M3x8
+  motor screws in 2mm counterbores leave 4mm of thread in the motor's 4.5mm
+  holes.
+- **Pointer** now points up on the door for real (the top pair side).
+- Magnet field: 147 pockets, kept clear of the bearing pockets.
+
+### Verification (all re-run with the caliper numbers)
+
+- `cad/tools/dial_layout_check.py` (reads every position from the SCAD's
+  own echo output): all 2D clearances pass with >= 1.4mm left over the
+  stated requirements (can-to-can >= 6mm, pinion vs the other dials' gears
+  >= 3mm, top gear tips 3.4mm apart, countersink + 3mm driver access clear
+  of every can, legs clear of gears/pinions/screw heads, everything inside
+  the 150mm plate); gear mesh from the SCAD's own tooth outlines: zero
+  overlap through a full tooth pitch at zero backlash (conjugate), 0.12mm
+  flank gap as printed, still no overlap with the centre distance 0.15mm
+  short; contact ratio 1.52; axial stack and pinion float rows all pass.
+  What-if: the layout passes with any one hole distance +/-1mm.
+- `cad/tools/dial_interference_check.py`: every part rendered in place
+  (plus dummy cans, bearings and M3 heads), 36 static pairs + 114 moving
+  pairs at 12 poses (gear phase x 4, spring travel 0/3.5/7mm): **no
+  overlap** (largest 0.000mm^3). Sanity check: deliberately mis-phasing a
+  gear half a tooth gives 20mm^3, so the check does detect real overlaps.
+- trimesh: every STL watertight, one body per part.
+- SketchUp review model (`fichet_dial_unit_v2_geared.skp`) built from the
+  same numbers; per-part volumes match the SCAD STLs within 1%.
+
+### Not verified yet — what the first prints have to confirm
+
+- **Door-pattern test first** (`print_dial_pattern_test.scad`): bearing
+  press fit (22.15mm pocket), the journal sliding in the bearings (7.85mm),
+  and all three plugs seating together on the real door. Three rigid shafts
+  into three sockets is over-constrained; the star mouth (~8.9mm vs the
+  7.38mm plug) gives radial room, but this is the check.
+- Springs: none on the BOM yet (<= 8mm OD, ~18-20mm free, solid < 10mm).
+- Gear teeth and plug teeth are printed plastic: run the dial motors at
+  ~1A (TMC2209) until the dial torque is measured — 2:1 doubles what the
+  motor can put into the plug.
+- Paul measured the key's blade width at 0.91mm this time (earlier
+  1.04-1.06); the plug keeps the bench-tuned 1.04, which clicked the dials.
+- Motor cable exits: rotate each can in 90deg steps at assembly so its
+  cable side faces a free gap.
+
 ## Electronics sled switched to the Mega base-plate mount (2026-10-04): bench results on the coupon and the motor sled
 
 Bench results from Paul, same day as the fourth round below:
