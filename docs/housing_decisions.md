@@ -146,6 +146,8 @@ nail this on the first try."
 
 ### Not verified yet — what the first prints have to confirm
 
+- **2026-10-05: door-pattern test PASSED** (Paul): the plate fits the door perfectly and all three dial turners turn easily. The caliper hole pattern is confirmed on the real door.
+
 - **Door-pattern test first** (`print_dial_pattern_test.scad`): bearing
   press fit (22.15mm pocket), the journal sliding in the bearings (7.85mm),
   and all three plugs seating together on the real door. Three rigid shafts
