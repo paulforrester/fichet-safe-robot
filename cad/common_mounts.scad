@@ -90,14 +90,28 @@ module magnet_pocket_ring(n, r, start_angle = 90) {
 }
 
 // ---- D-shaft coupler bore + set screw ----
-// Standard NEMA17 5mm shaft with a D-flat milled on one side. Bore is
-// round with a flat subtracted in, plus a radial M3 set-screw hole
-// through the wall so it can be clamped onto the flat once seated.
-// Subtract this from a solid hub; bore opens on -Z (shaft inserts
-// from below) by convention — flip with the caller's transform if
-// needed. bore_len = how far the shaft inserts; screw_z = height (in
-// this module's local frame) of the set-screw hole above the bore's
-// open face.
+// Standard NEMA17 5mm shaft with a D-flat on one side (17HE19-2004S
+// drawing: 4.5mm across the flat, flat 15mm long from the tip). The bore is
+// a true D over the length where the shaft's flat actually is, so the flat
+// drives the hub by itself, plus a radial M3 set-screw hole normal to the
+// flat to hold it axially. Subtract this from a solid hub; the bore opens
+// on -Z (shaft inserts from below) by convention — flip with the caller's
+// transform if needed. bore_len = how far the shaft inserts; screw_z =
+// height (in this module's local frame) of the set-screw hole above the
+// bore's open face; round_len = length at the OPEN end that stays round,
+// for a bore deeper than the flat (the shaft's round part has to pass
+// through there — a D over the round part would stop it going in). Default
+// round_len puts the D over the deepest nema17_flat_len, i.e. assumes the
+// shaft tip reaches the bottom of the bore.
+//
+// FIXED 2026-10-05: until now the "flat" here was a cube ADDED TO THE CUT,
+// running from 1.85mm off the axis out past the hub wall — so instead of
+// leaving a flat of material for the shaft's flat to bear on, it cut an
+// open slot through one side of the hub (checked with a cross-section
+// render: the hub section came out as one open "C" contour, no closed
+// bore). Nothing but the set screw's friction could ever have driven a hub
+// made with it. Affected the v1 Oldham motor hub (now retired) and
+// key_turner_housing.scad's gripper hub (fixed by this, re-render it).
 //
 // set_screw_pilot_d: this used to be 3.2mm — a standard M3 CLEARANCE
 // size (for a screw passing through metal into a nut or tapped hole
@@ -110,18 +124,24 @@ module magnet_pocket_ring(n, r, start_angle = 90) {
 // fasteners). A cone-point or cup-point set screw starts into this
 // much more easily than a flat-tip one. See docs/housing_decisions.md.
 set_screw_pilot_d = 2.6;
-module dshaft_bore(bore_len = 10, screw_z = 6) {
-    fit = 0.15; // mm radial printing clearance
+dshaft_fit = 0.15; // mm radial printing clearance
+module dshaft_bore(bore_len = 10, screw_z = 6, round_len = -1) {
+    rl = round_len < 0 ? max(0, bore_len - nema17_flat_len) : round_len;
+    r  = nema17_shaft_d/2 + dshaft_fit;
+    flat_y = (nema17_shaft_flat - nema17_shaft_d/2) + dshaft_fit;  // 2.15: flat 2.0mm off the axis + fit
     union() {
+        // round part (open end)
         translate([0, 0, -eps_c])
-            cylinder(d = nema17_shaft_d + 2*fit, h = bore_len + eps_c, $fn = 32);
-        // flat: shave the bore wall down to the shaft's across-the-flat
-        // dimension, over the flat's known length from the shaft tip
-        translate([-(nema17_shaft_d/2 + 2), nema17_shaft_flat - nema17_shaft_d/2 - fit, -eps_c])
-            cube([nema17_shaft_d + 4, nema17_shaft_d, min(bore_len, nema17_flat_len) + eps_c]);
-        // M3 set screw, radial, through the side wall, centered on the
-        // flat — self-taps into the hub's own wall (see set_screw_pilot_d
-        // above), not a clearance hole into anything threaded.
+            cylinder(r = r, h = rl + 2*eps_c, $fn = 32);
+        // D part: the round bore with everything beyond the flat line left solid
+        translate([0, 0, rl])
+            linear_extrude(height = bore_len - rl + eps_c)
+                intersection() {
+                    circle(r = r, $fn = 32);
+                    translate([-r - 1, -r - 1]) square([2*r + 2, flat_y + r + 1]);
+                }
+        // M3 set screw, radial, normal to the flat (along +/-Y), through the
+        // side wall — self-taps into the hub's own wall (see set_screw_pilot_d).
         translate([0, 0, screw_z])
             rotate([90, 0, 0])
                 cylinder(d = set_screw_pilot_d, h = nema17_body, center = true, $fn = 24);
@@ -137,75 +157,11 @@ function ring_points(n, r, start_angle = 90) =
         let(a = start_angle + i * 360/n)
         [r * cos(a), r * sin(a)]];
 
-// ---- Oldham coupler (printed) ----
-// Bridges a small PARALLEL offset between two coaxial shafts — e.g. a
-// motor shaft and a dial coupler shaft that don't line up because the
-// real dial holes are spaced too tightly for full-size NEMA17 motors
-// to sit directly behind them (see docs/housing_decisions.md). Two
-// rigid hubs, each with a slot cut across its face, plus a loose
-// middle disc with two perpendicular tongues that ride in those
-// slots — all rigid parts, no flexing material, chosen deliberately
-// over a bought/molded flex coupler for exactly that reason (repeated
-// elastic flexing is a fatigue risk in printed PETG; sliding rigid
-// tongues aren't).
-oldham_tongue_width = 3.5;  // mm, tongue thickness
-oldham_fit          = 0.25; // mm clearance per side, slot vs. tongue
-oldham_tongue_h      = 2.2;  // mm, how far a tongue protrudes into its slot
-oldham_slot_depth    = oldham_tongue_h + 0.3; // mm, slot depth (a bit deeper than the tongue, axial running clearance)
-oldham_disc_web      = 1.4;  // mm, disc material between the two tongues (sets the hub-to-hub gap)
-
-// Standard Oldham sizing rule: slot length >= tongue width + 2x the
-// max offset being bridged, so the tongue stays fully engaged at
-// worst-case offset. +4mm margin on top of the rule-of-thumb minimum
-// — kept tight deliberately: at the dial unit's ~7mm offset this
-// already makes for a fairly large hub relative to the ~36mm hole
-// spacing (see docs/housing_decisions.md), so margin is trimmed to
-// the minimum that's still comfortable to print and slide.
-function oldham_slot_length(max_offset) = oldham_tongue_width + 2*max_offset + 4;
-// Hub diameter: slot length plus enough rim to keep the slot's ends
-// from breaking out the side of the hub.
-function oldham_hub_dia(max_offset) = oldham_slot_length(max_offset) + 6;
-
-// Cuts one slot into whatever it's subtracted from, at the origin,
-// starting at z=0 and going up by `depth`. angle rotates it in the XY
-// plane (0 = along X) — a hub pair must use angles 90 degrees apart.
-module oldham_slot_cut(max_offset, angle = 0, depth = oldham_slot_depth) {
-    slot_len = oldham_slot_length(max_offset);
-    slot_w   = oldham_tongue_width + 2*oldham_fit;
-    rotate([0, 0, angle])
-        translate([-slot_len/2, -slot_w/2, -eps_c])
-            cube([slot_len, slot_w, depth + eps_c]);
-}
-
-// Motor-side hub: NEMA17 D-shaft bore from the back face, slot cut
-// into the front face. This is the only piece that needs a D-bore —
-// the dial-coupler-side hub is printed as part of dial_coupler()
-// itself (see dial_unit_housing.scad), not a separate piece.
-module oldham_motor_hub(max_offset, len = 6, slot_angle = 0) {
-    dia = oldham_hub_dia(max_offset);
-    difference() {
-        cylinder(d = dia, h = len, $fn = 64);
-        translate([0, 0, -eps_c])
-            dshaft_bore(bore_len = len - oldham_slot_depth, screw_z = (len - oldham_slot_depth) * 0.6);
-        translate([0, 0, len - oldham_slot_depth])
-            oldham_slot_cut(max_offset, slot_angle);
-    }
-}
-
-// The loose middle disc: two perpendicular tongues, one per face —
-// slightly undersized relative to the hubs so it's a free sliding fit
-// once printed.
-module oldham_disc(max_offset) {
-    dia      = oldham_hub_dia(max_offset) - 3;
-    slot_len = oldham_slot_length(max_offset) - 1;
-    tw       = oldham_tongue_width;
-    union() {
-        cylinder(d = dia, h = oldham_disc_web, $fn = 64);
-        // tongue A, +Z side, along X — mates with a slot_angle=0 hub
-        translate([-slot_len/2, -tw/2, oldham_disc_web - eps_c])
-            cube([slot_len, tw, oldham_tongue_h + eps_c]);
-        // tongue B, -Z side, along Y — mates with a slot_angle=90 hub
-        translate([-tw/2, -slot_len/2, -oldham_tongue_h])
-            cube([tw, slot_len, oldham_tongue_h + eps_c]);
-    }
-}
+// ---- Oldham coupler: REMOVED 2026-10-05 ----
+// The printed Oldham coupler (oldham_* modules) lived here until the dial
+// unit's v2 geared redesign. It could not have worked as modeled: the
+// disc's tongues were 1mm shorter than CLOSED slots, so the disc could
+// slide only +/-0.5mm against the +/-6.9mm the dial unit needed. See git
+// history and docs/housing_decisions.md (v2 entry) if it is ever revived:
+// a working version needs open-ended slots, or tongues shorter than the
+// slot by at least 2x the offset.

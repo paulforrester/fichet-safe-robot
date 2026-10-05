@@ -30,7 +30,7 @@ Status is marked inline in each table below: ✅ ordered, ⬜ still to buy.
 
 **Substitution to be aware of:** the JST-XH 8-pin connector pair specified below was replaced with a Phoenix-style 5.08mm screw-terminal 8-pin connector (Order 3). Still detachable and keyed for the same purpose (unplugging the key-turner unit), just a different connector family than originally planned — flagging in case it wasn't deliberate, otherwise no action needed.
 
-**Housing design note (nothing to order):** `cad/dial_unit_housing.scad` needs to bridge a several-mm parallel offset between each dial motor and its coaxial coupler — the real dial-hole spacing is too tight for 3 full-size NEMA17 bodies to sit directly behind their sockets. Originally flagged here as a need for 3x off-the-shelf flexible shaft couplers; as of the v0.2 housing revision this is instead a **printed Oldham coupler** (rigid sliding joint, no bought part) — see `docs/housing_decisions.md`. No BOM impact beyond using the PETG-CF already on hand for the wear-facing hub parts.
+**Housing design note (2026-10-05, dial unit v2):** the printed Oldham coupler is gone (it could not have worked — see `docs/housing_decisions.md`, v2 entry). Each dial is now driven through a 14T/28T printed gear pair, with the dial shaft in two 608 bearings — see the "Dial unit v2" table below for what that needs.
 
 ## Core electronics — locked in
 
@@ -135,3 +135,14 @@ gearing, not a different motor class, is the likely fix.
 |---|---|---|---|---|
 | M3 screws, ~6-8mm, self-tapping into PETG | 4 (+ spares) | €0 | ✅ On hand (the Taiss M3 kit's M3x6/x8) | For `electronics_deck()` in base-plate mode: 4 screws through the Mega's own plastic base into 2.6mm pilot holes. Now the only Mega mounting (coupon check passed 2026-10-04, 3 of 4 screws go in; 3 are enough). |
 
+
+## Added 2026-10-05: dial unit v2 (geared drivetrain)
+
+| Item | Qty | Cost | Status | Notes |
+|---|---|---|---|---|
+| 608 ball bearings (8 x 22 x 7mm) | 6 (2 per dial) | €0 | ✅ On hand — Paul has ~40 (confirmed 2026-10-05) | Stacked two per boss on the front plate. One per dial also works (`bearings_per_shaft = 1`, shorter boss), if fewer are on hand. |
+| Compression springs, <= 8mm OD, ~18-20mm free length, solid length < 10mm (ideally <= 9), light (~0.2-0.3 N/mm) | 3 (+ spares) | ~€5-10 for an assortment | 🟡 **Candidate (2026-10-05): 7 x 19mm, pack of 30** — OD and free length fit; wire size not listed, so check on arrival: coils x wire diameter < 9mm (solid length). From the product photo (~7-8 coils of thin wire, maybe ~0.5mm) it looks like ~4mm solid and ~0.2-0.5 N/mm, but that is a photo estimate. | Push each spring-loaded gear-shaft forward so its plug snaps into the star when the motor turns. Installed length 17mm (2mm preload from 19mm free), 13mm with a plug resting on the star face, 10mm fully pushed back (plug tip flush with the plate). Both ends sit flat in pockets, so 19mm free at ~6.5mm mean diameter is well inside the no-buckling limit. |
+| M3x8 socket head screws (motor to sled) | 12 | €0 | ✅ On hand (Taiss kit) | Heads sit in 2mm counterbores on the sled's inner face; 4mm of thread in the motor's 4.5mm holes. |
+| M3x3 or M3x4 grub screws (pinion) | 3 (optional) | €0-3 | ⬜ Optional | The pinion is located by the shaft's flat and trapped axially, so these are optional. **Not a cap screw** — the head would hit the gear. |
+| M6 countersunk ~16mm | 6 | €0 | ✅ On hand | Unchanged from v1 (front-to-sled and sled-to-deck joints). |
+| PETG-CF | ~25g for 3 gear-shafts + 3 pinions | €0 | ✅ On hand | Wear parts: the spline plug and the gear teeth. |
