@@ -200,15 +200,20 @@ plug_len        = 5.0;
 gear_z0     = boss_h + spacer_h;        // 17.5, gear front face
 gear_z1     = gear_z0 + gear_face;      // 23.5, gear rear face
 plug_z0     = -2;                       // plug root: same place v1's collar/plug put it.
-                                        // Paul's calipers (2026-10-05): door hole 13.0 dia,
-                                        // 13.3 deep, star starts 3.14 below the door face.
-                                        // So the 5mm plug (tip at -7) reaches 3.9mm into the
-                                        // star — the same depth as the hand test key (2mm
-                                        // collar + 5mm plug, handle stops on the door face)
-                                        // that clicked the dials. The hole is deep enough to
-                                        // go further if the door test shows it slipping:
-                                        // up to ~3mm longer needs no other change (the spring
-                                        // travel only has to push the tip back to the star face).
+                                        // Door (Paul's calipers, 2026-10-05): hole 13.0 dia;
+                                        // the star starts 3.14 below the door face. The
+                                        // caliper depth gauge (~2mm wide) stopped at 8.92
+                                        // because the star's slots narrow toward a point;
+                                        // a real key goes in 15.5 from the door face.
+                                        // The plug is 5mm long (the length of the real
+                                        // key's straight-sided section); with its tip at -7
+                                        // it sits 3.9mm into the star, the same depth as
+                                        // the hand test key (2mm collar + 5mm plug, handle
+                                        // on the door face) that clicked the dials.
+                                        // Below 7mm the socket narrows and its shape is NOT
+                                        // measured, so a longer straight plug is not known
+                                        // to fit; going deeper would mean copying the real
+                                        // key's taper.
 plug_z1     = plug_z0 - plug_len;       // -7, plug tip
 
 pinion_z0   = gear_z0 - 0.5;                       // 17

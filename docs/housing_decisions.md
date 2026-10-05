@@ -51,9 +51,15 @@ nail this on the first try."
    | A-B (top, left-right) | 45.90 | 20.12 | **33.01** |
    | A-C, B-C (down to the bottom hole) | 55.0 | 30.0 | **42.50** |
 
-   Holes 12.97 / 13.0mm dia, 13.3mm deep, star starts 3.14mm below the
-   door face; star tip-to-tip at the mouth ~8.92 (hard to measure). The
-   short side runs across the top; the other two meet pointing down to
+   Holes 12.97 / 13.0mm dia. Depths from the door face: the star starts
+   at 3.14mm; the caliper depth gauge (~2mm wide) stops at 8.92mm because
+   the star's slots narrow toward a point; a real key goes in to 15.5mm.
+   (A first write-up had 8.92 as the star's width at the mouth and 13.3 as
+   the hole depth — a terminology mix-up, corrected with Paul the same
+   day; what the 13.3 reading was is still to be confirmed.) The real
+   key's blade read 0.91mm wide this time, but the printed turner at
+   1.04mm is still loose in the socket, so the plug stays at 1.04 (Paul).
+   The short side runs across the top; the other two meet pointing down to
    the bottom of the safe (Paul). v1's plate was up to ~5mm off. The two
    photo methods had disagreed by ~1mm (33.3/43.3 from the old angled
    photos, ~32.6/42.5 from the new square-on ones once corrected for the
@@ -88,8 +94,10 @@ nail this on the first try."
   Mounting: put the unit on the door; any plug that doesn't line up with
   its star is pushed back and the plate still seats flush; then turn each
   motor slowly and its plug snaps in. Plug tip at the forward stop is 7mm
-  below the plate face = 3.9mm into the star (star face is 3.14 deep) —
-  the same depth the hand test key reached.
+  below the plate face = 3.9mm into the star (the star starts 3.14 below
+  the door face) — the same depth the hand test key reached. The plug is
+  5mm long, the length of the real key's straight-sided section; deeper,
+  the socket's slots narrow (shape unmeasured), so it is not lengthened.
 - **Pinion** (x3, PETG-CF): **14T module-1**, 14mm face (6mm gear + 7mm
   travel + 1) so the gear never leaves it. **2:1 reduction**: 400 full
   steps per dial turn, 20 per dial position. Profile shift +0.2 pinion /
@@ -141,8 +149,11 @@ nail this on the first try."
 - **Door-pattern test first** (`print_dial_pattern_test.scad`): bearing
   press fit (22.15mm pocket), the journal sliding in the bearings (7.85mm),
   and all three plugs seating together on the real door. Three rigid shafts
-  into three sockets is over-constrained; the star mouth (~8.9mm vs the
-  7.38mm plug) gives radial room, but this is the check.
+  into three sockets is over-constrained, and each plug can only float a
+  few tenths of a mm sideways (0.35mm diametral clearance at the plug
+  tips, 0.15mm journal-to-bearing), so this is the check. (An earlier
+  version of this note counted on a wide star mouth for extra room — that
+  came from the mislabelled 8.92 reading and was wrong.)
 - Springs: none on the BOM yet (<= 8mm OD, ~18-20mm free, solid < 10mm).
 - Gear teeth and plug teeth are printed plastic: run the dial motors at
   ~1A (TMC2209) until the dial torque is measured — 2:1 doubles what the

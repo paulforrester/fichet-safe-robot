@@ -222,8 +222,10 @@ Still open:
       (9mm slot) still needs the real bow checked against it.
 - [x] Center-to-center spacing between the 3 dial holes — **measured with
       calipers 2026-10-05**: isosceles, 33.0mm across the top pair, 42.5mm
-      from each to the bottom hole (apex down). Holes 13.0mm dia, 13.3mm
-      deep, star face 3.14mm below the door face. In
+      from each to the bottom hole (apex down). Holes 13.0mm dia; the
+      star starts 3.14mm below the door face (a real key goes in to
+      15.5mm; the slots narrow toward a point, so a 2mm depth gauge
+      stops at 8.92mm). In
       `cad/dial_unit_housing.scad` (v2); the 36mm equilateral placeholder
       was wrong by up to ~5mm. See `docs/housing_decisions.md`.
 - [ ] Rough distance from the dial cluster to socket #4 (doesn't need
