@@ -5,6 +5,7 @@
 # 2026-10-06: every part closed with outward faces, volumes within 1% of the
 # SCAD STLs (cap/base omit the cosmetic chamfer, notch and roof marks).
 # Use: paste the whole file into build_model (clean: true), then save_model.
+# 2026-10-06: base 5mm, legs at 0/120/240, 3 rubber pot magnets at 60/180/300.
 # ============================================================
 # Key-turner v1 geometry for SketchUp (pure python + math), mirrors cad/key_turner_housing.scad.
 # Frame: x right, y up on the door, z out of the door (z=0 door face), key axis = z.
@@ -18,9 +19,12 @@ MOUTH_W = 6.0; MOUTH_H = 1.5; CAP_TOP = SLOT_TOP + 2.0
 TONGUE_W, TONGUE_H, TONGUE_L = 6.0, 4.0, 28.0
 HUB_R = 15.0; HUB_Z0 = CAP_TOP + 0.5; GROOVE_W = 6.5; GROOVE_TOP = CAP_TOP + TONGUE_H + 0.5
 SHAFT_TIP = GROOVE_TOP + 1.5; MOTOR_FACE = SHAFT_TIP + 24.0; HUB_Z1 = MOTOR_FACE - 10.5
-BASE_T = 6.0; BASE_R = 43.0; BASE_HOLE_R = 14.0
+BASE_T = 5.0; BASE_R = 43.0; BASE_HOLE_R = 14.0
 MP_T = 6.0; MP_Z0 = MOTOR_FACE - MP_T
-LEG_R = 6.0; LEG_POS = 36.0; LEG_ANG = [180.0, 60.0, -60.0]
+LEG_R = 6.0; LEG_POS = 36.0; LEG_ANG = [0.0, 120.0, 240.0]
+RMAG_R, RMAG_H, RMAG_HOLE_R, RMAG_RING_R, RMAG_SEAT = 11.0, 6.0, 22.4 / 2, 29.0 / 2, 6.0 - 0.2   # 22mm rubber pot magnets
+RMAG_RET_R, RMAG_RET_T, RMAG_SCREW_R = 27.0 / 2, 3.0, 4.5 / 2
+MAGS = [[31.0 * math.cos(math.radians(a)), 31.0 * math.sin(math.radians(a))] for a in (60.0, 180.0, 300.0)]
 PILOT_R = 5.4 / 2; PILOT_D = 16.0
 M6_CLR_R = 6.4 / 2; CSK_R = 14.0 / 2; CSK_D = (14.0 - 6.4) / 2
 BOLT_SQ = 31.0; BOLT_R = 3.4 / 2; CB_R = 6.3 / 2; CB_D = (6.3 - 3.4) / 2
@@ -110,15 +114,32 @@ def dbore_loop(r=5.0 / 2 + 0.15, flat_y=2.0 + 0.15, n=32):
 
 # ---------------- parts ----------------
 def kt_base():
-    out = circle(0, 0, BASE_R, 96); hole = circle(0, 0, BASE_HOLE_R, 48)
+    pts = circle(0, 0, BASE_R, 96)
+    for m in MAGS: pts += circle(m[0], m[1], RMAG_RING_R + 1, 48)
+    out = ccw(hull(pts)); hole = circle(0, 0, BASE_HOLE_R, 48)
     legs = [circle(p[0], p[1], LEG_R, 24) for p in LEGS]
-    F = [hface(out, 0.0, False, [hole]), hface(out, BASE_T, True, [hole] + legs)]
+    mh = [circle(m[0], m[1], RMAG_HOLE_R, 48) for m in MAGS]
+    mr = [circle(m[0], m[1], RMAG_RING_R, 48) for m in MAGS]
+    F = [hface(out, 0.0, False, [hole] + mh), hface(out, BASE_T, True, [hole] + legs + mr)]
     F += wall(out, 0.0, BASE_T, True) + wall(hole, 0.0, BASE_T, False)
+    for i in range(len(MAGS)):
+        F += wall(mh[i], 0.0, RMAG_SEAT, False) + wall(mr[i], BASE_T, RMAG_SEAT, True)
+        F.append(hface(mr[i], RMAG_SEAT, True, [mh[i]]))
     for i, p in enumerate(LEGS):
         F += wall(legs[i], BASE_T, MP_Z0, True)
         F.append(hface(legs[i], MP_Z0, True, [circle(p[0], p[1], PILOT_R, 16)]))
         F += blind_hole_from_top(p, PILOT_R, 16, MP_Z0, PILOT_D)
     return F
+
+
+def kt_rmag():
+    c = circle(0, 0, RMAG_R, 48)
+    return [hface(c, 0.0, False), hface(c, RMAG_H, True)] + wall(c, 0.0, RMAG_H, True)
+
+
+def kt_retainer():
+    o = circle(0, 0, RMAG_RET_R, 48); i = circle(0, 0, RMAG_SCREW_R, 16)
+    return [hface(o, 0.0, False, [i]), hface(o, RMAG_RET_T, True, [i])] + wall(o, 0, RMAG_RET_T, True) + wall(i, 0, RMAG_RET_T, False)
 
 
 def kt_motor_plate():
@@ -230,7 +251,7 @@ def kt_door(size=140.0, thick=6.0):
 
 
 KT_PARTS = dict(base=kt_base, plate=kt_motor_plate, cap=kt_cap, hub=kt_hub, collar=kt_key_collar,
-                head=kt_key_head, motor=kt_motor, door=kt_door)
+                head=kt_key_head, motor=kt_motor, door=kt_door, rmag=kt_rmag, retainer=kt_retainer)
 
 # ================= SketchUp adapter + placement + scenes =================
 up = model.get_options_manager().get_options_provider_by_name("UnitsOptions")
@@ -290,6 +311,8 @@ spec = [  # key, definition name, material, rgba, tag
     ('collar', 'Key collar (from measurements)', 'Key steel', (200, 200, 205, 255), 'Key (from measurements)'),
     ('head', 'Key head (from measurements)', 'Key steel', (200, 200, 205, 255), 'Key (from measurements)'),
     ('door', 'Safe door (reference, lock hole)', 'Safe door reference', (120, 110, 95, 90), 'Safe door (reference)'),
+    ('rmag', 'Rubber pot magnet 22x6 (Wukong)', 'Rubber magnet (black)', (30, 30, 32, 255), 'Door magnets'),
+    ('retainer', 'Magnet retainer', 'Magnet retainer PETG', (160, 172, 184, 255), 'Door magnets'),
 ]
 defs = {}
 for key, dname, mname, rgba, tag in spec:
@@ -308,6 +331,13 @@ def build(wname, off_su, explode):
     # our frame (x right, y up the door, z out of the door) -> SketchUp (X, Z up, -Y toward the viewer)
     g.set_transform(SUTransformation([1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, off_su[0] * IN, off_su[1] * IN, off_su[2] * IN, 1]))
     for key, dname, mname, rgba, tag in spec:
+        if key in ('rmag', 'retainer'):
+            for k, m in enumerate(MAGS):
+                inst = defs[key].create_instance(); inst.set_name(dname + ' ' + str(k + 1))
+                z = (-0.2 - (25 if explode else 0)) if key == 'rmag' else (5.8 + (15 if explode else 0))
+                inst.set_transform(T((m[0], m[1], z)))
+                g.get_entities().add_instance(inst); inst.set_layer(tags[tag])
+            continue
         if key == 'door' and explode: continue
         inst = defs[key].create_instance(); inst.set_name(dname)
         inst.set_transform(T((0, 0, explode.get(key, 0.0) if explode else (MOTOR_FACE if key == 'motor' else 0.0))))
@@ -341,6 +371,7 @@ scene_defs = [
     ("2 Cap on the key (frame and motor hidden)", [EXP, 'Base + legs', 'Motor plate', 'Motor (dummy)'], (-3.6, -4.6, 7.0), (0, -1.0, 5.12), 35.0),
     ("3 Exploded", ['Assembled view'], (21.0, -16.0, 12.0), (7.87, -5.0, 5.12), 35.0),
     ("4 Seen from in front of the safe", [EXP], (0, -30.0, 5.12), (0, 0, 5.12), 15.0),
+    ("5 Door side: rubber magnets", [EXP, 'Safe door (reference)', 'Key (from measurements)'], (2.5, 9.0, 7.5), (0, 0, 5.12), 35.0),
 ]
 scenes = []
 for name, _, _, _, _ in scene_defs:

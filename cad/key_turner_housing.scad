@@ -37,9 +37,10 @@
 //   motor_hub()      groove + D-bore (groove face down, PETG-CF)
 //   key_fit_test()   cap + a hand lever: try it on the real key FIRST
 //
-// DOOR ATTACHMENT: deliberately not in this version (Paul, 2026-10-06:
-// decide it together with the dial unit's, ideally the same magnets).
-// base_plate() leaves its door face plain for now.
+// DOOR ATTACHMENT: 3 of the same 22mm rubber-coated pot magnets as the dial
+// unit (rmag_* in common_mounts.scad): through holes + seat rings + printed
+// retainers, rubber 0.2mm proud of the base. They sit between the legs at
+// 60/180/300deg, so nothing extra reaches toward the dial unit.
 // ============================================================
 
 include <common_mounts.scad>
@@ -87,13 +88,16 @@ hub_bore_len  = hub_z1 - shaft_tip_z;      // 13.5, all within the 15mm flat
 assert(hub_bore_len <= nema17_flat_len, "hub bore longer than the shaft's flat");
 
 // ---------------- frame ----------------
-base_t        = 6;
+base_t        = 5;        // = the dial plate; the magnet seat ring adds 0.8
 base_r        = 43;                        // 7mm short of the dial plate's edge
 base_hole_d   = 28;                        // passes the bow (24.6 wide) as the unit goes on
 motor_plate_t = 6;
 motor_plate_z0 = motor_face_z - motor_plate_t;   // 58.49
 leg_r_pos     = 36;
-leg_angles    = [180, 60, -60];           // none toward the dials (+x)
+leg_angles    = [0, 120, 240];
+rmag_angles   = [60, 180, 300];           // magnets between the legs, one away from the dials
+rmag_r_pos    = 31;
+kt_magnet_pts = [for (a = rmag_angles) [rmag_r_pos * cos(a), rmag_r_pos * sin(a)]];
 leg_d         = 12;
 leg_pts       = [for (a = leg_angles) [leg_r_pos * cos(a), leg_r_pos * sin(a)]];
 m6_selftap_pilot_d = 5.4;   // bench-confirmed in the dial unit
@@ -115,14 +119,26 @@ leg_inner_r   = leg_r_pos - leg_d/2;                            // 30
 assert(leg_inner_r - cap_orbit_r >= 5, "legs too close to the cap's orbit");
 assert(base_hole_d/2 > key_bow_w/2 + 1, "base opening won't pass the bow");
 assert(motor_plate_z0 - hub_z1 >= 3, "hub too close to the motor plate");
+assert(min([for (m = kt_magnet_pts) for (l = leg_pts) norm(m - l)]) - rmag_ring_od/2 - leg_d/2 >= 1.5, "magnet ring too close to a leg");
+assert(min([for (m = kt_magnet_pts) norm(m)]) - rmag_ring_od/2 >= base_hole_d/2 + 1.5, "magnet ring too close to the key opening");
 
 // ============================================================
+module base_outline() {
+    hull() {
+        circle(r = base_r);
+        for (p = kt_magnet_pts) translate(p) circle(d = rmag_ring_od + 2);
+    }
+}
 module base_plate() {
     difference() {
-        cylinder(r = base_r, h = base_t);
+        union() {
+            linear_extrude(height = base_t) base_outline();
+            rmag_rings(kt_magnet_pts, base_t);
+        }
         translate([0, 0, -eps_c]) cylinder(d = base_hole_d, h = base_t + 2*eps_c);
         // marker notch at 12 o'clock: the bow points this way at insertion
         translate([0, base_hole_d/2, -eps_c]) cylinder(d = 3, h = base_t + 2*eps_c, $fn = 24);
+        rmag_holes(kt_magnet_pts, base_t);
     }
 }
 module base_legs() {
@@ -257,6 +273,10 @@ module assembled(part = "all", angle = 0, off = [0, 0]) {
     if (part == "all" || part == "cap") translate([c[0], c[1], 0]) rotate([0, 0, a]) key_cap();
     if (part == "all" || part == "hub") rotate([0, 0, a]) motor_hub();
     if (part == "all" || part == "motor") motor_dummy();
+    if (part == "all" || part == "rmags") {
+        rmag_dummies(kt_magnet_pts);
+        for (p = kt_magnet_pts) translate([p[0], p[1], rmag_seat_z + rmag_ret_t]) cylinder(d = 8, h = 3.2, $fn = 32);
+    }
 }
 
 echo(KEY_TURNER = [["cap_z0", cap_z0], ["slot_top", slot_top], ["cap_top", cap_top], ["hub", hub_z0, hub_z1],
@@ -288,7 +308,8 @@ if (show_print_layout) {
 //     attachment.
 //  2. Cap + hub in PETG-CF (wear surfaces), base and motor plate in PETG.
 //     Elephant-foot compensation on for the cap (the slot mouth is on the bed).
-//  3. Hardware: 4x M3x10 countersunk (motor, from the plate's inner face),
+//  3. Hardware: 3x Wukong 22mm rubber magnets + their M4 screws, 3 printed
+//     retainers (print_magnet_retainer.scad), 4x M3x10 countersunk (motor, from the plate's inner face),
 //     3x M6x20 countersunk (plate to legs, self-tapping, same as the dial unit),
 //     optional M3x3/x4 grub in the hub.
 //  4. Assembly: motor onto the plate, hub onto the shaft, plate onto the

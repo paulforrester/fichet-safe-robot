@@ -13,7 +13,8 @@
 #
 # Use: paste PART 1 into build_model (clean: true), then PART 2, then
 # PART 3, then save_model. Units are set to mm in PART 1.
-# Rebuilt 2026-10-06 (countersunk motor-screw holes in the sled, scene 6 added).
+# Rebuilt 2026-10-06 (countersunk motor-screw holes in the sled, scene 6 added;
+# then 6 rubber pot magnets + retainers replacing the 147 disc pockets).
 # ============================================================
 
 # ======================= PART 1: geometry + definitions =======================
@@ -56,7 +57,9 @@ M6_CLR_R = 6.4 / 2; CSK_R = 14.0 / 2; CSK_D = (14.0 - 6.4) / 2
 BOSS_REC_R = 23.0 / 2; BOSS_REC_H = 2.5; SHAFT_HOLE_R = 7.0 / 2
 BOLT_SQ = 31.0; BOLT_R = 3.4 / 2; CB_R = 6.3 / 2; CB_D = (6.3 - 3.4) / 2   # M3 90deg countersink (2026-10-06)
 NEMA = 42.3; CAN_CLR = 1.5
-MAG_R, MAG_D, MAG_PITCH, MAG_OFF = 4.0, 1.9, 10.0, (5.0, 3.0)
+RMAG_R, RMAG_H, RMAG_HOLE_R, RMAG_RING_R, RMAG_SEAT = 11.0, 6.0, 22.4 / 2, 29.0 / 2, 6.0 - 0.2   # 22mm rubber pot magnets (2026-10-06)
+RMAG_RET_R, RMAG_RET_T, RMAG_SCREW_R = 27.0 / 2, 3.0, 4.5 / 2
+RMAG_POS_R, RMAG_ROT = 53.5, 26.75
 FRONT_R = 75.0; PTR_LEN, PTR_W = 10.0, 16.0
 MEGA_PILOT_R = 2.6 / 2
 MEGA_HOLES = [[-35.52, -24.11], [-35.52, 24.15], [39.41, 24.15], [45.76, -24.11]]
@@ -175,14 +178,7 @@ def front_outline(n=96):
 
 
 def magnet_pts():
-    out = []
-    excl = POCKET_R + 2.0 + MAG_R
-    for i in range(-12, 13):
-        for j in range(-12, 13):
-            p = [(i + j / 2) * MAG_PITCH + MAG_OFF[0], j * MAG_PITCH * math.sqrt(3) / 2 + MAG_OFF[1]]
-            if math.hypot(*p) <= FRONT_R - 2.5 - MAG_R and min(math.hypot(p[0] - h[0], p[1] - h[1]) for h in H) >= excl:
-                out.append(p)
-    return out
+    return [[RMAG_POS_R * math.cos(math.radians(RMAG_ROT + 60 * k)), RMAG_POS_R * math.sin(math.radians(RMAG_ROT + 60 * k))] for k in range(6)]
 
 
 def sled_outline():
@@ -251,22 +247,37 @@ def front_assembly():
     pocket = [circle(h[0], h[1], POCKET_R, 48) for h in H]
     boss = [circle(h[0], h[1], BOSS_R, 48) for h in H]
     legs = [circle(p[0], p[1], LEG_R, 24) for p in P['joint_pts']]
+    mh = [circle(m[0], m[1], RMAG_HOLE_R, 48) for m in mags]
+    mr = [circle(m[0], m[1], RMAG_RING_R, 48) for m in mags]
     F = []
-    F.append(hface(out, 0.0, False, lip + [circle(m[0], m[1], MAG_R, 16) for m in mags]))
-    for m in mags: F += blind_hole_from_bottom(m, MAG_R, 16, 0.0, MAG_D)
+    F.append(hface(out, 0.0, False, lip + mh))
+    for i in range(len(mags)):                          # magnet through hole + seat ring
+        F += wall(mh[i], 0.0, RMAG_SEAT, outward=False)
+        F += wall(mr[i], PLATE_T, RMAG_SEAT, outward=True)
+        F.append(hface(mr[i], RMAG_SEAT, True, [mh[i]]))
     for i in range(3):
         F += wall(lip[i], 0.0, LIP_H, outward=False)
-        F.append(hface(pocket[i], LIP_H, True, [lip[i]]))          # lip top (the bearing seat)
+        F.append(hface(pocket[i], LIP_H, True, [lip[i]]))
         F += wall(pocket[i], LIP_H, BOSS_H, outward=False)
-        F.append(hface(boss[i], BOSS_H, True, [pocket[i]]))        # boss top annulus
+        F.append(hface(boss[i], BOSS_H, True, [pocket[i]]))
         F += wall(boss[i], PLATE_T, BOSS_H, outward=True)
-    F.append(hface(out, PLATE_T, True, boss + legs))
+    F.append(hface(out, PLATE_T, True, boss + legs + mr))
     F += wall(out, 0.0, PLATE_T, outward=True)
     for i, p in enumerate(P['joint_pts']):
         F += wall(legs[i], PLATE_T, CAVITY_TOP, outward=True)
         F.append(hface(legs[i], CAVITY_TOP, True, [circle(p[0], p[1], PILOT_R, 16)]))
         F += blind_hole_from_top(p, PILOT_R, 16, CAVITY_TOP, PILOT_D)
     return F
+
+
+def rmag_magnet():
+    c = circle(0, 0, RMAG_R, 48)
+    return [hface(c, 0.0, False), hface(c, RMAG_H, True)] + wall(c, 0.0, RMAG_H, True)
+
+
+def rmag_retainer():
+    o = circle(0, 0, RMAG_RET_R, 48); i = circle(0, 0, RMAG_SCREW_R, 16)
+    return [hface(o, 0.0, False, [i]), hface(o, RMAG_RET_T, True, [i])] + wall(o, 0, RMAG_RET_T, True) + wall(i, 0, RMAG_RET_T, False)
 
 
 def motor_sled():
@@ -398,7 +409,8 @@ def mega_envelope():
 
 
 PARTS = dict(front=front_assembly, sled=motor_sled, deck=deck, gearshaft=gear_shaft, pinion=pinion,
-             motor=motor_dummy, bearing=bearing_608, door=door_reference, mega=mega_envelope)
+             motor=motor_dummy, bearing=bearing_608, door=door_reference, mega=mega_envelope,
+             rmag=rmag_magnet, retainer=rmag_retainer)
 
 # ================= SketchUp adapter (runs inside build_model) =================
 S = 1.0 / 25.4   # mm -> inch
@@ -461,11 +473,13 @@ mats = {
     'door': get_mat('Safe door reference', 120, 110, 95, 90),
     'mega': get_mat('Mega envelope', 40, 150, 160, 70),
     'spring': get_mat('Spring placeholder', 200, 40, 40),
+    'rmag': get_mat('Rubber magnet (black)', 30, 30, 32),
+    'retainer': get_mat('Magnet retainer PETG', 160, 172, 184),
 }
 names = {
     'front': 'Front plate (base) + bosses + legs', 'sled': 'Motor sled + deck legs', 'deck': 'Electronics deck',
     'gearshaft': 'Dial gear-shaft (28T)', 'pinion': 'Motor pinion (14T)', 'motor': 'NEMA17 17HE19-2004S (dummy)',
-    'bearing': '608 bearing', 'door': 'Safe door (reference, dial holes)', 'mega': 'Arduino Mega + RAMPS envelope (placeholder)',
+    'bearing': '608 bearing', 'rmag': 'Rubber pot magnet 22x6 (Wukong)', 'retainer': 'Magnet retainer', 'door': 'Safe door (reference, dial holes)', 'mega': 'Arduino Mega + RAMPS envelope (placeholder)',
 }
 report = {}
 for key, fn in PARTS.items():
@@ -474,7 +488,7 @@ for key, fn in PARTS.items():
 spr_len = (CAVITY_TOP + SLED_SPRING_D) - (GEAR_Z1 - GEAR_SPRING_D)
 cd, ns = make_def('Spring (placeholder, 17mm installed)', spring_placeholder(spr_len), mats['spring'])
 report['spring'] = {'faces': len(cd.get_entities().get_faces()), 'manifold': cd.is_manifold()}
-session_state['layout'] = {'H': H, 'MOT': MOT, 'motor_dir': P['motor_dir'], 'motor_rot': P['motor_rot'],
+session_state['layout'] = {'H': H, 'MOT': MOT, 'MAGS': magnet_pts(), 'motor_dir': P['motor_dir'], 'motor_rot': P['motor_rot'],
                            'mega_rotation': P['mega_rotation'], 'mega_offset': P['mega_offset']}
 session_state['z'] = {'GEAR_Z1': GEAR_Z1, 'CAVITY_TOP': CAVITY_TOP, 'MOTOR_FACE': MOTOR_FACE, 'DECK_Z': DECK_Z,
                       'DECK_T': DECK_T, 'LIP_H': LIP_H, 'BW': BW, 'NB': NB, 'NG': NG, 'NP': NP,
@@ -496,7 +510,7 @@ def T(rotz=0.0, flipx=False, t=(0, 0, 0)):
     return SUTransformation(m + [t[0] * IN, t[1] * IN, t[2] * IN, 1])
 existing = {l.get_name(): l for l in model.get_layers()}
 tag_names = ['Front plate', 'Motor sled', 'Electronics deck', 'Gear-shafts', 'Pinions', '608 bearings',
-             'Motors (dummy)', 'Springs (placeholder)', 'Mega envelope (placeholder)', 'Safe door (reference)',
+             'Motors (dummy)', 'Springs (placeholder)', 'Mega envelope (placeholder)', 'Safe door (reference)', 'Door magnets',
              'Assembled view', 'Exploded view']
 new = []
 for n in tag_names:
@@ -526,6 +540,9 @@ def build(wrapper_name, offset_su, explode):
         for k in range(Z['NB']):
             place(g, D('608 bearing'), '608 bearing dial ' + nm + ' #' + str(k + 1), T(t=(H[i][0], H[i][1], Z['LIP_H'] + k * Z['BW'] + e('bearing') + k * e('bearing_step'))), '608 bearings')
         place(g, D('Spring'), 'Spring dial ' + nm, T(t=(H[i][0], H[i][1], Z['spring_z0'] + e('spring'))), 'Springs (placeholder)')
+    for k, m in enumerate(L['MAGS']):
+        place(g, D('Rubber pot magnet'), 'Door magnet ' + str(k + 1), T(t=(m[0], m[1], -0.2 - e('rmag'))), 'Door magnets')
+        place(g, D('Magnet retainer'), 'Magnet retainer ' + str(k + 1), T(t=(m[0], m[1], 5.8 + e('retainer'))), 'Door magnets')
     mo = L['mega_offset']
     place(g, D('Arduino Mega'), 'Mega + RAMPS envelope', T(L['mega_rotation'], False, (mo[0], mo[1], Z['DECK_Z'] + Z['DECK_T'] + 3 + e('mega'))), 'Mega envelope (placeholder)')
     return g
@@ -533,7 +550,7 @@ ga = build('Dial unit - assembled', (0, 0, 130), {})
 place(ga, D('Safe door'), 'Safe door (reference)', T(), 'Safe door (reference)')
 ga.set_layer(tags['Assembled view'])
 ge = build('Dial unit - exploded', (260, 0, 130),
-           {'bearing': 40, 'bearing_step': 12, 'gear': 95, 'spring': 150, 'pinion': 190, 'sled': 235, 'motor': 300, 'deck': 400, 'mega': 440})
+           {'bearing': 40, 'bearing_step': 12, 'gear': 95, 'spring': 150, 'pinion': 190, 'sled': 235, 'motor': 300, 'deck': 400, 'mega': 440, 'rmag': 30, 'retainer': 20})
 ge.set_layer(tags['Exploded view'])
 
 # ======================= PART 3: style, scenes, camera =======================
@@ -583,6 +600,7 @@ scene_defs = [
     ("6 Sled inner face (countersunk motor screws)",
      [EXP, 'Safe door (reference)', 'Front plate', 'Gear-shafts', '608 bearings', 'Springs (placeholder)', 'Pinions'],
      (3.5, 9.5, 8.0), (0, -1.5, 5.12), 35.0),
+    ("7 Door side: rubber magnets", [EXP, 'Safe door (reference)'], (3.0, 13.0, 8.5), (0, 0, 5.12), 35.0),
 ]
 scenes = []
 for name, _, _, _, _ in scene_defs:

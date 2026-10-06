@@ -25,7 +25,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ASM = os.path.join(HERE, '..', 'dial_unit_assembled.scad')
 TOL = 0.5   # mm^3
 
-STATIC = ['front', 'sled', 'deck'] + [f'{p}{i}' for p in ('bearings', 'm3heads') for i in range(3)]
+STATIC = ['front', 'sled', 'deck', 'rmags'] + [f'{p}{i}' for p in ('bearings', 'm3heads') for i in range(3)]
 MOVING = [f'{p}{i}' for p in ('gearshaft', 'pinion', 'motor') for i in range(3)]
 
 # pairs that are SUPPOSED to share space (designed fits), skipped:

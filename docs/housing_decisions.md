@@ -6,6 +6,90 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## 2026-10-06: key fit test passed; key torque 0.07–0.08 N·m — direct drive is fine
+
+**Fit test (Paul, `key_fit_test.stl`, cap in PETG-CF):** the cap slides onto
+the bow without forcing, sits with the key tip just short of the slot bottom,
+and turns the key to its stop. Cap geometry confirmed as designed.
+
+**Torque:** luggage scale in the lever hole (50mm from the axis) read
+**0.14–0.16 kg** to turn the key: × 9.81 × 0.050 = **0.069–0.078 N·m**.
+(Correction: first reported as 1.4 kg, a misread decimal — Paul caught it
+the same day. The 1.4 kg version had concluded the motor was too weak and
+needed a 4:1 reduction; that conclusion is withdrawn.)
+
+**Motor:** the 17HE19-2004S is rated 0.59 N·m holding at 2.0 A; running
+torque is lower and falls with speed, and at the ~1 A the drivers are
+planned to run at, expect roughly 0.3 N·m. That is about 4× the key's
+torque, so **v1's direct drive stays** — no gearing.
+
+**Housing / magnets:** whatever turns the key pushes back on the housing.
+While turning: 0.078 N·m ÷ 0.031m (magnet circle radius) = 2.5 N (~0.26 kgf)
+across 3 magnets, ~0.09 kg each — small. The bigger load is at the key's
+end stop, where the motor pushes with everything it has until it is
+stopped: at full 2 A that could approach 0.59 N·m (~0.65 kg per magnet).
+So run the key motor at reduced current — enough for ~2× the key's torque
+— and stop on StallGuard at the end stop; that keeps the stop load to a
+fraction of what the magnets need to hold anyway. Still confirm with the
+one-magnet pull test.
+
+## 2026-10-06: both units mount with 22mm rubber-coated pot magnets (Wukong)
+
+**Why.** Two problems with the 2mm×8mm press-fit disc field: (1) Paul found
+strings on the floors of the printed pockets — a floor printed as the first
+layer over a pocket can't be cleaned out reliably, so the discs wouldn't seat
+flat; (2) on a vertical door what holds the unit up is sideways (shear) grip,
+not straight pull. Published supplier figures put a bare neodymium magnet's
+shear grip at roughly 15% of its pull, and a rubber-coated pot magnet's at
+roughly 31–38% (e.g. a 22mm rubber magnet listed 5.9 kg pull / 1.8 kg
+shear). Rubber also won't scratch the door. Paul ordered Wukong 22mm
+rubber-coated magnets with an M4 threaded back, listed 6mm tall
+(Amazon.fr B0DGQ52DY9 20-pack / B0D5B4TJ7B 10-pack). The listing gives no
+pull rating, so the real number comes from a test on the door.
+
+**Mount (shared, `rmag_*` in `common_mounts.scad`).** A 22.4mm **through**
+hole — nothing is printed over air, so there's no floor to string. On the
+plate's inner face a seat ring (OD 29) stands up to z = 5.8 from the door
+face; a printed retainer disc (Ø27 × 3, `print_magnet_retainer.scad`) sits on
+the ring and an M4 screw goes through it into the magnet's back. The ring top
+sets the depth, so every magnet's rubber stands exactly 0.2mm proud of the
+door face, and the door's pull goes magnet → screw → retainer → ring, not into
+a press fit. Change `rmag_d` / `rmag_h` if the real magnets differ from the
+listing; everything else follows.
+
+**Dial unit.** 6 magnets at r = 53.5mm, first at 26.75°, 60° apart — radius
+and rotation brute-force searched for clearance to the three front legs and
+the bearing bosses (the first try, r57 / 25°, hit a leg by 0.24mm). The 8×2
+disc-pocket field is gone. The plate now rests on the rubber, 0.2mm off the door,
+so the dial plugs sit 0.2mm shallower in the stars (3.7 instead of 3.9mm):
+not worth anything else changing. `dial_layout_check.py`: seat ring to front
+legs 2.39mm, to bearing bosses 2.43mm, 7.0mm inside the plate rim, 24.5mm ring
+to ring — ALL PASS. `dial_interference_check.py` (magnets + retainers added as
+a part): NO INTERFERENCE.
+
+**Key turner.** 3 magnets at r = 31mm, at 60/180/300° (between the legs); the
+legs were re-clocked from 180/60/−60° to 0/120/240° to make room. That puts
+one leg toward the dials, but legs sit inside the round base (r36 < r43), so
+the footprint on the dial side is unchanged; the base only bulges past r43
+where the magnet rings are (to r46.5), and the magnet at 180° is the one
+facing away from the dials. Base plate 6 → 5mm to match the dial plate (the
+ring adds the other 0.8mm). Asserts: ring to leg ≥ 1.5mm (actual 13.3), ring
+to key opening ≥ 1.5mm (actual 2.5). `key_turner_check.py` with magnets added:
+NO INTERFERENCE at all 15 poses.
+
+**Load.** Dial unit ~1.3–1.5 kg on 6 magnets, key turner (lighter, one
+motor) on 3. Not verified: no pull/shear figure exists for these magnets.
+**Test before trusting it:** stick one magnet to the door and pull sideways
+(parallel to the door) with the luggage scale. 1.5 kg on six magnets is
+0.25 kg each; wanting about 3× margin for the motors' reaction torque and
+vibration, if one magnet slips under ~0.8 kg sideways, add magnets or a floor
+leg before running the robot. The key turner's three also have to resist the
+key's turning torque — still to be measured with `print_key_fit_test.scad`.
+
+**Prints affected:** dial front assembly (reprint), key-turner base, 10
+retainers. SketchUp models rebuilt with the magnets (scene "Door side: rubber
+magnets" in each).
+
 ## Key-turner v1 (2026-10-06): cap over the bow, Oldham-style, motor on the key axis
 
 Replaces v0.1's thumbscrew clamp (sized before the key was measured).

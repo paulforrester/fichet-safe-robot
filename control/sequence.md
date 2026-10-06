@@ -128,7 +128,11 @@ this exact magnet: **8.00mm diameter × 1.9mm depth** (0.1mm undersize on
 depth vs. the 2mm-thick magnet, for an interference press fit rather
 than a loose slot — glue optional/backup, not load-bearing). Reuse that
 pocket geometry directly in both units' mounting faces rather than
-re-deriving it. Splitting avoids one large frame needing to be
+re-deriving it. **Superseded 2026-10-06:** both units now mount with
+22mm rubber-coated M4 pot magnets (Wukong) — 6 on the dial unit, 3 on the
+key turner — in through holes with printed retainers; the disc pockets
+printed with strings and bare discs grip poorly sideways. See
+`docs/housing_decisions.md`. Splitting avoids one large frame needing to be
 dimensionally accurate across the full door width, and each unit is
 small enough to print in one piece.
 
@@ -161,6 +165,12 @@ turn each dial motor slowly (at most 1/8 of a dial turn = 45deg of dial,
 Until the dial torque is measured, run the dial drivers at about 1A RMS:
 the reduction doubles what the motor can put into the printed gear and
 plug teeth.
+
+**Key torque (measured 2026-10-06): 0.07–0.08 N·m** (0.14–0.16 kg at
+50mm). About a quarter of what the motor gives at ~1 A, so the key turner
+stays direct drive. Run the key motor at reduced current (~2× the key's
+torque) and stop on StallGuard at the end stop, so the drive doesn't push the
+housing against its magnets harder than it needs to.
 
 ## Operating sequence
 
@@ -212,6 +222,8 @@ Resolved 2026-09-29:
       neodymium magnets, pocket geometry reused from a prior project
       (8.00mm dia × 1.9mm depth for 2mm×8mm disc magnets, press fit).
       ~100 magnets already on hand.
+      **Changed 2026-10-06** to 22mm rubber pot magnets (6 + 3), ordered —
+      measure them and do a one-magnet sideways pull test on arrival.
 
 Still open:
 - [x] Key / lock-hole measurements (Paul, calipers, 2026-10-06): lock hole
