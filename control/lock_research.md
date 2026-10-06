@@ -20,8 +20,13 @@ from this session) and describe the *current* Complice.
 
 **New point from the manual — to check before the long run:** in normal use
 you **set the combination first, then insert the key**. The robot keeps the
-key inserted, at rest, while it turns the dials. Whether the dials still turn
-with the key in at rest isn't known yet (`control/bringup.md` stage 4a).
+key inserted, at rest, while it turns the dials. Paul (2026-10-06): with the
+key turned to its ~100° stop, the dials still click. With the key at rest:
+not tried yet (`control/bringup.md` stage 4a). Paul's caution (a possibility,
+no source): the lock might let the bolts retract only if the key has gone
+back to the start since the combination was set. Firmware v0.2 returns the
+key to its rest stop after every attempt, so it doesn't depend on this
+(`control/sequence.md`, Open items).
 
 ## What the sources say
 
@@ -101,6 +106,8 @@ the links as where to look. Paul can open them.
    combinations.
 2. **With the key inserted at rest, can each dial still be turned by hand
    with the tube key?** If not, the robot as designed can't work: it can't
-   take the key out between tries (`control/bringup.md` stage 4a).
+   take the key out between tries (`control/bringup.md` stage 4a). Partly
+   done (Paul, 2026-10-06): with the key at its ~100° stop, the dials still
+   click.
 3. With the dials at some setting, turn the key to its stop by hand, with
    normal force, 10 times. Does anything change (stop angle, feel, a click)?

@@ -222,8 +222,12 @@ Decisions made while writing the firmware, on top of the sequence above:
   wraps from position 20 back to 1 (a wheel with a hard stop couldn't).
 - **Key home every attempt**: retract until the key stalls at its rest
   (anticlockwise) stop, so every angle is measured from the same point.
-  Whether that rest stop exists is still to be checked (bench stage 5). If it
-  doesn't, a config switch makes the key return by step count instead.
+  The rest stop exists: the key can't turn anticlockwise from where it goes
+  in (Paul, 2026-10-06). A config switch can make the key return by step count
+  instead. Paul also found (2026-10-06) that the dials still click with the
+  key left at its ~100° stop, so the key wouldn't *have* to come all the way
+  back between tries. Not changed: see "Return the key to rest every attempt,
+  or park it near N?" under Open items.
 - **Self-calibration (v0.2, 2026-10-06, Paul's suggestion)**: each session
   measures each motor's free-running StallGuard reading and sets its own
   stall threshold (stall = reading down to 50 % of it). Each dial makes one
@@ -329,7 +333,28 @@ Still open:
 - [ ] Do the dials still turn with the real key inserted at rest? The
       manual's normal use dials the combination *before* inserting the key
       (`docs/photos/complice_manual_normal_use.png`); the robot keeps the
-      key in throughout. Bench check: `control/bringup.md` stage 4a.
+      key in throughout. **Partly answered (Paul, 2026-10-06): with the key
+      turned to its ~100° stop and left there, the dials still click.** Not
+      yet tried with the key at rest, which is where firmware v0.2 leaves it
+      while it turns the dials. Bench check: `control/bringup.md` stage 4a.
+- [ ] Return the key to rest every attempt, or park it near N? Raised by
+      Paul's check above (2026-10-06). Firmware v0.2 returns it to its rest
+      stop every attempt, which re-zeroes the angle each time and matches the
+      manual's sequence. Parking it ~10° short of N between tries would save
+      time. **Estimate** (motion only, from `config.h` speeds and the
+      firmware's own ramp code; not measured): a full return costs ~0.82 s
+      per attempt (key out 0.30 s + back 0.30 s + one dial click 0.23 s), so
+      ~1.8 h for all 8,000. Parked: ~0.34 s, ~0.75 h. That saves ~1.1 h in
+      the worst case, ~0.5 h on average. Logging, EEPROM writes and the
+      re-checks every 200 attempts are not included; they're the same either
+      way. Risks of parking: (1) Paul's caution: the lock may need the key
+      back at the start before the bolts can retract. If so, the right
+      combination would look like a clean fail, and we'd only find out
+      after a whole run without success. (2) The angle would come from step
+      counting since the key last touched its rest stop, so a lost step
+      would shift later readings until the next re-zero. Recommendation:
+      keep the full return for the first full run. Revisit if stage 6 shows
+      attempts much slower than this estimate. **Paul to decide.**
 - [ ] Torque/effort needed to turn each dial wheel and the key, to
       size motors and gearing.
 - [x] Whether the Fichet-Bauche "Complice" line has any known

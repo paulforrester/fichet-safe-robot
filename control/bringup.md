@@ -122,13 +122,15 @@ behaved. If 50 % is too tight or too loose, I'll change `CFG_SG_CAL_PCT`.
 **4a. By hand first (no electronics).** Already answered (Paul,
 2026-10-06): every dial turns clockwise without limit, stops when turned
 anticlockwise, and has 20 evenly spaced clicks (18°). There are no marks on
-the door. The robot now finds the clicks itself. Still to do:
-1. **Real key inserted, at rest** (as it will be during a run): with the tube
-   key, turn each dial a full turn clockwise, then back anticlockwise to its
-   stop. **Do the dials still turn, and feel the same as without the key?**
-   The manual sets the combination *before* inserting the key; the robot
-   keeps the key in. If the dials won't turn with the key in, stop here and
-   tell me.
+the door. The robot now finds the clicks itself. With the key turned to its
+~100° stop and left there, the dials still click (Paul, 2026-10-06). Still
+to do:
+1. **Real key inserted, at rest** (where the robot leaves it while it turns
+   the dials): with the tube key, turn each dial a full turn clockwise, then
+   back anticlockwise to its stop. **Do the dials still turn, and feel the
+   same as without the key?** The manual sets the combination *before*
+   inserting the key; the robot keeps the key in. If the dials won't turn
+   with the key at rest, stop here and tell me.
 
 **4b. On the door** (12 V off while placing): dial unit on, all three motors
 plugged in (A = top-left = X, B = top-right = Y, C = bottom = Z). The key
@@ -220,7 +222,7 @@ spread and start the real run with `resume`.
 | Motor step angle (1.8° assumed) | 2 |
 | StallGuard thresholds — now self-calibrated; the 50 % rule and speeds | 3, 4, 5 |
 | Hard stop and clicks per turn | answered 2026-10-06: stop anticlockwise, unlimited clockwise, 20 clicks |
-| Dials still turn with the key inserted at rest | 4a |
+| Dials still turn with the key inserted at rest | 4a (with the key at its ~100° stop: yes, Paul 2026-10-06) |
 | Motor direction ↔ dial direction | 4b |
 | Plug seating (seat routine angle and speed) | 4b |
 | Position 1 relative to the stop — now found from the clicks; parked-on-click check | 4b |
