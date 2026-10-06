@@ -16,24 +16,28 @@ has M3 countersunk screws, so the 12 counterbores are now **90deg
 countersinks**: a cone prints as a 45deg overhang, each 0.2mm layer
 stepping in 0.2mm, with no bridge.
 
-- Cone: 7.0mm mouth on the inner face down to the 3.4mm clearance hole
-  (1.8mm deep). ISO 10642 M3 heads are dk 6.72 theoretical max, k 1.86
-  ([Engineers Edge, BS EN ISO 10642](https://engineersedge.com/hardware/bs_en_iso_10642_14583.htm)),
-  so a head sits 0.14mm below the face — flush.
-- Screw: **M3x10 countersunk** (a countersunk screw's length includes the
-  head): 10 - (6 - 0.14) = **4.1mm of thread** in the motor's 4.5mm-min
-  holes. Asserted in the SCAD (>= 3.5, <= 4.2). M3x8 would grip only ~2.1mm;
-  M3x12 would bottom out.
+- Cone: **6.3mm mouth** on the inner face down to the 3.4mm clearance hole
+  (1.45mm deep). Paul's screws are a generic kit (M3x10 ×55) that doesn't
+  say which head standard, so the cone works for both: ISO 10642 M3 heads are
+  dk 6.72 theoretical, k 1.86 ([Engineers Edge](https://engineersedge.com/hardware/bs_en_iso_10642_14583.htm));
+  DIN 7991 M3 heads dk 6.0 max, k 1.7 max ([globalfastener DIN 7991](https://www.globalfastener.com/standards/detail.php?sid=NTUx)).
+- Screw: **M3x10 countersunk** (length includes the head). Thread in the motor's
+  4.5mm-min holes: ISO head (0.21mm proud) **3.79mm**, DIN head with its 0.2mm
+  land **3.95mm**, DIN head without a land **4.15mm**. All three asserted in the
+  SCAD (3.5 to 4.2). The first pass used a 7.0mm mouth: fine for ISO heads
+  (4.14mm) but a DIN head could have gone 4.5mm deep and bottomed — caught
+  before printing; the assert now fails on the 7.0 value. M3x8 would grip only
+  ~2mm; M3x12 would bottom out.
 - Side benefit: the old cap heads stood 1mm proud into the gear cavity;
-  countersunk heads are flush.
-- Re-checked: layout check all pass (countersink to spring pocket 2.35mm
+  countersunk heads are within 0.21mm of the face (nothing moves within 4.5mm of it).
+- Re-checked: layout check all pass (countersink to spring pocket 2.49mm
   over the 2mm requirement, was 2.60 with the 6.5mm counterbore);
-  interference check no overlap (largest 0.105mm^3, the dummy screw heads
+  interference check no overlap (largest 0.083mm^3, the dummy screw heads
   touching their own seats — faceting); sled STL watertight, one body,
-  90.66cm^3; slices through a screw hole show the cone 6.9 -> 5.2 -> 3.5mm at
-  z = 0.05 / 0.9 / 1.75mm as designed; the SketchUp build script's sled
+  90.76cm^3; slices through a screw hole show the cone 6.2 -> 4.9 -> 3.5mm at
+  z = 0.05 / 0.7 / 1.4mm as designed; the SketchUp build script's sled
   updated the same way (closed, volume within 0.1% of the STL), and the
-  SketchUp model rebuilt from it (`fichet_dial_unit_v2_geared_2026-10-06.skp`)
+  SketchUp model rebuilt from it (`fichet_dial_unit_v2_geared_2026-10-06b.skp`)
   with a new scene 6 showing the sled's door-side face and its countersinks.
 - Only the sled changes; the front plate, deck and drivetrain are untouched.
 

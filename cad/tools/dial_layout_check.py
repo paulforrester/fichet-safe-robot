@@ -25,7 +25,7 @@ SCAD = os.path.join(HERE, '..', 'dial_unit_housing.scad')
 
 NEMA_HALF = (42.3 + 1.5) / 2        # can + the 1.5mm relief the sled uses (half-width)
 BOLT_R = 31 / 2 * math.sqrt(2)      # bolt-hole radius from the motor axis
-LEG_R, CSK_R, CB_R = 6.0, 7.0, 3.5   # CB_R: M3 countersink mouth (7.0mm) on the sled's inner face
+LEG_R, CSK_R, CB_R = 6.0, 7.0, 3.36  # CB_R: M3 countersunk head (ISO 6.72, bigger than the 6.3 mouth) on the sled's inner face
 SPRING_R, BOSS_REC_R, PINION_HUB_R = 4.3, 11.5, 6.0
 
 
@@ -200,7 +200,7 @@ def main():
             (pz0 > bh, f'pinion front {pz0} clear of the boss tops {bh} by {pz0 - bh:.1f}mm'),
             (pz0 <= gz0 and gz1 + travel <= pz1, f'gear ({gz0}-{gz1}) stays on the pinion ({pz0}-{pz1}) over the full {travel}mm travel'),
             (pz0 - 0.5 <= tip <= pz1 - 10, f'motor shaft tip at {tip} (+/-0.5) lands inside the pinion ({pz0}-{pz1})'),
-            (gz1 + travel < ctop - 0.5, f'gear rear at full travel ({gz1 + travel}) clear of the sled face {ctop} (countersunk motor-screw heads sit flush)'),
+            (gz1 + travel < ctop - 0.21 - 0.5, f'gear rear at full travel ({gz1 + travel}) clear of the sled face {ctop} (countersunk motor-screw heads within 0.21mm of it)'),
             (plug1 + travel >= -0.01, f'plug tip at full travel {plug1 + travel:.1f} (>= 0: plate can sit flush on the door)'),
             (sp_back >= 9, f'spring length {sp_fwd} forward / {sp_back} pushed back (needs solid length < {sp_back})')]
     # the pinion is located by the end of the shaft's flat, and can float between the

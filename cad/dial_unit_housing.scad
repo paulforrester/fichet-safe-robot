@@ -267,16 +267,29 @@ motor_shaft_hole_d = nema17_shaft_d + 2;
 // print with that face on the bed, so their shoulder is an unsupported bridge
 // and left strings that were hard to dig out. A 90deg cone prints as a 45deg
 // overhang (each layer steps in 0.2mm) — no bridge, no strings.
-// ISO 10642 M3: dk theoretical max 6.72, k max 1.86 (head height = (6.72-3)/2).
-// Countersunk screw length INCLUDES the head.
-m3_csk_head_d   = 6.72;
-m3_csk_top_d    = 7.0;                                     // cone mouth, +0.28 on the head
-m3_csk_depth    = (m3_csk_top_d - nema17_bolt_clear) / 2;  // 1.8 (90deg cone to the 3.4 hole)
-m3_csk_sink     = (m3_csk_top_d - m3_csk_head_d) / 2;      // 0.14: head top below the face
+// Paul's screws (2026-10-06): a generic 1080-pc kit of zinc-plated hex-socket
+// countersunk screws, M3x10 included — standard not printed on the box, so the
+// cone is sized to work with EITHER head standard:
+//   ISO 10642 M3: dk theoretical 6.72 at the top face, k 1.86 (= (6.72-3)/2, no land)
+//   DIN 7991  M3: dk 6.0 max, k 1.7 max (so up to a 0.2 cylindrical land above the cone)
+// A countersunk screw's length INCLUDES the head. Thread in the motor =
+// length - (plate + how far the head top stands proud of the face).
+// First pass used a 7.0 mouth: a DIN head with no land would then sit 0.5 deep
+// and put 4.5mm into the motor's "4.5 MIN" holes — could bottom. 6.3 instead:
+m3_csk_head_d   = 6.72;                                    // ISO head (the dummy below)
+m3_csk_top_d    = 6.3;                                     // cone mouth on the inner face
+m3_csk_depth    = (m3_csk_top_d - nema17_bolt_clear) / 2;  // 1.45 (90deg cone to the 3.4 hole)
+m3_csk_sink     = (m3_csk_top_d - m3_csk_head_d) / 2;      // -0.21: ISO head top 0.21 PROUD (harmless:
+                                                           //  nothing moves within 4.5mm of the sled face)
 m3_csk_len      = 10;   // M3x10 countersunk
-m3_csk_engage   = m3_csk_len - (motor_plate_h - m3_csk_sink);   // 4.14mm of thread in the motor
-assert(m3_csk_engage <= 4.5 - 0.3, "motor screw would bottom in the motor's 4.5mm-min holes");
-assert(m3_csk_engage >= 3.5, "motor screw too short for a solid grip");
+m3_engage_iso     = m3_csk_len - (motor_plate_h - m3_csk_sink);                         // 3.79
+m3_engage_din     = m3_csk_len - (motor_plate_h + 0.2 - (m3_csk_top_d - 6.0) / 2);     // 3.95 (0.2 land)
+m3_engage_din_max = m3_csk_len - (motor_plate_h - (m3_csk_top_d - 6.0) / 2);           // 4.15 (no land)
+for (e = [m3_engage_iso, m3_engage_din, m3_engage_din_max]) {
+    assert(e <= 4.5 - 0.3, "motor screw could bottom in the motor's 4.5mm-min holes");
+    assert(e >= 3.5, "motor screw too short for a solid grip");
+}
+echo(M3_ENGAGE_ISO_DIN_DINMAX = [m3_engage_iso, m3_engage_din, m3_engage_din_max]);
 
 function rot2(p, a) = [p[0]*cos(a) - p[1]*sin(a), p[0]*sin(a) + p[1]*cos(a)];
 motor_bolt_pts = [for (i = [0 : 2]) [for (k = [0 : 3])
