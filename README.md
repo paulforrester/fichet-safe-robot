@@ -55,8 +55,9 @@ essentially the full `docs/bom.md`, tracked there against every line.
   `housing_decisions.md` for the housings), the bill of materials
   (`bom.md`, tracked against actual orders), terminology reference, and
   reference photos (`docs/photos/`).
-- `control/` — motor/servo control architecture and operating sequence
-  (`sequence.md`); firmware itself not started.
+- `control/` — control architecture and operating sequence
+  (`sequence.md`), the wiring harness (`wiring.md`, diagrams in
+  `control/harness/`); firmware not started.
 
 ## Terminology
 
@@ -73,4 +74,5 @@ HEIGHT (radial), DEPTH (axial into the socket) — see
   print the door-pattern test (`cad/print_dial_pattern_test.scad`) and the
   three gear-shafts first, and check them on the real door, before the
   big parts. Buy 3 small compression springs.
-- Begin `control/`: firmware for turning and reading each dial.
+- Wiring harness designed (`control/wiring.md`); next: firmware and the bench
+  bring-up plan.

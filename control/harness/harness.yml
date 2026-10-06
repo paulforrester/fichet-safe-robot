@@ -1,0 +1,97 @@
+# Wiring harness for the Fichet safe robot — see control/wiring.md.
+# Render: wireviz control/harness/harness.yml   (WireViz 0.4.1 + Graphviz)
+# Conductor colours of the QUARKZMAN cable are not known yet: fill them in
+# (colors: [...]) once Paul has looked at the cable.
+
+connectors:
+  P1:
+    type: 5.08 mm pluggable screw terminal, 8-pin
+    subtype: header on hub board (dial unit)
+    pinlabels: [+12V (after PTC), GND, empty, +5V VIO, KEY_STEP (D23), UART bus, KEY_DIAG (D19), SHIELD to GND]
+  P2:
+    type: 5.08 mm pluggable screw terminal, 8-pin
+    subtype: header on remote driver board (key turner)
+    pinlabels: [VM + 100uF, GND, empty, VIO + MS1 + MS2, STEP, RX = PDN_UART, DIAG, not connected]
+  AUX4:
+    type: RAMPS AUX-4 header
+    pins: [1, 2, 16, 17, 18]
+    pinlabels: [5V, GND, D23, D17 RX2, D16 TX2]
+  YMAX:
+    type: RAMPS Y_MAX endstop header
+    pins: [S, '-', '+']
+    pinlabels: [D15 spare, GND, 5V]
+  ZMAX:
+    type: RAMPS Z_MAX endstop header
+    pins: [S, '-', '+']
+    pinlabels: [D19 KEY_DIAG, GND, 5V]
+  MS3_X:
+    type: RAMPS X socket MS3 jumper pin (signal side, jumper OFF)
+    pins: [1]
+    pinlabels: [PDN_UART dial A addr 0]
+  MS3_Y:
+    type: RAMPS Y socket MS3 jumper pin (signal side, jumper OFF)
+    pins: [1]
+    pinlabels: [PDN_UART dial B addr 1]
+  MS3_Z:
+    type: RAMPS Z socket MS3 jumper pin (signal side, jumper OFF)
+    pins: [1]
+    pinlabels: [PDN_UART dial C addr 2]
+  HUB:
+    type: hub board 2.54 mm pins
+    pins: [TX2, RX2, BUS_X, BUS_Y, BUS_Z, STEP, DIAG, 5V, GND]
+    notes: TX2 to 1k to BUS node; RX2, BUS_X/Y/Z and P1-6 on the BUS node; STEP to P1-5; DIAG from P1-7; 5V to P1-4; GND to P1-2, P1-8
+
+cables:
+  W1:
+    type: QUARKZMAN 22 AWG shielded, 6 conductors
+    wirecount: 6
+    gauge: 22 AWG
+    length: 0.3
+    shield: true
+    wirelabels: [+12V, GND, +5V, STEP, UART, DIAG]
+    notes: Shield drain to GND at the dial end only (P1-8); cut back and insulate at P2.
+  J1:
+    type: F-F Dupont jumpers
+    category: bundle
+    wirecount: 5
+    length: 0.15
+    wirelabels: [TX2, RX2, KEY_STEP, 5V, GND]
+  J2:
+    type: F-F Dupont jumpers
+    category: bundle
+    wirecount: 4
+    length: 0.15
+    wirelabels: [UART A, UART B, UART C, KEY_DIAG]
+
+connections:
+  -
+    - P1: [1, 2, 4, 5, 6, 7]
+    - W1: [1, 2, 3, 4, 5, 6]
+    - P2: [1, 2, 4, 5, 6, 7]
+  -
+    - P1: 8
+    - W1: s
+  -
+    - AUX4: [18, 17, 16]
+    - J1: [1, 2, 3]
+    - HUB: [TX2, RX2, STEP]
+  -
+    - YMAX: ['+', '-']
+    - J1: [4, 5]
+    - HUB: [5V, GND]
+  -
+    - MS3_X: [1]
+    - J2: [1]
+    - HUB: [BUS_X]
+  -
+    - MS3_Y: [1]
+    - J2: [2]
+    - HUB: [BUS_Y]
+  -
+    - MS3_Z: [1]
+    - J2: [3]
+    - HUB: [BUS_Z]
+  -
+    - ZMAX: [S]
+    - J2: [4]
+    - HUB: [DIAG]

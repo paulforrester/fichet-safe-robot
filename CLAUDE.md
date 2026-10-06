@@ -58,6 +58,8 @@ firmware (not started — see "Where things stand" below).
 |---|---|
 | `README.md` | Overview + status |
 | `control/sequence.md` | **Control architecture, wiring plan, operating sequence, open items — the main input for firmware and harness work** |
+| `control/wiring.md` | **Wiring harness: full pin map, driver jumpers/addresses, cable pin-out, hub and remote driver boards, currents, power order, shopping list, sources** |
+| `control/harness/` | WireViz harness (`harness.yml` → `.svg/.png`) and Graphviz overview (`overview.dot` → `.svg`) |
 | `docs/bom.md` | Bill of materials, tracked against what was actually ordered (vendor, price, status) |
 | `docs/housing_decisions.md` | Mechanical decision log for both housings (most recent first) |
 | `docs/decisions.md` | Dial-plug (tube-socket) tooth geometry log |
@@ -66,7 +68,7 @@ firmware (not started — see "Where things stand" below).
 | `cad/*.stl` | Rendered parts Paul prints |
 | `cad/tools/` | `dial_layout_check.py`, `dial_interference_check.py`, `key_turner_check.py` — run after any CAD change |
 | `cad/sketchup/` | Build scripts for SketchUp review models (run via the Trimble SketchUp connector, not locally) |
-| `control/` | Firmware and harness go here (nothing yet besides docs) |
+| `control/` | Harness docs (above); firmware goes in `control/firmware/` |
 
 ## Mechanical facts the software and wiring depend on
 
@@ -117,47 +119,42 @@ firmware (not started — see "Where things stand" below).
 - Double-sided perfboard kit (for the remote driver board), heat shrink.
 - **AS5600** magnetic encoders ×4 (optional, only if step counting on the
   key proves unreliable), 7 mm momentary pushbuttons ×12 (start trigger).
-- Still to buy: multimeter, F–F / M–F jumpers, possibly solder.
+- Still to buy: multimeter, F–F / M–F jumpers, possibly solder — plus the
+  harness parts in `control/wiring.md` §10 (header strips, 1.1 A PTC,
+  100 µF cap, DC-jack adapter, 20 AWG wire).
 
-## Wiring decisions already made (`control/sequence.md`)
+## Wiring — settled 2026-10-06 in `control/wiring.md` (read it for details and sources)
 
 - Each TMC2209 sits **next to its motor** (StallGuard reads back-EMF at
-  the motor; long phase wires would dull it). Only logic signals + 12 V
-  cross the cable to the key turner.
-- **All 4 drivers share one UART bus on `Serial2`** (Mega pins 16 TX /
-  17 RX), using TMC2209 multi-drop addresses 0–3 set by MS1/MS2 strapping.
-  `Serial` stays free for USB; `Serial1` (18/19) and `Serial3` (14/15)
-  would collide with RAMPS endstop headers.
-- **DIAG (stall) outputs** of the 3 dial drivers → RAMPS endstop headers
-  X_MIN (pin 3), Y_MIN (pin 14), Z_MIN (pin 18).
-- Key-turner driver: STEP/DIR/EN/DIAG on spare Mega pins (RAMPS AUX
-  headers), exact pins not chosen yet.
+  the motor). Only logic + 12 V cross the cable to the key turner.
+- **All 4 drivers share one UART bus on `Serial2`** (TX2 D16 / RX2 D17 on
+  AUX-4 18/17), **one 1 kΩ in total** (TX2 → 1 kΩ → bus; RX2 and every
+  PDN_UART on the bus — TMC2209 DS Fig. 4.1). Addresses: X 0 (no jumpers),
+  Y 1 (MS1 jumper), Z 2 (MS2 jumper), key 3 (MS1+MS2 tied to 5 V). **No MS3
+  jumpers** — on the BTT V1.3, PDN_UART is in the MS3 position, tapped at the
+  MS3 jumper pin.
+- Dials: A (top-left) = X socket, B (top-right) = Y, C (bottom) = Z.
+  DIAG → X_MIN D3 (A), **X_MAX D2 (B)**, Z_MIN D18 (C); key DIAG → Z_MAX
+  D19 (all interrupt pins; DIAG is a pulse). Start/stop button on Y_MIN D14.
+  Key STEP on D23 (AUX-4 16).
+- The BTT V1.3's DIAG pin points down into nothing on RAMPS: the 3 dial
+  drivers get a one-time mod (clip it, solder a lead to its top joint).
+- Cable (6 cores + shield): 12 V, GND, 5 V (VIO, from the Mega), STEP, UART,
+  DIAG. Remote EN and DIR tied to GND; firmware disables it with
+  CHOPCONF.TOFF = 0 and sets direction with GCONF.shaft (read back before
+  each move). Remote 12 V through a 1.1 A PTC on a small hub board at the
+  dial end; 100 µF at the remote driver.
+- Currents: dials 1.0 A RMS (hold 0.5 A); key 0.6 A to start, then 2 × the
+  measured minimum. Power: USB first, then 12 V; 12 V off first; never
+  (un)plug a motor or the cable with 12 V on.
 
-## Known open issues for the harness — resolve with sources, not assumptions
+## Harness: what's left (bench, not design)
 
-1. **Conductor count.** The 6-conductor cable can't carry STEP, DIR, EN,
-   DIAG, UART, 12 V, GND *and* 5 V logic (VIO) for the remote driver.
-   Options to evaluate: EN tied low locally + disable via UART; StallGuard
-   read over UART (SG_RESULT) instead of a DIAG wire; local 5 V regulator
-   at the key turner; shield as ground. Pick one and justify it.
-2. **UART resistor topology.** `sequence.md` says one 1 kΩ per driver;
-   the common single-wire scheme is TX → one 1 kΩ → shared PDN_UART bus,
-   RX straight to the bus. Check the TMC2209 datasheet and the TMCStepper
-   library docs and settle it.
-3. **BTT TMC2209 V1.3 pin access on RAMPS.** RAMPS doesn't route the
-   driver's UART pin to the Mega, and whether DIAG reaches a socket pin on
-   this board revision needs checking (BTT's V1.3 manual/schematic).
-   Expect flying leads from each driver's UART (and maybe DIAG) pin.
-4. **Address strapping on RAMPS:** the MS1/MS2/MS3 jumpers under each
-   socket set the UART address in UART mode — confirm the mapping for this
-   board and specify the jumpers for X/Y/Z, and the strapping on the
-   remote driver's perfboard.
-5. **Where the key-turner driver board mounts.** The key turner housing
-   (v1) has no mount for it. That's a mechanical change — specify the
-   board's size and needs, and leave the CAD change for a mechanical
-   session (or do it there with the CAD checks).
-6. Cable routing/strain relief and the Phoenix connector pin-out at both
-   ends; fuse/power-up order; motor current settings per driver.
+Verify on the bench (steps go in `control/bringup.md`): UART lead on the
+right MS3 jumper pin; which top-edge pin is DIAG; Phoenix plug keying and
+cable colours; perfboard/heatsink/plug dimensions for the remote board's
+mount (CAD change for a mechanical session — needs listed in
+`control/wiring.md` §6.2); a place on the electronics deck for the hub board.
 
 ## Firmware — what's decided and what's open
 
