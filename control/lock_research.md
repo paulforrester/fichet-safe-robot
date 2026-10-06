@@ -12,11 +12,11 @@ adds penalty delays, or locks out.** What it does have is a **relocker
 ("délateur")** that blocks the lock *for good* when it is **attacked
 mechanically or with heat**. So the risk to manage is force, not the number
 of tries: never hammer or over-torque the key. The firmware is already built
-that way. Confidence: medium. The manual's normal-use procedure (below) has
-no limit on tries or waiting time. But the rest comes from search-result
-excerpts (the pages are blocked from this session), and they describe the
-*current* Complice, not necessarily this older safe. The manual's
-"Troubleshooting" page is still unread.
+that way. Confidence: medium-high. The manual's normal-use procedure
+(below) has no limit on tries or waiting time. Paul has read the manual: it
+has **no warning about entering wrong combinations** (2026-10-06). The
+relocker details come from search-result excerpts (the pages are blocked
+from this session) and describe the *current* Complice.
 
 **New point from the manual — to check before the long run:** in normal use
 you **set the combination first, then insert the key**. The robot keeps the
@@ -97,10 +97,8 @@ the links as where to look. Paul can open them.
 
 ## Worth doing by hand before the long run (Paul)
 
-1. Done: "Opening the safe" (above). Still to read: "Troubleshooting" and
-   "Scrambling the combination" (ManualsLib link above). Look for any warning
-   about forcing the key, or about what happens if the key is turned with a
-   wrong combination.
+1. Done (Paul, 2026-10-06): the manual has no warning about wrong
+   combinations.
 2. **With the key inserted at rest, can each dial still be turned by hand
    with the tube key?** If not, the robot as designed can't work: it can't
    take the key out between tries (`control/bringup.md` stage 4a).

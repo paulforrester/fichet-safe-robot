@@ -6,8 +6,11 @@
 //    after some turning (the seat routine). Logical + = clockwise;
 //  - the key: a rest stop at 0 (optional), a stop at N for a wrong
 //    combination, further for false sets, and the bolt end for the right one;
-//  - StallGuard: DIAG only above a speed (TCOOLTHRS), only after a lag of a
-//    couple of full steps against a stop. The rotor follows the field
+//  - StallGuard: SG_RESULT per microstep. Dials: a baseline with a ripple at
+//    the click period (lower climbing out of a click, higher falling in);
+//    key: flat on its free travel; at a stop: low, after a lag of a couple of
+//    full steps. DIAG fires when SG_RESULT <= 2 * SGTHRS (as configured), only
+//    above a speed (TCOOLTHRS). Cruise-speed samples go to the move's SgSink. The rotor follows the field
 //    elastically up to 2 full steps of lag; pushed further into a stop it
 //    slips a pole (falls back 4 full steps = one electrical cycle), as a
 //    real stepper does at the stop when nothing stops it (e.g. the slow seat).
@@ -24,6 +27,7 @@
 #include <vector>
 
 #include "../safe_robot/src/core/hal.h"
+#include "../safe_robot/src/core/ramp.h"
 
 struct SimHal : public core::Hal {
   // ---- world parameters (logical microsteps; 16 usteps/full step)
@@ -42,6 +46,7 @@ struct SimHal : public core::Hal {
   float sgMinSps = 0.3f * 3200;    // DIAG enabled only above this speed
   uint32_t seed = 12345;
   int32_t lagMin = 20, lagSpan = 11;  // StallGuard detection lag, usteps (1.25-1.9 full steps)
+  int32_t sgDialBase = 300, sgDetentAmp = 25, sgNoise = 4, sgKeyBase = 240, sgAtStop = 20, sgUnloaded = 340;
   // ---- driver/bus faults
   bool present[4] = {true, true, true, true};
   bool diagStuck[4] = {false, false, false, false};
@@ -55,6 +60,7 @@ struct SimHal : public core::Hal {
   int32_t keyOff = 0;              // key rotor offset from its field (pole slips)
   static const int32_t kSlip = 32; // 2 full steps: beyond this the rotor slips a pole
   bool enabled[4] = {false, false, false, false};
+  uint8_t sgthrs[4] = {0, 0, 0, 0};  // as last configured
   uint32_t now = 0;
   int moveCount = 0;
   std::vector<std::string> lines;
@@ -122,8 +128,9 @@ struct SimHal : public core::Hal {
     st.diagPin = st.diagIoin = diagStuck[ax];
     return st;
   }
-  bool configure(core::Axis, const core::DriverSetup& s) override {
+  bool configure(core::Axis ax, const core::DriverSetup& s) override {
     if (s.runMa > 1200) violations.push_back("current above ceiling");
+    sgthrs[ax] = s.sgthrs;
     return !configFails;
   }
   void enable(core::Axis ax, bool on) override { enabled[ax] = on; }
@@ -149,21 +156,24 @@ struct SimHal : public core::Hal {
     ++moveCount;
     const int dir = r.steps >= 0 ? 1 : -1;
     const int32_t n = std::abs(r.steps);
-    const bool sgOn = r.stopOnStall && r.maxSps >= sgMinSps;
+    core::Ramp ramp;
+    ramp.begin((uint32_t)n, r.startSps, r.maxSps, r.accelSps2);
+    const int32_t acc = (int32_t)ramp.accelSteps();
     const int32_t lag = lagMin + (int32_t)(rnd() % lagSpan);
     int32_t blocked = 0;
+    uint16_t sgMin = 0xFFFF;
     res.stepsDone = r.steps;
     for (int32_t i = 0; i < n; ++i) {
       bool isBlocked;
+      bool unloaded = false;
       if (ax < 3) {
         Dial& dl = dial[ax];
         if (!dl.engaged) {
           cmd[ax] += dir;
           if (--dl.engageLeft <= 0) { dl.engaged = true; dl.off = cmd[ax] - dl.wheel0; dl.floor = 0; }
           isBlocked = false;
+          unloaded = true;
         } else {
-          // Load only when the field pushes further into a stop; moving back
-          // out, the rotor just catches up with the field (no load).
           cmd[ax] += dir;
           if (dialHasStop[ax]) {
             // Clockwise past the stop point: the next stop is one turn on.
@@ -183,13 +193,31 @@ struct SimHal : public core::Hal {
       }
       if (isBlocked) ++blocked; else blocked = 0;
       if (isBlocked && !r.stopOnStall) violations.push_back("pressed into a stop with stall detection off");
-      if (sgOn && i >= r.ignoreStallSteps && blocked >= lag) {
+      // SG_RESULT now: low once the load has built up against a stop.
+      int32_t sg;
+      if (blocked >= lag) sg = sgAtStop;
+      else if (unloaded) sg = sgUnloaded;
+      else if (ax < 3) {
+        const double ph = 2 * M_PI * (wheel(ax) - detentPhase[ax]) / usPerPos;
+        sg = sgDialBase - (int32_t)std::lround(dir * sgDetentAmp * std::sin(ph));
+      } else {
+        sg = sgKeyBase;
+      }
+      sg += (int32_t)(rnd() % (2 * sgNoise + 1)) - sgNoise;
+      if (sg < 0) sg = 0;
+      const bool cruise = i >= acc && i + acc < n;
+      if (r.sampleSG && cruise && (i + 1) % 16 == 0) {
+        if (sg < sgMin) sgMin = (uint16_t)sg;
+        if (r.sgSink) r.sgSink->sample((uint32_t)i, (uint16_t)sg);
+      }
+      const bool diagOn = r.stopOnStall && i >= r.ignoreStallSteps && ramp.speedAt((uint32_t)i) >= sgMinSps;
+      if (diagOn && sg <= 2 * (int32_t)sgthrs[ax]) {
         res.stalled = true;
         res.stepsDone = dir * (i + 1);
         break;
       }
     }
-    res.sgMin = r.sampleSG ? (res.stalled ? 90 : 300) : 0xFFFF;
+    res.sgMin = r.sampleSG ? sgMin : 0xFFFF;
     now += (uint32_t)(1000.0f * std::abs(res.stepsDone) / r.maxSps) + 5;
     return res;
   }

@@ -3,6 +3,8 @@
 #include <cstring>
 #include <set>
 
+#include "../safe_robot/src/core/calib.h"
+#include "../safe_robot/src/core/calstore.h"
 #include "../safe_robot/src/core/classify.h"
 #include "../safe_robot/src/core/combo.h"
 #include "../safe_robot/src/core/journal.h"
@@ -214,4 +216,81 @@ TEST(settings_derived_units) {
   // Defaults must be safe: StallGuard untuned until the bench says otherwise.
   CHECK_EQ(s.ax[AX_A].sgthrs, 0);
   CHECK(s.ax[AX_A].runMa <= 1200 && s.ax[AX_KEY].runMa <= 1200);
+}
+
+// ---------------------------------------------------------------- calibration
+TEST(detent_profile_recovers_the_click_centre) {
+  // SG = 300 - 25*sin(2*pi*(x - x0)/320) turning clockwise: notch at x0.
+  for (int x0 : {0, 37, 160, 301}) {
+    for (int start : {0, 1000, -777}) {
+      DetentProfile p;
+      p.begin(start, 16, 400);
+      SimHal rng;
+      for (uint32_t i = 0; i < 8000; i += 16) {
+        const double ph = 2 * M_PI * ((start + (int)i) - x0) / 320.0;
+        const int sg = 300 - (int)std::lround(25 * std::sin(ph)) + (int)(rng.rnd() % 9) - 4;
+        p.sample(i, (uint16_t)sg);
+      }
+      CHECK(p.complete());
+      uint16_t amp, resid;
+      int32_t notch;
+      p.fit(&amp, &resid, &notch);
+      CHECK(amp >= 23 && amp <= 27);
+      CHECK(resid <= 3);
+      int err = std::abs(notch - ((x0 % 320) + 320) % 320);
+      if (err > 160) err = 320 - err;
+      CHECK(err <= 12);  // under one full step (bins are a full step wide)
+      CHECK(p.baseline() >= 270 && p.baseline() <= 282);
+    }
+  }
+}
+
+TEST(detent_profile_flat_and_incomplete) {
+  DetentProfile p;
+  p.begin(0, 16, 400);
+  for (uint32_t i = 0; i < 6400; i += 16) p.sample(i, 250);
+  uint16_t amp, resid;
+  int32_t notch;
+  p.fit(&amp, &resid, &notch);
+  CHECK_EQ(amp, 0);
+  DetentProfile q;
+  q.begin(0, 16, 400);
+  for (uint32_t i = 0; i < 640; i += 16) q.sample(i, 250);  // two clicks' worth
+  CHECK(!q.complete());
+}
+
+TEST(median_and_threshold_and_offset_helpers) {
+  MedianSink m;
+  m.begin();
+  for (uint16_t v : {9, 1, 7, 3, 5}) m.sample(0, v);
+  CHECK_EQ(m.median(), 5);
+  CHECK_EQ(sgthrsFromBaseline(275, 50), 69);   // 2*69 = 138 = half of 275, rounded
+  CHECK_EQ(sgthrsFromBaseline(1, 50), 1);
+  CHECK_EQ(sgthrsFromBaseline(1023, 100), 255);
+  // First click 3+ full steps clockwise of the zero...
+  CHECK_EQ(detentOffset(165, 0, 320, 48, -1), 165);
+  CHECK_EQ(detentOffset(5, 0, 320, 48, -1), 325);
+  CHECK_EQ(detentOffset(1005, 1000, 320, 48, -1), 325);
+  // ...unless the last session settled on a numbering: stay with it.
+  CHECK_EQ(detentOffset(50, 0, 320, 48, 330), 370);
+  CHECK_EQ(detentOffset(50, 0, 320, 48, 45), 50);
+}
+
+TEST(calstore_roundtrip_and_corruption) {
+  SimHal h;
+  CalStore cs(h);
+  CalRecord r;
+  CHECK(!cs.load(r));
+  CalRecord w;
+  w.sgthrs[0] = 69; w.sgthrs[3] = 60; w.baseline[1] = 277; w.offsetUs[2] = 325;
+  cs.save(w);
+  CHECK(cs.load(r));
+  CHECK_EQ(r.sgthrs[0], 69);
+  CHECK_EQ(r.sgthrs[3], 60);
+  CHECK_EQ(r.baseline[1], 277);
+  CHECK_EQ(r.offsetUs[2], 325);
+  CHECK_EQ(r.offsetUs[0], -1);
+  h.eeprom[CalStore::kBase + 5] ^= 1;
+  CHECK(!cs.load(r));
+  CHECK(CalStore::kBase >= 16 * Journal::kSlotSize);  // doesn't overlap the journal
 }

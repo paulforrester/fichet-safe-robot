@@ -200,10 +200,16 @@ void HwMega::sgStart(uint8_t) {
   sgLast_ = micros();
 }
 
-void HwMega::sgPoll(uint8_t ax, uint32_t stepIndex, bool trace) {
+// One SG_RESULT read in flight at a time. A sample is attributed to the step
+// index at which it was requested; only cruise-speed samples count towards
+// the minimum and go to the calibration sink (StallGuard is unreliable at
+// low speed, datasheet §11.5).
+void HwMega::sgPoll(uint8_t ax, uint32_t stepIndex, bool cruise, bool trace, SgSink* sink) {
   const uint32_t now = micros();
   if (sgState_ == SG_IDLE) {
     if (now - sgLast_ < 2000) return;
+    sgReqStep_ = stepIndex;
+    sgReqCruise_ = cruise;
     while (TMC_SERIAL.available()) TMC_SERIAL.read();
     uint8_t req[4];
     tmcReadRequest(ax, kRegSgResult, req);
@@ -217,12 +223,15 @@ void HwMega::sgPoll(uint8_t ax, uint32_t stepIndex, bool trace) {
     if (sgParser_.feed((uint8_t)TMC_SERIAL.read())) {
       if (sgParser_.ok()) {
         const uint16_t v = sgParser_.value() & 0x3FF;
-        if (v < sgMin_) sgMin_ = v;
+        if (sgReqCruise_) {
+          if (v < sgMin_) sgMin_ = v;
+          if (sink) sink->sample(sgReqStep_, v);
+        }
         if (trace && Serial.availableForWrite() > 24) {
           Serial.print(F("SG,"));
           Serial.print("ABCK"[ax]);
           Serial.print(',');
-          Serial.print(stepIndex / s_.microsteps);
+          Serial.print(sgReqStep_ / s_.microsteps);
           Serial.print(',');
           Serial.println(v);
         }
@@ -277,7 +286,10 @@ MoveResult HwMega::move(const MoveRequest& r) {
   for (; i < n; ++i) {
     const uint32_t dt = ramp.nextIntervalUs();
     while ((int32_t)(micros() - next) < 0) {
-      if (r.sampleSG) sgPoll(r.axis, i, r.traceSG);
+      if (r.sampleSG) {
+        const bool cruise = i >= ramp.accelSteps() && i + ramp.accelSteps() < n;
+        sgPoll(r.axis, i, cruise, r.traceSG, r.sgSink);
+      }
     }
     if ((int32_t)(micros() - next) > (int32_t)dt) next = micros();  // fell behind: don't sprint
     digitalWrite(p.step, HIGH);

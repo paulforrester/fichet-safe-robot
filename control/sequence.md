@@ -224,6 +224,20 @@ Decisions made while writing the firmware, on top of the sequence above:
   (anticlockwise) stop, so every angle is measured from the same point.
   Whether that rest stop exists is still to be checked (bench stage 5). If it
   doesn't, a config switch makes the key return by step count instead.
+- **Self-calibration (v0.2, 2026-10-06, Paul's suggestion)**: each session
+  measures each motor's free-running StallGuard reading and sets its own
+  stall threshold (stall = reading down to 50 % of it). Each dial makes one
+  free clockwise turn for this. From the same turn's 18° click ripple it
+  finds where the clicks are, so position 1 = the first click clockwise of
+  the stop. Where the first click sits relative to the stop can't be measured
+  by hand (Paul: evenly spaced, 18° apart). The key is measured over 60° of
+  free travel from rest. Datasheet §11.4 recommends this kind of
+  in-application threshold. Bench stages 3–4 check the assumptions (the
+  50 % rule; the ripple being visible).
+- **Key home search 180°** (was 30°): the key stays wherever it is left — it
+  doesn't spring back (Paul, 2026-10-06). After a power cut mid-attempt it
+  can sit at its ~100° stop, and the session start must find the rest stop
+  from there before any dial moves.
 - **Seat**: turns each dial 1/8 turn slowly **clockwise**, the direction in
   which the dials never meet their stop. (Changed 2026-10-06 after Paul's
   check: the first version turned toward the stop.)
@@ -307,6 +321,11 @@ Still open:
       per turn. Homing is anticlockwise to that stop. The seat turn was
       changed to clockwise so it can never press into it. Still to measure:
       the angle from the stop to the first click (home offset, bringup 4a).
+- [x] Where the first click is relative to each dial's stop — Paul
+      (2026-10-06): can't be read by hand, but the clicks are evenly spaced,
+      18° apart; no marks on the door. The firmware now finds the clicks
+      from StallGuard each session (v0.2). Key: stays wherever it's left (no
+      spring back).
 - [ ] Do the dials still turn with the real key inserted at rest? The
       manual's normal use dials the combination *before* inserting the key
       (`docs/photos/complice_manual_normal_use.png`); the robot keeps the

@@ -60,6 +60,13 @@ struct Settings {
   uint16_t stallIgnoreFull;     // ignore DIAG over the first full steps of a move
   float sgMinRps;               // DIAG only enabled above this motor speed (sets TCOOLTHRS)
   uint32_t fclkHz;              // driver clock (internal, nominal 12 MHz)
+  // Self-calibration (control/firmware/README.md, "Calibration")
+  uint8_t sgAutocal;            // 1 = set SGTHRS every session from a free turn / free key travel
+  uint8_t sgCalPct;             // stall = SG_RESULT down to this % of the free-running baseline
+  uint16_t sgCalMinBase;        // a baseline below this can't be told from a stall: error
+  uint8_t detentAutocal;        // 1 = find the clicks every session; position 1 = first click
+  uint8_t detentMinAmp;         // click ripple (SG units) needed to trust it
+  uint16_t keyCalDeg;           // key free-travel calibration move from rest (well short of N)
   // Door numbering, only for the success report
   uint8_t labelAtHome[3];       // door number at position 1
   int8_t labelStep[3];          // +1 or -1 per position away from the stop

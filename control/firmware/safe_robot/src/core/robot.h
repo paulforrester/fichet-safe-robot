@@ -12,10 +12,14 @@
 //   ATT,ms,index,a,b,c,keySteps,keyDeg,stalled,sgMin,class,nDeg
 //   RECHECK,ms,index,dial,discrepancyFull,nDeg,ok
 //   SUCCESS,ms,index,a,b,c,keyDeg,doorA,doorB,doorC
+//   CAL,ms,axis,baseline,sgthrs,amp,resid,clicksTrusted   (self-calibration)
+//   OFFSET,ms,dial,offsetFull,fromClicks                  (position 1 after homing)
 //   ERR,ms,code,text
 // Dial positions a,b,c are 1..20 counted from each dial's home stop.
 #pragma once
 #include <stdint.h>
+#include "calib.h"
+#include "calstore.h"
 #include "classify.h"
 #include "combo.h"
 #include "hal.h"
@@ -50,7 +54,7 @@ class Robot {
 
  private:
   enum Step : uint8_t {
-    SS_PING, SS_SEAT, SS_HOME_A, SS_HOME_B, SS_HOME_C, SS_KEYHOME, SS_LEARN, SS_DONE
+    SS_PING, SS_KEYHOME, SS_KEYCAL, SS_SEAT, SS_CAL, SS_HOME_A, SS_HOME_B, SS_HOME_C, SS_LEARN, SS_DONE
   };
   // session / run
   void startSession(bool thenRun);
@@ -68,11 +72,18 @@ class Robot {
   bool keyHome(int32_t boundUs);
   bool learnN();
   bool learnForRun();
+  bool calKey();
+  bool calDial(uint8_t d);
+  bool calibrateDials();
+  void saveCal();
+  void resetOffsets();
+  int32_t turnUs() const { return usPerMotorRev(s_) * s_.dialGear; }
   bool gotoCombo(const Combo& c);
   bool moveDialTo(uint8_t d, int32_t targetUs);
   bool keyTry(int32_t* reached, bool* stalled, uint16_t* sgMin);
   bool keyRetract(int32_t reached, Outcome o);
-  MoveResult doMove(Axis ax, int32_t steps, float rps, bool stopOnStall, bool sampleSG, bool traceSG = false);
+  MoveResult doMove(Axis ax, int32_t steps, float rps, bool stopOnStall, bool sampleSG, bool traceSG = false,
+                    SgSink* sink = nullptr);
   bool checkMove(const MoveResult& r, Axis ax, bool expectStall, bool allowStall);
   // helpers
   int32_t dialTarget(uint8_t d, uint8_t pos) const;
@@ -93,6 +104,8 @@ class Robot {
   Hal& hal_;
   Settings& s_;
   Journal journal_;
+  CalStore calStore_;
+  CalRecord cal_;
   Progress prog_;
   RobotState state_ = ST_IDLE;
   Step step_ = SS_PING;
@@ -105,6 +118,12 @@ class Robot {
   bool nValid_ = false;
   int32_t n_ = 0;
   uint16_t sinceRecheck_ = 0;
+  int32_t absCount_[3] = {0, 0, 0};   // every dial microstep since boot (click phases)
+  int32_t offsetUs_[3] = {0, 0, 0};   // position 1 from the stall zero
+  int32_t notchAbs_[3] = {0, 0, 0};   // click centre, absolute microsteps mod one click
+  bool notchOk_[3] = {false, false, false};
+  bool offsetFromClicks_[3] = {false, false, false};
+  bool forceCal_ = false;             // `calibrate`: apply even if autocal is off
   uint8_t consecutiveEarly_ = 0;
 };
 

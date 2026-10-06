@@ -25,7 +25,7 @@ inline Settings makeSettings() {
     x.sgthrs = sg[a];
     x.rps = key ? CFG_KEY_RPS : CFG_DIAL_RPS;
     x.startRps = CFG_START_RPS;
-    x.accelRps2 = CFG_ACCEL_RPS2;
+    x.accelRps2 = key ? CFG_KEY_ACCEL_RPS2 : CFG_ACCEL_RPS2;
   }
   s.seatDialDeg = CFG_SEAT_DIAL_DEG;
   s.seatRps = CFG_SEAT_RPS;
@@ -58,6 +58,12 @@ inline Settings makeSettings() {
   s.stallIgnoreFull = CFG_STALL_IGNORE_FULL;
   s.sgMinRps = CFG_SG_MIN_RPS;
   s.fclkHz = CFG_FCLK_HZ;
+  s.sgAutocal = CFG_SG_AUTOCAL;
+  s.sgCalPct = CFG_SG_CAL_PCT;
+  s.sgCalMinBase = CFG_SG_CAL_MIN_BASE;
+  s.detentAutocal = CFG_DETENT_AUTOCAL;
+  s.detentMinAmp = CFG_DETENT_MIN_AMP;
+  s.keyCalDeg = CFG_KEY_CAL_DEG;
   s.labelAtHome[0] = CFG_LABEL_AT_HOME_A;
   s.labelAtHome[1] = CFG_LABEL_AT_HOME_B;
   s.labelAtHome[2] = CFG_LABEL_AT_HOME_C;

@@ -38,6 +38,10 @@ designed (`control/wiring.md`); firmware written and host-tested
 - **Git: branch + pull request, never commit to `main`.** One topic per
   branch. Paul reviews and merges. Check whether a PR is already merged
   before pushing more to its branch — if it is, start a new branch/PR.
+  **Don't stack PRs** (a PR whose base is another PR's branch): GitHub
+  merges it into that branch, not `main`, unless the base branch is deleted
+  first. That's how #14 (firmware v0.1) missed `main` on 2026-10-06. Target
+  `main` every time.
 - **Ground decisions in measured or sourced data**, and record the
   reasoning in the matching decision log (most recent entry first, dated).
   When something earlier turns out wrong, correct it in place and say so
@@ -108,9 +112,12 @@ designed (`control/wiring.md`); firmware written and host-tested
   centre; allow slack for placing the units by hand).
 - Real key goes in by hand before each session; the cap slides over it. It
   goes in one way only, can't turn anticlockwise from there, turns ~100°
-  clockwise to its stop, and comes out only at the start (Paul, 2026-10-06).
+  clockwise to its stop, **stays wherever it is left (no spring back)**, and
+  comes out only at the start (Paul, 2026-10-06).
 - **Dials (Paul, 2026-10-06):** each turns clockwise without limit and stops
-  turning anticlockwise; 20 clicks per turn. Manual (`docs/photos/
+  turning anticlockwise; 20 evenly spaced clicks (18°); where the first click
+  sits relative to the stop can't be read by hand; no marks on the door. The
+  manual has no warning about wrong combinations. Manual (`docs/photos/
   complice_manual_normal_use.png`): dial the combination, then insert the key
   and turn it clockwise, then pull the key to open.
 
@@ -165,12 +172,14 @@ perfboard/heatsink/plug dimensions for the remote board's
 mount (CAD change for a mechanical session — needs listed in
 `control/wiring.md` §6.2); a place on the electronics deck for the hub board.
 
-## Firmware — `control/firmware/` (v0.1, 2026-10-06; read its README)
+## Firmware — `control/firmware/` (v0.2, 2026-10-06; read its README)
 
 Built and host-tested, **not yet run on hardware**. Sequence as in
 `control/sequence.md`: session start = ping/configure drivers → key home
-(rest stop) → seat → home each dial (two passes on its stop) → learn N (3
-tries, median) → attempt loop in **serpentine order** (each attempt moves one
+(rest stop, search 180°) → key calibration → seat (clockwise) → one free
+clockwise calibration turn per dial (StallGuard threshold + click positions)
+→ home each dial (two passes on its stop; position 1 = first click) → learn
+N (3 tries, median) → attempt loop in **serpentine order** (each attempt moves one
 dial one position) → key to N + 15°, **log the angle reached** → retract →
 save progress (EEPROM journal). Re-check every 200 attempts (re-home +
 re-learn N at the last clean fail); on a mismatch, stop and rewind to the last
@@ -188,17 +197,18 @@ loss redoes the session start and continues from the last check.
   attempt-counting lockout; a relocker ("délateur") fires on mechanical or
   thermal attack → keep forces low (done).
 
-Answered by Paul 2026-10-06: each dial turns clockwise without limit and
-stops anticlockwise (home = that stop; the seat turns clockwise), 20 clicks
-per turn; the key can't turn anticlockwise from its insertion position (its
-home), turns ~100° clockwise to its stop, and comes out only at the start.
+Self-calibration (v0.2, Paul's idea): StallGuard thresholds come from each
+motor's measured free-running load every session (stall at 50 % of it), the
+click positions from the dials' 18° StallGuard ripple; `calibrate` does it as
+a separate step and EEPROM keeps the last result (the key needs it to home
+at the next session start).
 
 Still open — each has a `config.h` entry and a stage in `control/bringup.md`:
 **whether the dials still turn with the key inserted at rest** (stage 4a —
 the manual dials before inserting the key; the robot keeps it in),
-motor↔dial/key directions (4b, 5), home offset to the first detent (4a/4b),
-StallGuard thresholds (3–5, default 0 = refuse to run), key current (5),
-step angle (2), the classification bands (5–6).
+motor↔dial/key directions (4b, 5), whether the 50 % rule and the click
+ripple hold on the real hardware (3, 4), key current (5), step angle (2),
+the classification bands (5–6).
 
 Safety rules for any motion code: start at low current and low speed;
 bound every move (never an unbounded "turn until stall"); stop on stall

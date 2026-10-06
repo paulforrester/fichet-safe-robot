@@ -36,7 +36,7 @@ class HwMega : public core::Hal {
   void pollButton();
   bool setKeyShaft(bool shaft);
   void sgStart(uint8_t ax);
-  void sgPoll(uint8_t ax, uint32_t stepIndex, bool trace);
+  void sgPoll(uint8_t ax, uint32_t stepIndex, bool cruise, bool trace, core::SgSink* sink);
   void sgFinish();
 
   core::Settings& s_;
@@ -57,4 +57,6 @@ class HwMega : public core::Hal {
   core::TmcReplyParser sgParser_;
   uint32_t sgT0_ = 0, sgLast_ = 0;
   uint16_t sgMin_ = 0xFFFF;
+  uint32_t sgReqStep_ = 0;  // step index when the pending read was sent
+  bool sgReqCruise_ = false;
 };

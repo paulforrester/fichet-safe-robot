@@ -37,11 +37,23 @@ uint32_t positionHash(const Settings& s) {
   uint32_t h = 2166136261u;  // FNV-1a
   auto mix = [&h](uint32_t v) { for (uint8_t i = 0; i < 4; ++i) { h ^= (v >> (8 * i)) & 0xFF; h *= 16777619u; } };
   mix(s.fullStepsPerRev); mix(s.microsteps); mix(s.dialGear); mix(s.positions);
-  for (uint8_t d = 0; d < 3; ++d) { mix(s.ax[d].invert); mix(s.dialHome[d]); mix((uint32_t)(int32_t)s.homeOffsetFull[d]); }
+  mix(s.detentAutocal);
+  for (uint8_t d = 0; d < 3; ++d) {
+    mix(s.ax[d].invert);
+    mix(s.dialHome[d]);
+    if (!s.detentAutocal) mix((uint32_t)(int32_t)s.homeOffsetFull[d]);  // else measured each session
+  }
   return h;
 }
 
-Robot::Robot(Hal& hal, Settings& s) : hal_(hal), s_(s), journal_(hal, 0, 16) {}
+Robot::Robot(Hal& hal, Settings& s) : hal_(hal), s_(s), journal_(hal, 0, 16), calStore_(hal) { resetOffsets(); }
+
+void Robot::resetOffsets() {
+  for (uint8_t d = 0; d < 3; ++d) {
+    offsetUs_[d] = (int32_t)s_.homeOffsetFull[d] * s_.microsteps;
+    notchOk_[d] = false;
+  }
+}
 
 // ---------------------------------------------------------------- boot
 void Robot::boot() {
@@ -49,6 +61,14 @@ void Robot::boot() {
   Line l;
   l.p(CP("EV,")).u(hal_.millis()).p(CP(",BOOT,")).u(prog_.state);
   emit(l);
+  if (calStore_.load(cal_) && s_.sgAutocal) {
+    for (uint8_t a = 0; a < AX_COUNT; ++a)
+      if (cal_.sgthrs[a]) s_.ax[a].sgthrs = cal_.sgthrs[a];
+    l.clear();
+    l.p(CP("# last calibration loaded: sgthrs A/B/C/K = ")).u(cal_.sgthrs[0]).c('/').u(cal_.sgthrs[1]).c('/')
+        .u(cal_.sgthrs[2]).c('/').u(cal_.sgthrs[3]);
+    emit(l);
+  }
   printStatus();
   if (prog_.state == RUN_ACTIVE) {
     l.clear(); l.p(CP("# run in progress: next index ")).u(prog_.nextIndex)
@@ -91,7 +111,7 @@ void Robot::handleLine(const char* line) {
   if (TOKEQ(cmd, "help")) {
     const char* const lines[] = {
       CP("# commands: status | cfg | ping | start | resume [force] | pause | release | reset yes"),
-      CP("#   seat | home [A|B|C] | learn | goto a b c | try | key <deg> | jog <A|B|C|K> <fullsteps>"),
+      CP("#   calibrate | seat | home [A|B|C] | learn | goto a b c | try | key <deg> | jog <A|B|C|K> <n>"),
       CP("#   sg <A|B|C|K> <fullsteps> | set <name> <value> | abort (or '!': stops at once)"),
     };
     for (uint8_t i = 0; i < 3; ++i) { l.clear(); l.p(lines[i]); emit(l); }
@@ -157,8 +177,24 @@ void Robot::handleLine(const char* line) {
     seatDials();
     return;
   }
+  if (TOKEQ(cmd, "calibrate")) {
+    // Separate calibration step. The key must be at its start position (turn
+    // it back by hand): there may be no key threshold yet to find it with.
+    if (!pingAll() || !configureAll(false)) return;
+    forceCal_ = true;
+    bool ok = true;
+    if (fitted(AX_KEY)) { keyPos_ = 0; keyHomed_ = true; ok = calKey(); }
+    if (ok) ok = seatDials() && calibrateDials();
+    for (uint8_t d = 0; d < 3 && ok; ++d)
+      if (fitted(d)) ok = homeDial(d, -1, 0);
+    forceCal_ = false;
+    if (ok) { saveCal(); l.p(CP("# calibration saved")); emit(l); }
+    return;
+  }
   if (TOKEQ(cmd, "home")) {
     if (!pingAll() || !configureAll(false)) return;
+    // The key stays wherever it was left: get it to rest before any dial moves.
+    if (fitted(AX_KEY) && !keyHomed_ && !keyHome(keyDeciToUs(s_, (int32_t)s_.keyHomeSearchDeg * 10))) return;
     Axis ax;
     if (tok[1] && parseAxis(tok[1], &ax) && ax != AX_KEY) { if (fitted(ax)) homeDial(ax, -1, 0); }
     else for (uint8_t d = 0; d < 3 && state_ != ST_ERROR; ++d) if (fitted(d)) homeDial(d, -1, 0);
@@ -255,6 +291,9 @@ void Robot::cmdSet(const char* name, int32_t v) {
   else if (perAxis && TOKEQ(base, "off") && ax != AX_KEY) s_.homeOffsetFull[ax] = (int16_t)v;
   else if (TOKEQ(name, "keyhome")) s_.keyHome = v ? KEYHOME_COUNT : KEYHOME_STALL_CCW;
   else if (TOKEQ(name, "axes")) s_.axesMask = (uint8_t)(v & 0x0F);
+  else if (TOKEQ(name, "autocal")) s_.sgAutocal = v ? 1 : 0;
+  else if (TOKEQ(name, "detentcal")) s_.detentAutocal = v ? 1 : 0;
+  else if (TOKEQ(name, "calpct")) s_.sgCalPct = (uint8_t)v;
   else if (TOKEQ(name, "margin")) s_.keyTargetMarginDeci = (uint16_t)v;
   else if (TOKEQ(name, "success")) s_.keySuccessMinDeci = (uint16_t)v;
   else if (TOKEQ(name, "clean")) s_.keyCleanTolDeci = (uint16_t)v;
@@ -277,6 +316,7 @@ void Robot::startSession(bool thenRun) {
   state_ = ST_SESSION;
   sinceRecheck_ = 0;
   consecutiveEarly_ = 0;
+  resetOffsets();
   event(CP("SESSION"), prog_.nextIndex);
 }
 
@@ -290,12 +330,14 @@ void Robot::sessionStep() {
   bool ok = true;
   switch (step_) {
     case SS_PING: ok = pingAll() && configureAll(false); step_ = SS_KEYHOME; break;
-    case SS_KEYHOME: ok = keyHome(keyDeciToUs(s_, (int32_t)s_.keyHomeSearchDeg * 10)); step_ = SS_SEAT; break;
-    case SS_SEAT: ok = seatDials(); step_ = SS_HOME_A; break;
+    case SS_KEYHOME: ok = keyHome(keyDeciToUs(s_, (int32_t)s_.keyHomeSearchDeg * 10)); step_ = SS_KEYCAL; break;
+    case SS_KEYCAL: ok = !s_.sgAutocal || calKey(); step_ = SS_SEAT; break;
+    case SS_SEAT: ok = seatDials(); step_ = SS_CAL; break;
+    case SS_CAL: ok = !(s_.sgAutocal || s_.detentAutocal) || calibrateDials(); step_ = SS_HOME_A; break;
     case SS_HOME_A: ok = homeDial(0, -1, 0); step_ = SS_HOME_B; break;
     case SS_HOME_B: ok = homeDial(1, -1, 0); step_ = SS_HOME_C; break;
     case SS_HOME_C: ok = homeDial(2, -1, 0); step_ = SS_LEARN; break;
-    case SS_LEARN: ok = thenRun_ ? learnForRun() : learnN(); step_ = SS_DONE; break;
+    case SS_LEARN: saveCal(); ok = thenRun_ ? learnForRun() : learnN(); step_ = SS_DONE; break;
     case SS_DONE:
       if (thenRun_) { state_ = ST_RUN; event(CP("RUN"), prog_.nextIndex); }
       else state_ = ST_IDLE;
@@ -370,6 +412,10 @@ bool Robot::recheck() {
     int32_t disc = 0;
     const int32_t expect = dialPos_[d];
     if (!homeDial(d, expect, &disc)) return false;
+    // Position 20 can sit just past the stop point (clockwise is endless),
+    // so compare modulo one dial turn.
+    const int32_t t = turnUs();
+    disc = ((disc % t) + t + t / 2) % t - t / 2;
     const bool ok = iabs(disc) <= (int32_t)s_.recheckHomeTolFull * s_.microsteps;
     Line l;
     l.p(CP("RECHECK,")).u(hal_.millis()).sep().u(prog_.nextIndex).sep().c(kAxisChar[d]).sep()
@@ -455,9 +501,14 @@ bool Robot::configureAll(bool seatCurrent) {
 
 bool Robot::tuned() {
   for (uint8_t a = 0; a < AX_COUNT; ++a) {
-    const bool needs = fitted(a) && ((a == AX_KEY) || s_.dialHome[a] == HOME_STALL);
+    // With autocal, only the key needs a threshold up front: the session's
+    // first move finds its rest stop. The dials calibrate before homing.
+    const bool needs = fitted(a) && ((a == AX_KEY) || (!s_.sgAutocal && s_.dialHome[a] == HOME_STALL));
     if (needs && s_.ax[a].sgthrs == 0) {
-      error(CP("TUNE"), CP("StallGuard threshold not set (bring-up stage 3): set sgA/sgB/sgC/sgK"));
+      if (s_.sgAutocal)
+        error(CP("TUNE"), CP("no key calibration yet: turn the key back to its start by hand, then `calibrate`"));
+      else
+        error(CP("TUNE"), CP("StallGuard threshold not set (bring-up stage 3): set sgA/sgB/sgC/sgK"));
       return false;
     }
   }
@@ -530,6 +581,17 @@ bool Robot::homeDial(uint8_t d, int32_t expectDist, int32_t* discrepancy) {
   }
   dialPos_[d] = 0;  // the stall point is zero
   homed_[d] = true;
+  // Position 1 = the first click at least 3 full steps clockwise of the stall
+  // point (so a dial at position 1 doesn't lean on its stop).
+  const bool clicks = s_.detentAutocal && notchOk_[d];
+  offsetFromClicks_[d] = clicks;
+  offsetUs_[d] = clicks ? detentOffset(notchAbs_[d], absCount_[d], usPerPosition(s_), 3 * s_.microsteps,
+                                      cal_.offsetUs[d])
+                        : (int32_t)s_.homeOffsetFull[d] * s_.microsteps;
+  l.clear();
+  l.p(CP("OFFSET,")).u(hal_.millis()).sep().c(kAxisChar[d]).sep().deci(offsetUs_[d] * 10 / s_.microsteps)
+      .sep().u(clicks);
+  emit(l);
   return moveDialTo(d, dialTarget(d, 0));
 }
 
@@ -589,6 +651,97 @@ bool Robot::learnN() {
     return false;
   }
   return true;
+}
+
+// ---------------------------------------------------------------- calibration
+// Key: from rest, turn keyCalDeg clockwise (free travel: the stop is at
+// ~100 deg), take the median StallGuard reading, set the threshold from it,
+// then go back to rest by stalling on the rest stop with the new threshold,
+// which proves it works.
+bool Robot::calKey() {
+  if (!keyHomed_ || keyPos_ != 0) { error(CP("KEYCAL"), CP("key not at rest")); return false; }
+  MedianSink m;
+  m.begin();
+  MoveResult r = doMove(AX_KEY, keyDeciToUs(s_, (int32_t)s_.keyCalDeg * 10), s_.ax[AX_KEY].rps, true, true, false, &m);
+  keyPos_ += r.stepsDone;
+  if (!checkMove(r, AX_KEY, false, true)) return false;
+  if (r.stalled) {
+    error(CP("KEYCAL"), CP("key stopped during its free calibration travel: was it at its start? threshold too sensitive?"));
+    return false;
+  }
+  const uint8_t n = m.count();
+  const uint16_t base = m.median();
+  const bool apply = s_.sgAutocal || forceCal_;
+  if (n < 8 || base < s_.sgCalMinBase) {
+    error(CP("KEYCAL"), CP("too few or too low StallGuard readings on the key's free travel (speed? current?)"));
+    return false;
+  }
+  if (apply) {
+    s_.ax[AX_KEY].sgthrs = sgthrsFromBaseline(base, s_.sgCalPct);
+    cal_.sgthrs[AX_KEY] = s_.ax[AX_KEY].sgthrs;
+    cal_.baseline[AX_KEY] = base;
+    if (!configureAll(false)) return false;
+  }
+  Line l;
+  l.p(CP("CAL,")).u(hal_.millis()).p(CP(",K,")).u(base).sep().u(s_.ax[AX_KEY].sgthrs).p(CP(",,,")).u(n);
+  emit(l);
+  return keyRetract(keyPos_, OUT_CLEAN);  // must stall on the rest stop
+}
+
+// Dial: one free clockwise turn (+ the ramps). The dials turn clockwise
+// without limit (Paul, 2026-10-06), so nothing can be pressed.
+bool Robot::calDial(uint8_t d) {
+  if (keyHomed_ && keyPos_ != 0) { error(CP("KEYOUT"), CP("refusing to turn dials with the key out of rest")); return false; }
+  DetentProfile prof;
+  const uint16_t fullPerTurn = (uint16_t)(s_.fullStepsPerRev * s_.dialGear);
+  prof.begin(absCount_[d], s_.microsteps, fullPerTurn);
+  MoveResult r = doMove((Axis)d, turnUs() + turnUs() / 4, s_.ax[d].rps, true, true, false, &prof);
+  if (!checkMove(r, (Axis)d, false, true)) return false;
+  if (r.stalled) {
+    error(CP("SGCAL"), CP("dial stalled on its free calibration turn: plug jammed? old threshold too sensitive (`set sgA 0`)?"));
+    return false;
+  }
+  if (!prof.complete()) {
+    error(CP("SGCAL"), CP("too few StallGuard readings over the calibration turn (speed? acceleration?)"));
+    return false;
+  }
+  const uint16_t base = prof.baseline();
+  uint16_t amp, resid;
+  int32_t notch;
+  prof.fit(&amp, &resid, &notch);
+  notchAbs_[d] = notch;
+  notchOk_[d] = amp >= s_.detentMinAmp && amp >= 2 * resid;
+  if (s_.sgAutocal || forceCal_) {
+    if (base < s_.sgCalMinBase) {
+      error(CP("SGCAL"), CP("free-running StallGuard reading too low to tell from a stall (speed? current?)"));
+      return false;
+    }
+    s_.ax[d].sgthrs = sgthrsFromBaseline(base, s_.sgCalPct);
+    cal_.sgthrs[d] = s_.ax[d].sgthrs;
+    cal_.baseline[d] = base;
+  }
+  Line l;
+  l.p(CP("CAL,")).u(hal_.millis()).sep().c(kAxisChar[d]).sep().u(base).sep().u(s_.ax[d].sgthrs).sep().u(amp)
+      .sep().u(resid).sep().u(notchOk_[d]);
+  emit(l);
+  if (s_.detentAutocal && !notchOk_[d]) {
+    l.clear();
+    l.p(CP("# clicks not clear in dial ")).c(kAxisChar[d]).p(CP("'s StallGuard ripple: using CFG_HOME_OFFSET for it"));
+    emit(l);
+  }
+  return true;
+}
+
+bool Robot::calibrateDials() {
+  for (uint8_t d = 0; d < 3; ++d)
+    if (fitted(d) && !calDial(d)) return false;
+  return configureAll(false);  // push the new thresholds before homing on them
+}
+
+void Robot::saveCal() {
+  for (uint8_t d = 0; d < 3; ++d)
+    if (homed_[d]) cal_.offsetUs[d] = offsetFromClicks_[d] ? (int16_t)offsetUs_[d] : (int16_t)-1;
+  calStore_.save(cal_);
 }
 
 // Learn N where the result is known: at the most recent clean fail. Before
@@ -665,7 +818,8 @@ bool Robot::keyRetract(int32_t reached, Outcome o) {
   return true;
 }
 
-MoveResult Robot::doMove(Axis ax, int32_t steps, float rps, bool stopOnStall, bool sampleSG, bool traceSG) {
+MoveResult Robot::doMove(Axis ax, int32_t steps, float rps, bool stopOnStall, bool sampleSG, bool traceSG,
+                         SgSink* sink) {
   const AxisCfg& a = s_.ax[ax];
   const float upr = (float)usPerMotorRev(s_);
   MoveRequest r;
@@ -675,13 +829,16 @@ MoveResult Robot::doMove(Axis ax, int32_t steps, float rps, bool stopOnStall, bo
   r.startSps = (a.startRps < rps ? a.startRps : rps) * upr;
   r.accelSps2 = a.accelRps2 * upr;
   r.stopOnStall = stopOnStall;
-  r.sampleSG = sampleSG || traceSG;
+  r.sampleSG = sampleSG || traceSG || sink;
   r.traceSG = traceSG;
+  r.sgSink = sink;
   r.ignoreStallSteps = (uint16_t)(s_.stallIgnoreFull * s_.microsteps);
   const float n = (float)iabs(steps);
   const float t = n / r.maxSps + r.maxSps / r.accelSps2;  // upper bound of the profile time
   r.timeoutMs = (uint32_t)(2000.0f * t) + 2000;
-  return hal_.move(r);
+  const MoveResult res = hal_.move(r);
+  if (ax < 3) absCount_[ax] += res.stepsDone;
+  return res;
 }
 
 bool Robot::checkMove(const MoveResult& r, Axis ax, bool expectStall, bool allowStall) {
@@ -702,11 +859,11 @@ bool Robot::checkMove(const MoveResult& r, Axis ax, bool expectStall, bool allow
 
 // ---------------------------------------------------------------- helpers
 int32_t Robot::dialTarget(uint8_t d, uint8_t pos) const {
-  return (int32_t)s_.homeOffsetFull[d] * s_.microsteps + (int32_t)pos * usPerPosition(s_);
+  return offsetUs_[d] + (int32_t)pos * usPerPosition(s_);
 }
 
 uint8_t Robot::dialPosition(uint8_t d) const {
-  const int32_t rel = dialPos_[d] - (int32_t)s_.homeOffsetFull[d] * s_.microsteps;
+  const int32_t rel = dialPos_[d] - offsetUs_[d];
   const int32_t pp = usPerPosition(s_);
   int32_t p = (rel + (rel >= 0 ? pp / 2 : -pp / 2)) / pp;
   if (p < 0) p = 0;
@@ -778,6 +935,12 @@ void Robot::printCfg() {
   l.p(CP("CFG,key,home=")).u(s_.keyHome).p(CP(",learnMax=")).u(s_.keyLearnMaxDeg).p(CP(",margin=")).deci(s_.keyTargetMarginDeci)
       .p(CP(",success=")).deci(s_.keySuccessMinDeci).p(CP(",clean=")).deci(s_.keyCleanTolDeci)
       .p(CP(",early=")).deci(s_.keyEarlyTolDeci);
+  emit(l);
+  l.clear();
+  l.p(CP("CFG,cal,autocal=")).u(s_.sgAutocal).p(CP(",calpct=")).u(s_.sgCalPct).p(CP(",minbase=")).u(s_.sgCalMinBase)
+      .p(CP(",detentcal=")).u(s_.detentAutocal).p(CP(",minamp=")).u(s_.detentMinAmp).p(CP(",keyCalDeg="))
+      .u(s_.keyCalDeg).p(CP(",offsetsFull=")).deci(offsetUs_[0] * 10 / s_.microsteps).c('/')
+      .deci(offsetUs_[1] * 10 / s_.microsteps).c('/').deci(offsetUs_[2] * 10 / s_.microsteps);
   emit(l);
   l.clear();
   l.p(CP("CFG,run,recheck=")).u(s_.recheckEvery).p(CP(",sgmin100=")).u((uint32_t)(s_.sgMinRps * 100 + 0.5f))

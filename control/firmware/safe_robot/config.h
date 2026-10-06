@@ -51,18 +51,36 @@
 #define CFG_DIAL_RPS             1.0f
 #define CFG_KEY_RPS              1.0f
 #define CFG_START_RPS            0.15f
-#define CFG_ACCEL_RPS2           5.0f
+#define CFG_ACCEL_RPS2           5.0f   // dials
+#define CFG_KEY_ACCEL_RPS2       20.0f  // key: direct drive, light; reaches cruise within ~5 full steps,
+                                        // so its short moves have cruise-speed StallGuard readings
 #define CFG_SEAT_RPS             0.1f   // slow, so the plug can drop into the star (stage 4)
 #define CFG_SG_MIN_RPS           0.4f   // DIAG only enabled above this speed (TCOOLTHRS)
 #define CFG_STALL_IGNORE_FULL    2      // ignore DIAG for the first full steps of a move
 
-// ---- StallGuard thresholds: UNKNOWN, bench stage 3 ---------------------------
-// 0 = not tuned: `start`, `resume` and homing refuse to run. Higher = more
-// sensitive (stall when SG_RESULT <= 2*SGTHRS, datasheet §5.3).
+// ---- StallGuard thresholds ---------------------------------------------------
+// With CFG_SG_AUTOCAL = 1 (default) these are only a fallback: every session
+// measures each motor's free-running load and sets its own threshold, and the
+// last calibration is kept in EEPROM. Without autocal: 0 = not tuned, so
+// `start`, `resume` and homing refuse to run. Higher = more sensitive (stall
+// when SG_RESULT <= 2*SGTHRS, datasheet §5.3).
 #define CFG_SGTHRS_A             0
 #define CFG_SGTHRS_B             0
 #define CFG_SGTHRS_C             0
 #define CFG_SGTHRS_KEY           0
+
+// ---- Self-calibration (Paul's suggestion, 2026-10-06; datasheet §11.4) -------
+// Every session: each dial makes one free clockwise turn (the dials turn
+// clockwise without limit), the key turns CFG_KEY_CAL_DEG from rest. Their
+// StallGuard readings set the thresholds, and the dials' 18-degree click
+// ripple sets where position 1 is. `calibrate` does the same as a separate
+// step and prints the results. Bench stages 3-4 check the numbers.
+#define CFG_SG_AUTOCAL           1
+#define CFG_SG_CAL_PCT           50     // ASSUMPTION: stall = SG down to 50 % of the free-running low; stage 3 checks
+#define CFG_SG_CAL_MIN_BASE      40     // a lower free-running SG can't be told from a stall
+#define CFG_DETENT_AUTOCAL       1      // 0 = use CFG_HOME_OFFSET_x instead
+#define CFG_DETENT_MIN_AMP       3      // ripple (SG units) needed to trust the click phase; else the offsets below
+#define CFG_KEY_CAL_DEG          60     // the key stops at ~100 deg: 60 is well clear
 
 // ---- Seat and home (dials) -----------------------------------------------------
 #define CFG_SEAT_DIAL_DEG        45     // at most 1/8 dial turn (control/sequence.md); turned clockwise
@@ -75,8 +93,10 @@
 #define CFG_HOME_MAX_DIAL_DEG    414    // 1.15 dial turns: bound of the homing move
 #define CFG_HOME_BACKOFF_FULL    40     // 2 positions between the two homing passes
 #define CFG_HOME_REPEAT_TOL_FULL 8      // the passes must agree within 0.4 position
-// UNKNOWN: from the stall point to the middle of position 1, full steps away
-// from the stop. Stage 4 measures it (detent scan). 10 = half a position.
+// Fallback only (CFG_DETENT_AUTOCAL finds it each session): from the stall
+// point to the middle of position 1, full steps clockwise. Paul (2026-10-06):
+// the clicks are evenly spaced, 18 deg apart; where the first one sits
+// relative to the stop isn't known. 10 = half a position.
 #define CFG_HOME_OFFSET_A        10
 #define CFG_HOME_OFFSET_B        10
 #define CFG_HOME_OFFSET_C        10
@@ -87,7 +107,9 @@
 // 2026-10-06): that rest stop is the key's home, re-found every attempt (0).
 // 1 = return by step count instead (for a key without a rest stop).
 #define CFG_KEY_HOME_MODE        0
-#define CFG_KEY_HOME_SEARCH_DEG  30     // session start: anticlockwise bound to find the rest stop
+#define CFG_KEY_HOME_SEARCH_DEG  180    // session start: anticlockwise bound to find the rest stop. The key
+                                        // stays wherever it was left (Paul, 2026-10-06), e.g. ~100 deg after a
+                                        // power cut mid-attempt, so this must cover the whole travel
 #define CFG_KEY_HOME_EXTRA_DEG   15     // retract: anticlockwise bound past the angle reached
 #define CFG_KEY_LEARN_MAX_DEG    160    // Paul measured ~100 deg to the stop
 #define CFG_KEY_LEARN_REPEATS    3
@@ -107,7 +129,8 @@
 #define CFG_RESUME_FROM_CHECKPOINT 1    // after power loss, redo attempts since the last re-check
 
 // ---- Door numbering (only used to print the success in door numbers) ----------
-// UNKNOWN: Paul can fill these in if the door has marks. Position 1 = home.
+// There are no marks on the door (Paul, 2026-10-06): positions are reported as
+// clicks counted clockwise from each dial's stop, 1 = first click.
 #define CFG_LABEL_AT_HOME_A      1
 #define CFG_LABEL_AT_HOME_B      1
 #define CFG_LABEL_AT_HOME_C      1

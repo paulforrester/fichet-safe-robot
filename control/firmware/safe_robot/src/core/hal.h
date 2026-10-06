@@ -8,20 +8,30 @@ namespace core {
 
 enum Axis : uint8_t { AX_A = 0, AX_B = 1, AX_C = 2, AX_KEY = 3, AX_COUNT = 4 };
 
+// Receives SG_RESULT samples taken at cruise speed during a move (StallGuard
+// is unreliable at low speed, datasheet §11.5). stepIndex = microsteps since
+// the move started.
+class SgSink {
+ public:
+  virtual ~SgSink() {}
+  virtual void sample(uint32_t stepIndex, uint16_t sg) = 0;
+};
+
 // One bounded move. Steps are microsteps in the axis's *logical* direction:
 // dials: + = away from the home stop; key: + = clockwise seen from the front.
 // The hardware layer maps logical to motor direction (Settings::invert).
 struct MoveRequest {
-  Axis axis;
-  int32_t steps;        // signed; |steps| is the hard bound of the move
-  float startSps;       // microsteps/s at the first step
-  float maxSps;         // cruise speed, microsteps/s
-  float accelSps2;      // microsteps/s^2
-  bool stopOnStall;     // stop at the first DIAG pulse
-  bool sampleSG;        // read SG_RESULT over UART while moving (min is reported)
-  bool traceSG;         // also print every sample as "SG,axis,fullstep,value" (bench)
-  uint16_t ignoreStallSteps;  // ignore DIAG for this many microsteps at the start
-  uint32_t timeoutMs;   // wall-clock bound
+  Axis axis = AX_A;
+  int32_t steps = 0;          // signed; |steps| is the hard bound of the move
+  float startSps = 1;         // microsteps/s at the first step
+  float maxSps = 1;           // cruise speed, microsteps/s
+  float accelSps2 = 1;        // microsteps/s^2
+  bool stopOnStall = true;    // stop at the first DIAG pulse
+  bool sampleSG = false;      // read SG_RESULT over UART while moving (cruise min is reported)
+  bool traceSG = false;       // also print every sample as "SG,axis,fullstep,value" (bench)
+  SgSink* sgSink = nullptr;   // also hand cruise samples to this (calibration)
+  uint16_t ignoreStallSteps = 0;  // ignore DIAG for this many microsteps at the start
+  uint32_t timeoutMs = 1000;  // wall-clock bound
 };
 
 struct MoveResult {
@@ -31,7 +41,7 @@ struct MoveResult {
   bool timedOut = false;
   bool diagHighAtStart = false;  // DIAG already high: wire off or driver error
   bool dirFailed = false;  // key: direction register didn't read back (UART)
-  uint16_t sgMin = 0xFFFF; // lowest SG_RESULT seen (0xFFFF = none sampled)
+  uint16_t sgMin = 0xFFFF; // lowest SG_RESULT seen at cruise speed (0xFFFF = none)
 };
 
 // Per-driver settings pushed over UART before a phase of motion.

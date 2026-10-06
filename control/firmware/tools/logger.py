@@ -29,7 +29,7 @@ import threading
 
 ATT_FIELDS = ["ms", "index", "a", "b", "c", "key_steps", "key_deg", "stalled", "sg_min", "cls", "n_deg"]
 CSV_FIELDS = ["host_time"] + ATT_FIELDS + ["delta_deg"]
-SHOW = ("EV,", "ERR,", "SUCCESS,", "NSTOP,", "RECHECK,", "HOME,", "LEARN,", "DRV,", "#", "CFG,", "SG,")
+SHOW = ("EV,", "ERR,", "SUCCESS,", "NSTOP,", "RECHECK,", "HOME,", "LEARN,", "DRV,", "#", "CFG,", "SG,", "CAL,", "OFFSET,")
 
 
 def parse_att(line):

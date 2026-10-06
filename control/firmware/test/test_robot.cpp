@@ -335,7 +335,7 @@ TEST(resume_refuses_when_position_settings_changed) {
     r.requestPause();
     runUntilIdle(r);
   }
-  s.homeOffsetFull[1] = 12;
+  s.detentAutocal = 0;  // positions would now come from CFG_HOME_OFFSET: a different numbering
   Robot r(h, s);
   r.boot();
   r.handleLine("resume");
@@ -362,7 +362,13 @@ TEST(bench_commands) {
   r.handleLine("jog K 10");
   r.handleLine("jog K -10");
   r.handleLine("sg A 40");
-  CHECK(h.last("# moved").find("sgMin=300") != std::string::npos);
+  {
+    const std::string m = h.last("# moved");
+    const size_t at = m.find("sgMin=");
+    CHECK(at != std::string::npos);
+    const int sg = at == std::string::npos ? -1 : std::atoi(m.c_str() + at + 6);
+    CHECK(sg > 250 && sg < 340);  // the dial's free-running load, ripple included
+  }
   r.handleLine("set sgA 95");
   CHECK_EQ(s.ax[AX_A].sgthrs, 95);
   r.handleLine("set nonsense 1");
@@ -497,5 +503,158 @@ TEST(dials_turn_clockwise_freely_and_seat_never_presses_the_stop) {
   for (auto& m : h.moves)
     if (m.axis != AX_KEY && !m.stopOnStall) { ++seats; CHECK(m.steps > 0); }
   CHECK_EQ(seats, 3);
+  noViolations(h);
+}
+
+// ---------------------------------------------------------------- calibration
+namespace {
+int calField(const SimHal& h, char axis, int n) {
+  for (auto it = h.lines.rbegin(); it != h.lines.rend(); ++it)
+    if (it->rfind("CAL,", 0) == 0 && (*it)[it->find(',', 4) + 1] == axis) return std::atoi(field(*it, n).c_str());
+  return -1;
+}
+double offsetFull(const SimHal& h, char axis) {
+  for (auto it = h.lines.rbegin(); it != h.lines.rend(); ++it)
+    if (it->rfind("OFFSET,", 0) == 0 && (*it)[it->find(',', 7) + 1] == axis) return std::atof(field(*it, 3).c_str());
+  return -1;
+}
+}  // namespace
+
+TEST(session_calibrates_thresholds_and_click_positions) {
+  SimHal h;
+  h.secret[0] = 0; h.secret[1] = 1; h.secret[2] = 2;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("start");
+  while (r.state() == ST_SESSION) r.tick();
+  CHECK_EQ(r.state(), ST_RUN);
+  // Dial baseline = lowest bin mean of 300 - 25*sin + noise: about 275.
+  for (char a : {'A', 'B', 'C'}) {
+    const int base = calField(h, a, 3), thr = calField(h, a, 4), trusted = calField(h, a, 7);
+    CHECK(base > 265 && base < 285);
+    CHECK(std::abs(thr - (base * 50 + 100) / 200) <= 1);
+    CHECK_EQ(trusted, 1);
+    // Position 1 lands on click 0: offset = click centre + the stall lag
+    // (20..30 usteps = 1.25..1.9 full steps), within a full step or so.
+    const int d = a - 'A';
+    const double want = (h.detentPhase[d] + 25) / 16.0;
+    CHECK(std::fabs(offsetFull(h, a) - want) < 1.6);
+    // And the wheel really sits on a click: the session ends at combination
+    // 1 (N learned at 0 and 1), so dial C is on its second click.
+    CHECK_EQ(h.detentOf(d), d == 2 ? 1 : 0);
+  }
+  CHECK(std::abs(calField(h, 'K', 3) - 240) <= 2);
+  CHECK_EQ(s.ax[AX_KEY].sgthrs, 60);
+  noViolations(h);
+}
+
+TEST(clicks_anywhere_relative_to_the_stop_are_found) {
+  // Where the first click sits relative to the stop isn't known (Paul): try
+  // three very different places. Without click calibration, the config
+  // offset (10 full steps) would miss them.
+  SimHal h;
+  h.detentPhase[0] = 40; h.detentPhase[1] = 200; h.detentPhase[2] = 300;
+  h.secret[0] = 2; h.secret[1] = 3; h.secret[2] = 4;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("start");
+  runUntilIdle(r);
+  CHECK_EQ(r.state(), ST_SUCCESS);
+  CHECK_EQ(r.progress().successIndex, secretIndex(h));
+  noViolations(h);
+
+  SimHal h2;
+  h2.detentPhase[0] = 40; h2.detentPhase[1] = 200; h2.detentPhase[2] = 300;
+  Settings s2 = tunedSettings();
+  s2.detentAutocal = 0;
+  Robot r2(h2, s2);
+  r2.boot();
+  r2.handleLine("start");
+  while (r2.state() == ST_SESSION) r2.tick();
+  CHECK_EQ(h2.detentOf(0), -1);  // between clicks: such a run could never open the lock
+}
+
+TEST(no_visible_clicks_falls_back_to_the_config_offset) {
+  SimHal h;
+  h.sgDetentAmp = 0;
+  h.secret[0] = 0; h.secret[1] = 0; h.secret[2] = 7;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("start");
+  runUntilIdle(r);
+  CHECK_EQ(calField(h, 'A', 7), 0);
+  CHECK(h.has("# clicks not clear"));
+  CHECK(std::fabs(offsetFull(h, 'A') - 10.0) < 0.01);  // CFG_HOME_OFFSET
+  CHECK_EQ(r.state(), ST_SUCCESS);  // the sim's clicks sit near the config offset
+  noViolations(h);
+}
+
+TEST(stallguard_reading_too_low_to_calibrate) {
+  SimHal h;
+  h.sgDialBase = 30;
+  h.sgDetentAmp = 5;
+  Settings s = tunedSettings();
+  for (int a = 0; a < 3; ++a) s.ax[a].sgthrs = 5;  // so the old threshold doesn't trip first
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("start");
+  runUntilIdle(r);
+  CHECK_EQ(r.state(), ST_ERROR);
+  CHECK(h.last("ERR,").find("SGCAL") != std::string::npos);
+  noViolations(h);
+}
+
+TEST(power_cut_with_the_key_turned_resumes) {
+  // The key stays wherever it is left (Paul): a power cut mid-attempt leaves
+  // it near its stop, ~100 deg out. The session start must find the rest
+  // stop from there before any dial moves.
+  SimHal h;
+  h.secret[0] = 1; h.secret[1] = 5; h.secret[2] = 5;
+  Settings s = tunedSettings();
+  {
+    Robot r(h, s);
+    r.boot();
+    r.handleLine("start");
+    for (int i = 0; i < 100000 && r.progress().nextIndex < 120; ++i) r.tick();
+  }
+  for (auto& e : h.enabled) e = false;
+  h.cmd[AX_KEY] = h.keyN;  // key left at its stop
+  CHECK(h.keyPhys() > 800);
+  Robot r2(h, s);
+  r2.boot();
+  r2.handleLine("resume");
+  runUntilIdle(r2);
+  CHECK_EQ(r2.state(), ST_SUCCESS);
+  CHECK_EQ(r2.progress().successIndex, secretIndex(h));
+  noViolations(h);
+}
+
+TEST(calibrate_command_stores_what_a_run_needs) {
+  // Fresh robot, config thresholds all 0: a run can't even home the key.
+  SimHal h;
+  Settings s = makeSettings();
+  {
+    Robot r(h, s);
+    r.boot();
+    r.handleLine("start");
+    CHECK(h.last("ERR,").find("TUNE") != std::string::npos);
+    r.handleLine("calibrate");  // key at its start position, by hand
+    CHECK(h.has("# calibration saved"));
+    CHECK(h.count("CAL,") == 4);
+    CHECK(s.ax[AX_KEY].sgthrs > 0);
+  }
+  // Power cycle: the stored calibration lets the run start.
+  Settings s2 = makeSettings();
+  Robot r2(h, s2);
+  h.lines.clear();
+  r2.boot();
+  CHECK(h.has("# last calibration loaded"));
+  r2.handleLine("start");
+  CHECK(r2.busy());
+  runUntilIdle(r2);
+  CHECK_EQ(r2.state(), ST_SUCCESS);
   noViolations(h);
 }

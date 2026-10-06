@@ -92,91 +92,84 @@ draw a mark on the bench in line with it.
 
 ---
 
-## Stage 3 — StallGuard on the bench (by hand)
+## Stage 3 — StallGuard on the bench (by hand): check the 50 % rule
 
-Same setup. This finds a starting threshold the way the datasheet describes
-(§11.2): watch SG_RESULT running free, then while braking the shaft by hand.
+Same setup. The firmware calibrates its own stall thresholds: it measures
+the free-running StallGuard reading, then calls it a stall when the reading
+falls to **50 %** of that (`CFG_SG_CAL_PCT`). This stage checks that 50 %
+sits clearly between running free and stalling. It follows the datasheet's
+own procedure (§11.2): watch SG_RESULT running free, then while braking the
+shaft by hand.
 
-1. `set maA 1000` (the dial current), `set sgA 0` (no stopping yet).
+1. `set maA 1000` (the dial current), `set sgA 0` (no stopping).
 2. `sg A 800`. The logger prints `SG,A,<step>,<value>` lines while the motor
-   runs free. Note the typical value.
+   runs free. Note the typical and the lowest value.
 3. `sg A 800` again. This time pinch the tape flag (or the shaft through a
    rag) with growing force until the motor stalls (it buzzes and stops
-   turning). Let go at once.
-4. Halve the **lowest SG value just before the stall**. Type
-   `set sgA <that half>`.
-5. `jog A 800` **without touching**: it must finish with `stalled=0`. Do it 3
-   times.
-6. `jog A 800` and pinch again: it should stop by itself with `stalled=1`
-   soon after you load it. Do it 3 times.
-7. If step 5 stops on its own, lower `sgA` by 10 and repeat. If step 6 doesn't
-   stop, raise it by 10.
+   turning). Let go at once. Note the lowest value just before the stall.
+4. Check the rule: `set sgA <free-running lowest ÷ 4>` (that is how the
+   firmware sets it: half of 50 %). `jog A 800` without touching, 3 times:
+   each must end `stalled=0`. Then `jog A 800` and pinch, 3 times: each must
+   stop by itself, `stalled=1`, soon after you load it.
 
-**Send back**: the raw log (it has all the SG lines), and the final `sgA` value.
-This is only a start value; the real one is set on the door in stage 4 (the
-load at the dial's stop is different).
+**Send back**: the raw log (it has all the SG lines), and whether step 4
+behaved. If 50 % is too tight or too loose, I'll change `CFG_SG_CAL_PCT`.
 
 ---
 
-## Stage 4 — Dial unit on the door: seat and home
+## Stage 4 — Dial unit on the door: seat, calibrate, home
 
-**4a. By hand first (no electronics)**, with the tube key in each dial hole in
-turn. Already answered (Paul, 2026-10-06): every dial turns clockwise without
-limit, stops when turned anticlockwise, and has 20 clicks per turn. Still to
-do:
-1. **Real key inserted, at rest** (as it will be during a run): turn each dial
-   a full turn clockwise, then back anticlockwise to its stop. **Do the dials
-   still turn, and feel the same as without the key?** The manual sets the
-   combination *before* inserting the key; the robot keeps the key in. If the
-   dials won't turn with the key in, stop here and tell me.
-2. From the anticlockwise stop, turn slowly clockwise: does the first click
-   come right at the stop, or some way after it? If you can, put a paper
-   protractor around the hole and a pointer on the tube key, and read the
-   angle from the stop to the **first click** and to the **20th**.
-3. Look for numbers or marks around each hole on the door.
+**4a. By hand first (no electronics).** Already answered (Paul,
+2026-10-06): every dial turns clockwise without limit, stops when turned
+anticlockwise, and has 20 evenly spaced clicks (18°). There are no marks on
+the door. The robot now finds the clicks itself. Still to do:
+1. **Real key inserted, at rest** (as it will be during a run): with the tube
+   key, turn each dial a full turn clockwise, then back anticlockwise to its
+   stop. **Do the dials still turn, and feel the same as without the key?**
+   The manual sets the combination *before* inserting the key; the robot
+   keeps the key in. If the dials won't turn with the key in, stop here and
+   tell me.
 
 **4b. On the door** (12 V off while placing): dial unit on, all three motors
 plugged in (A = top-left = X, B = top-right = Y, C = bottom = Z). The key
-turner is not needed yet. 12 V on. `set axes 7`, and the bench `sgA` from
-stage 3 for all three: `set sgA <v>`, `set sgB <v>`, `set sgC <v>`.
+turner is not needed yet. 12 V on. `set axes 7`.
 1. **Direction**: `jog A 10`. Watch dial A's big gear, or a tape flag on it.
    Did the *dial* turn clockwise or anticlockwise, seen from in front of the
    safe? Same for `jog B 10` and `jog C 10`.
    (The dials stop anticlockwise, so the firmware homes anticlockwise and
-   treats clockwise as positive. I'll set the invert flags from your answer.)
+   treats clockwise as positive. I'll set the invert flags from your answer,
+   or use `set invA 1` etc.)
 2. **Seat**: `seat`. Each dial turns 1/8 turn slowly **clockwise** (the way it
    never meets its stop). Listen and watch: does each plug **drop into its
    star** (a click, the plug moves in)?
-3. **Home** (after I've sent the invert flags, or set them with `set invA 1`
-   etc.): `home A`. It turns dial A towards its stop until it stalls, backs
-   off 2 positions, comes back. Two `HOME,…,A,1,…` and `HOME,…,A,2,…` lines:
-   pass 2 should read about **40**.
-   - If it says `unexpected stall` or stops early: lower `sgA` by 10.
-   - If it says `turned its full bound without stalling`: raise `sgA` by 10.
-   Repeat `home A` 5 times when it works. Then do B and C.
-4. **Detents**: after `home A`, `set sgA 0`, then `sg A 400` (one full dial
-   turn clockwise, which is free). The SG trace may show the 20 clicks as
-   bumps. Then set `sgA` back.
+3. **Calibrate**: `calibrate`. For each dial, it makes one free clockwise
+   turn and prints `CAL,…,A,<baseline>,<threshold>,<ripple>,<noise>,<clicks
+   found 1/0>`. Then it homes (two `HOME` lines; pass 2 should read about
+   **40**) and prints `OFFSET,…,A,<position 1 in full steps>,1`.
+   - `stalled on its free calibration turn`: `set sgA 0` (and B, C), then
+     retry.
+   - `clicks not clear`: send me the log; it falls back to a fixed offset.
+4. **Home repeatability**: `home A` 5 times, then B and C. Pass 2 should stay
+   near 40 each time.
+5. **Parked on a click?** `goto 5 5 5`, then `release` (motors off). Watch and
+   listen: does any dial **snap** to a click when released? Sitting still
+   means it was parked on its click.
 
-**Send back**: 4a answers (dials turn with the key in: yes/no; where the
-first click is; the angles; any door marks); 4b.1 directions; 4b.2 seated yes/no per dial; the
-raw log with the HOME lines and the SG trace from 4b.4; the final
-`sgA/sgB/sgC`.
+**Send back**: the 4a answer; directions; seated yes/no per dial; the raw log
+(CAL / HOME / OFFSET lines); for 4b.5, which dials snapped, if any.
 
 ---
 
 ## Stage 5 — Key turner: direction, current, stop angle
 
-**5a. By hand first**, key inserted, nothing mounted. Already answered
-(Paul, 2026-10-06): the key goes in one way only; from there it won't turn
-anticlockwise at all (that rest stop is the firmware's key home,
-`keyhome` 0); it turns ~100° clockwise to its stop; it comes out only back at
-the start. Still to do:
-1. Turn it clockwise to its stop (~100°) and let go. Does it spring back
-   towards the start, or stay?
+**5a. By hand**: all answered (Paul, 2026-10-06). The key goes in one way
+only. From there it won't turn anticlockwise at all: that rest stop is the
+firmware's key home. It turns ~100° clockwise to its stop and stays wherever
+it is left (no spring back). It comes out only back at the start. So before
+any stage below, turn it back to the start by hand.
 
-**5b. Mounted**: key in, key turner on (12 V off while placing and
-plugging). Remote board's VREF pot at minimum. Cable plugged in. 12 V on.
+**5b. Mounted**: key in, at its start; key turner on (12 V off while placing
+and plugging). Remote board's VREF pot at minimum. Cable plugged in. 12 V on.
 `set axes 8` (key only), then `ping`: expect `DRV,K,1,21,1,1,...`.
 1. **Direction**: `set maK 400`, `key 10`. The key should turn **clockwise**
    10° and come back. If it went anticlockwise: `set invK 1`, and say so.
@@ -184,18 +177,17 @@ plugging). Remote board's VREF pot at minimum. Cable plugged in. 12 V on.
    `set maK 500`, then 400, 300, 250, 200. For each, did the key actually get
    to about 80° (watch the cap), or did the motor skip or buzz?
 3. Set `maK` to **2 × the lowest current that worked**, 1000 at most.
-4. **StallGuard on the key**: `sg K 60` (≈108°, just past the stop). The trace
-   should drop at the stop. Then `jog K -60` to bring the key back to rest.
-   Halve the lowest value near the stop: `set sgK <v>`.
+4. **Calibrate the key**: `calibrate`. It turns the key 60° clockwise, sets
+   the key's threshold from its free-running reading (`CAL,…,K,…`), then turns
+   back until it stalls on the rest stop. That return proves the threshold
+   works. If it says `did not find its rest stop`: send me the log.
 5. **Stop angle**: `learn`, 3 times. Each prints 3 `LEARN` lines and an
-   `NSTOP` line (N and the spread). If it says `found no rest stop`, the key's
-   StallGuard is too dull at the rest stop: raise `sgK` by 10 and repeat.
+   `NSTOP` line (N and the spread).
 6. Watch the key-turner housing during the learns: does it shift or rock
    on its magnets?
 
-**Send back**: 5a answer; direction; the current table from 5b.2; final
-`maK`, `sgK`; the raw log with the LEARN/NSTOP lines; any housing
-movement.
+**Send back**: direction; the current table from 5b.2; final `maK`; the raw
+log (CAL, LEARN, NSTOP lines); any housing movement.
 
 ---
 
@@ -205,8 +197,8 @@ Everything on the door, both units, cable plugged. I'll have sent a
 `config.h` with your numbers by now; upload it. 12 V on.
 
 1. `cfg`, then `ping`: all four `DRV` lines present.
-2. `reset yes`, then `start`. The session start takes ~30 s: key home, seat,
-   home ×3, learn.
+2. `reset yes`, then `start`. The session start takes ~40 s: key home, key
+   calibration, seat, one calibration turn per dial, home ×3, learn.
 3. Let it run **~50 attempts** (about a minute). Each attempt turns one dial
    by one click, turns the key to its stop and back.
 4. Press the **button** (or type `pause`). It finishes the attempt, re-checks
@@ -226,12 +218,12 @@ spread and start the real run with `resume`.
 |---|---|
 | Driver UART addresses and wiring; which MS3 pin | 1 |
 | Motor step angle (1.8° assumed) | 2 |
-| StallGuard thresholds (sgA/B/C/K), speeds | 3, 4, 5 |
+| StallGuard thresholds — now self-calibrated; the 50 % rule and speeds | 3, 4, 5 |
 | Hard stop and clicks per turn | answered 2026-10-06: stop anticlockwise, unlimited clockwise, 20 clicks |
 | Dials still turn with the key inserted at rest | 4a |
 | Motor direction ↔ dial direction | 4b |
 | Plug seating (seat routine angle and speed) | 4b |
-| Home offset to the first detent | 4a, 4b |
+| Position 1 relative to the stop — now found from the clicks; parked-on-click check | 4b |
 | Key motor direction | 5 (rest stop answered 2026-10-06: none anticlockwise of the start → `keyhome` 0) |
 | Key current (2 × minimum) | 5 |
 | Key stop angle N and its spread (classification bands) | 5, 6 |
