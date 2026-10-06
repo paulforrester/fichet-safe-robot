@@ -214,16 +214,12 @@ Resolved 2026-09-29:
       ~100 magnets already on hand.
 
 Still open:
-- [~] Key / lock-hole measurements (Paul, calipers, 2026-10-06):
-      lock hole **12.05mm** dia; the key **protrudes 31.89mm** from the
-      door when fully home; **overall key length 84.75mm** (so the
-      shaft in the lock is ~53mm); the key turns **clockwise ~100deg
-      then stops**. Still needed for a fitted gripper (vs. the v0.1
-      adjustable clamp): the bow's width and thickness, the ring-hole
-      diameter and its centre offset from the key axis, the round
-      shaft's diameter just below the bow, and the bow's rest
-      orientation when the key is home. Torque to turn is still
-      unmeasured (sized once the motor is on it).
+- [x] Key / lock-hole measurements (Paul, calipers, 2026-10-06): lock hole
+      12.05mm; key protrudes 31.89mm, 84.75mm long, turns clockwise ~100deg
+      then stops; bow vertical at rest, 24.60 wide, 2.5-2.9 thick on its flat
+      part, swelling 9.48 at ~8mm, ring hole 10.75. Key turner v1 grips it with
+      a slotted cap (see `docs/housing_decisions.md`). Torque to turn: measure
+      with the fit-test lever + a luggage scale.
 - [x] Lock hole position relative to the dial cluster — **calipers
       2026-10-06**: top-left dial->lock 110.13mm (far 122.25 / near
       98.01), bottom dial->lock 126.95mm (far 139.4 / near 114.5).

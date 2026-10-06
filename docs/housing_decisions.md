@@ -6,6 +6,47 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## Key-turner v1 (2026-10-06): cap over the bow, Oldham-style, motor on the key axis
+
+Replaces v0.1's thumbscrew clamp (sized before the key was measured).
+`cad/key_turner_housing.scad`, inputs in the entry below.
+
+- **Grip.** A cap (PETG-CF) slides over the key's flat head: slot 3.3mm
+  (bow 2.5-2.9 + 0.4) x 30mm (bow 24.6 + 2.7 each side), mouth at 18.5mm from
+  the door (beyond the steep taper, so it only ever touches the flat part),
+  lead-in chamfer, slot bottom 0.6mm past the key tip. Its top has a tongue
+  at 90deg to the slot that sits in a groove in the motor hub. So the cap is
+  the middle disc of an Oldham coupling and the bow is one of its jaws: the
+  unit can sit up to 2.7mm off the key axis in any direction and still turn
+  the key with no side load on the lock — it is placed by hand and the key
+  wobbles in the lock, so exact alignment can't be counted on. Axially the cap
+  is trapped between the key tip and the hub (0.6 / 0.5mm).
+- **Drive.** NEMA17 straight on the key axis (single motor, no gearing yet:
+  the key's torque is unknown; 2:1 can be added later as in the dial unit).
+  Hub on the D-shaft, 13.5mm of bore all on the shaft's flat; optional grub.
+  Backlash ~3-4deg total (two sliding joints), fine for finding a stop at ~100deg.
+- **Frame.** Base plate r43 with a 28mm opening that passes the bow as the unit
+  slides on; 3 legs at r36 (180/60/-60deg, none toward the dials); motor plate
+  on M6x20 countersunk self-tappers (the dial unit's bench-proven 5.4 pilot);
+  motor on 4x M3x10 countersunk in the same 6.3mm countersinks as the dial sled.
+- **Fit next to the dial unit.** The keyhole is 125.2mm from the dial plate's
+  centre, level with it, so ~50mm from the dial plate's edge: the key turner
+  reaches 43mm (base) / 29mm (motor plate) toward the dials. Toward the door's
+  left edge (36.5mm away) the motor plate reaches 47mm, which is fine because
+  the door sits flush with the safe body (Paul).
+- **Door attachment: not decided** — to be chosen together with the dial
+  unit's (Paul wants the same magnets in both). The base plate's door face is
+  plain for now.
+- **Checks.** STLs watertight, one body each. `cad/tools/key_turner_check.py`:
+  key dummy (built from the caliper readings) + cap + hub + motor + frame at
+  key angles 0/50/100deg and key offsets up to 2.5mm in five directions: no
+  overlap (0.000mm^3). Sanity: a 2.0mm slot gives 166mm^3 of overlap, and a 4mm
+  offset (past the 2.7mm range) 1.8mm^3, so the check sees real clashes.
+- **Not verified:** the key dummy's outline between the measured points
+  (swelling width, the bow's exact outline) is approximate — hence the fit
+  test print (`print_key_fit_test.scad`: cap + a hand lever with a hole 50mm
+  from the axis for a luggage scale, which also measures the key's torque).
+
 ## 2026-10-06: key-turner inputs (Paul's measurements)
 
 - Lock hole 12.05mm dia. Centre to centre (caliper far/near average): top-left
@@ -17,8 +58,13 @@ mechanical housings that carry that geometry onto the actual door.
   ~50mm from the 150mm dial plate's edge (the earlier ~55mm "gap" note was a
   photo estimate of something else).
 - Key: 84.75mm long; fully inserted it protrudes 31.89mm from the door; turns
-  clockwise ~100deg then stops. Photo estimates only (to confirm with calipers):
-  bow ~26mm wide, ring hole ~9.5mm, bow thickness tapering toward its end.
+  clockwise ~100deg then stops; bow vertical at insertion. Calipers (with
+  photos): bow 24.60 wide, 2.90 thick near the top; swelling 9.48 thick at
+  ~8mm from the door; collar 7.97 dia to ~5.6mm; shaft 4.72; bow at full width
+  from ~12.6mm; steep taper from the swelling over ~10mm, then 2.75 -> 2.5 over
+  the last ~13.8mm; ring hole 10.75 with 6.6mm of metal to the bow's end. Door
+  flat for 50mm around the lock, flush with the body; keyhole edge 30.45mm from
+  the door's left edge.
 
 ## 2026-10-06: motor screws countersunk instead of counterbored
 

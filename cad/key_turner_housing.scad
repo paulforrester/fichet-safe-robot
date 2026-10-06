@@ -1,148 +1,297 @@
 // ============================================================
-// Fichet-Bauche "Complice" safe robot — KEY-TURNER UNIT housing
-// (v0.1, first pass). One motor + a gripper that clamps the real
-// key's protruding bow (already hand-inserted into socket #4 before
-// this unit goes on) — see control/sequence.md's "Mounting" section.
+// Fichet-Bauche "Complice" safe robot — KEY-TURNER UNIT (v1, 2026-10-06)
 //
-// STATUS: first-pass geometry. Key bow dimensions are still an open
-// item in control/sequence.md ("Key bow dimensions ... needed to
-// design the key-turner's gripper") — docs/photos/real-key-bow-closeup.jpg
-// shows the bow is an ornate 4-lobed/cross shape, not a simple
-// rectangle, and has no ruler/tape in frame, so there's no legible
-// direct measurement to use (unlike the dial-hole spacing — see
-// dial_unit_housing.scad). Rather than guess a tight-fit pocket
-// around a shape that isn't actually measured, this uses an
-// adjustable clamp: a generous open slot the bow slides into (after
-// the key is already seated by hand) plus a thumbscrew-tightened bar
-// that closes the slot and clamps whatever thickness/width the real
-// bow turns out to be, within the slot's working range. That also
-// sidesteps needing an exact ornate-shape pocket at all — a clamp
-// doesn't care about the bow's decorative outline, only its
-// thickness and the width of the section being gripped.
+// Turns the real key (hand-inserted into the lock first) clockwise up to
+// ~100deg and back, one NEMA17 directly on the key axis. Replaces the v0.1
+// thumbscrew clamp, which was sized before the key was measured.
 //
-// No motor-offset problem here — it's a single motor, so it mounts
-// directly behind the gripper hub, coaxially, no flex coupler needed.
+// HOW IT GRIPS: a printed CAP slides over the key's flat head (the "bow").
+// The bow sits in a slot in the cap; a tongue on the cap's other face sits
+// in a groove in the MOTOR HUB, at 90deg to the slot. That makes the cap
+// the middle disc of an Oldham coupling with the bow as one of its jaws:
+// the motor axis does NOT have to line up exactly with the key axis
+// (hand-placed unit, key wobbles in the lock) — up to ~2.5mm of offset in
+// any direction is taken up by sliding, with no side load on the lock.
+// Axially the cap is trapped between the key's tip (slot bottom) and the
+// hub (tongue in groove), ~0.6 / 0.5mm each way.
+//
+// FRAME: z = 0 is the DOOR FACE, +z out of the door, key axis = z axis.
+// x right, y up. At insertion the bow is VERTICAL: its 24.6mm width runs
+// along y, its 2.5-2.9mm thickness along x. The dial cluster is to the
+// RIGHT (+x): its 150mm plate edge is ~50mm from the key centre, so the
+// unit stays within 43mm of the key on that side (see layout notes).
+//
+// KEY (Paul's calipers, 2026-10-06 — docs/housing_decisions.md):
+//   fully in, protrudes 31.89 from the door face; turns CW ~100deg to a stop
+//   collar dia 7.97 from the door to z ~5.6; swelling 9.48 thick at z ~8;
+//   bow reaches its full 24.60 width at z ~12.6; thickness tapers steeply
+//   from 9.48 (z 8) to ~2.75 over ~10mm, then 2.75 -> 2.5 to the tip
+//   (an earlier reading near the top was 2.90); ring hole dia 10.75,
+//   6.6mm of metal between the hole and the bow's outer end.
+//   Lock hole 12.05; door flat for 50mm around it; door flush with the body.
+//
+// PARTS (print_key_turner_*.scad):
+//   base_assembly()  door plate + 3 legs (door face down, PETG)
+//   motor_plate()    motor mount (inner face down, PETG)
+//   key_cap()        slot + tongue (slot mouth down, PETG-CF)
+//   motor_hub()      groove + D-bore (groove face down, PETG-CF)
+//   key_fit_test()   cap + a hand lever: try it on the real key FIRST
+//
+// DOOR ATTACHMENT: deliberately not in this version (Paul, 2026-10-06:
+// decide it together with the dial unit's, ideally the same magnets).
+// base_plate() leaves its door face plain for now.
 // ============================================================
 
 include <common_mounts.scad>
-
 $fn = 64;
 
-// ---- gripper — generous placeholder dims, see header ----
-hub_dia         = 34;   // mm, gripper hub diameter
-hub_thickness   = 8;    // mm
-slot_width_max  = 9;    // mm, clamp fully open — generous vs. a typical
-                          // ornate key bow's a few-mm thickness
-slot_depth      = 20;   // mm, how far the slot reaches toward the hub center
-                          // (captures bows roughly up to ~2*slot_depth across)
-clamp_screw_d   = 3.4;  // M3 clearance, for the clamp bolt
+// ---------------- key (measured) ----------------
+key_protrusion   = 31.89;
+key_collar_d     = 7.97;
+key_bow_w        = 24.60;
+key_bow_t_max    = 2.90;    // the thickest reading on the flat part
+key_bow_full_z   = 12.6;    // full width from here out
+key_flat_from_z  = 18.0;    // ~8 + 10: beyond here the bow is <= ~2.9 thick
+key_swell_t      = 9.48;
+key_swell_z      = 8.0;
+key_ring_d       = 10.75;
+key_ring_rim     = 6.6;     // metal between the ring hole and the bow's end
+key_ring_z       = key_protrusion - key_ring_rim - key_ring_d/2;   // 19.9
+lock_hole_d      = 12.05;
 
-// ---- motor mount + shaft ----
-shaft_len       = 10;   // mm, hub's D-bore depth onto the motor shaft
-plate_thickness = 5;
-plate_dia       = 56;
+// ---------------- cap (Oldham middle disc) ----------------
+cap_od        = 36;
+cap_z0        = key_flat_from_z + 0.5;     // 18.5: mouth, clear of the thick swelling
+slot_w        = key_bow_t_max + 0.4;       // 3.3: bow thickness + clearance
+slot_l        = 30;                        // bow 24.6 + 2.7 each side of sliding room
+slot_top      = key_protrusion + 0.6;      // 32.49: key tip 0.6 short of the slot bottom
+slot_mouth_w  = 6;                         // lead-in at the mouth
+slot_mouth_h  = 1.5;
+cap_roof      = 2;
+cap_top       = slot_top + cap_roof;       // 34.49
+tongue_w      = 6;
+tongue_h      = 4;
+tongue_l      = 28;
+
+// ---------------- motor hub ----------------
+hub_od        = 30;
+hub_gap       = 0.5;                       // cap top to hub bottom
+hub_z0        = cap_top + hub_gap;         // 34.99
+groove_w      = tongue_w + 0.5;            // 6.5
+groove_top    = cap_top + tongue_h + 0.5;  // tongue top + 0.5 axial play
+hub_web       = 1.5;
+shaft_tip_z   = groove_top + hub_web;      // 40.49
+motor_face_z  = shaft_tip_z + 24;          // 64.49: 17HE19-2004S shaft is 24mm from the face
+hub_z1        = motor_face_z - 10.5;       // 53.99: 4.5mm under the motor plate
+hub_bore_len  = hub_z1 - shaft_tip_z;      // 13.5, all within the 15mm flat
+assert(hub_bore_len <= nema17_flat_len, "hub bore longer than the shaft's flat");
+
+// ---------------- frame ----------------
+base_t        = 6;
+base_r        = 43;                        // 7mm short of the dial plate's edge
+base_hole_d   = 28;                        // passes the bow (24.6 wide) as the unit goes on
+motor_plate_t = 6;
+motor_plate_z0 = motor_face_z - motor_plate_t;   // 58.49
+leg_r_pos     = 36;
+leg_angles    = [180, 60, -60];           // none toward the dials (+x)
+leg_d         = 12;
+leg_pts       = [for (a = leg_angles) [leg_r_pos * cos(a), leg_r_pos * sin(a)]];
+m6_selftap_pilot_d = 5.4;   // bench-confirmed in the dial unit
+m6_selftap_depth   = 16;
+m6_clear_d    = 6.4;
+m6_csk_top_d  = 14.0;
+m6_csk_depth  = (m6_csk_top_d - m6_clear_d) / 2;
+m3_csk_top_d  = 6.3;        // same countersink as the dial sled (M3x10, ISO or DIN heads)
+m3_csk_depth  = (m3_csk_top_d - nema17_bolt_clear) / 2;
+boss_recess_d = nema17_boss_d + 1;
+boss_recess_h = nema17_boss_h + 0.5;
+shaft_hole_d  = nema17_shaft_d + 2;
+can_clear     = 1.5;
+
+// max offset the coupling takes, and the clearances that depend on it
+max_offset    = (slot_l - key_bow_w) / 2;                       // 2.7
+cap_orbit_r   = cap_od/2 + max_offset;                          // 20.7
+leg_inner_r   = leg_r_pos - leg_d/2;                            // 30
+assert(leg_inner_r - cap_orbit_r >= 5, "legs too close to the cap's orbit");
+assert(base_hole_d/2 > key_bow_w/2 + 1, "base opening won't pass the bow");
+assert(motor_plate_z0 - hub_z1 >= 3, "hub too close to the motor plate");
 
 // ============================================================
-// Rotating part: hub + open slot + two clamp-bar mounting ears.
-// Motor's D-shaft inserts directly into the hub (no flex coupler —
-// single motor, no offset to bridge).
-// ============================================================
-module gripper_hub() {
-    ear_r = hub_dia/2 + 6;
+module base_plate() {
+    difference() {
+        cylinder(r = base_r, h = base_t);
+        translate([0, 0, -eps_c]) cylinder(d = base_hole_d, h = base_t + 2*eps_c);
+        // marker notch at 12 o'clock: the bow points this way at insertion
+        translate([0, base_hole_d/2, -eps_c]) cylinder(d = 3, h = base_t + 2*eps_c, $fn = 24);
+    }
+}
+module base_legs() {
+    for (p = leg_pts) translate([p[0], p[1], base_t - eps_c])
+        difference() {
+            cylinder(d = leg_d, h = motor_plate_z0 - base_t + eps_c);
+            translate([0, 0, motor_plate_z0 - base_t - m6_selftap_depth])
+                cylinder(d = m6_selftap_pilot_d, h = m6_selftap_depth + 1, $fn = 24);
+        }
+}
+module base_assembly() { union() { base_plate(); base_legs(); } }
+
+module motor_plate_outline() {
+    hull() {
+        square(nema17_body + can_clear + 6, center = true);
+        for (p = leg_pts) translate(p) circle(r = m6_csk_top_d/2 + 4);
+    }
+}
+module motor_plate() {
+    translate([0, 0, motor_plate_z0]) difference() {
+        linear_extrude(height = motor_plate_t) motor_plate_outline();
+        translate([0, 0, -eps_c]) cylinder(d = shaft_hole_d, h = motor_plate_t + 2*eps_c, $fn = 32);
+        translate([0, 0, motor_plate_t - boss_recess_h]) cylinder(d = boss_recess_d, h = boss_recess_h + eps_c);
+        for (x = [-1, 1]) for (y = [-1, 1])
+            translate([x * nema17_bolt_square/2, y * nema17_bolt_square/2, -eps_c]) {
+                cylinder(d = nema17_bolt_clear, h = motor_plate_t + 2*eps_c, $fn = 24);
+                cylinder(d1 = m3_csk_top_d + 2*eps_c, d2 = nema17_bolt_clear, h = m3_csk_depth + eps_c, $fn = 32);
+            }
+        for (p = leg_pts) translate([p[0], p[1], -eps_c]) {
+            cylinder(d = m6_clear_d, h = motor_plate_t + 2*eps_c, $fn = 24);
+            translate([0, 0, motor_plate_t - m6_csk_depth + eps_c])
+                cylinder(d1 = m6_clear_d, d2 = m6_csk_top_d, h = m6_csk_depth + eps_c, $fn = 48);
+        }
+    }
+}
+
+// Cap in its assembled position (z = door frame).
+module key_cap() {
     difference() {
         union() {
-            cylinder(d = hub_dia, h = hub_thickness);
-            // two ears either side of the slot opening, to bolt the clamp bar across
-            for (s = [-1, 1])
-                translate([s * (slot_width_max/2 + 4), hub_dia/2 - 2, 0])
-                    cylinder(d = 8, h = hub_thickness);
+            translate([0, 0, cap_z0]) cylinder(d = cap_od, h = cap_top - cap_z0, $fn = 96);
+            intersection() {   // tongue along x, ends rounded to the cap's outline
+                translate([-tongue_l/2, -tongue_w/2, cap_top - eps_c]) cube([tongue_l, tongue_w, tongue_h + eps_c]);
+                cylinder(d = cap_od - 2, h = 100, $fn = 96);
+            }
         }
-        // the open slot itself — cut in from the rim toward the center
-        translate([-slot_width_max/2, hub_dia/2 - slot_depth, -eps_c])
-            cube([slot_width_max, slot_depth + 6, hub_thickness + 2*eps_c]);
-        // D-shaft bore for the motor, from the underside
-        translate([0, 0, -eps_c])
-            dshaft_bore(bore_len = shaft_len, screw_z = shaft_len - 3);
-        // clamp bolt holes through both ears
-        for (s = [-1, 1])
-            translate([s * (slot_width_max/2 + 4), hub_dia/2 - 2, -eps_c])
-                cylinder(d = clamp_screw_d, h = hub_thickness + 2*eps_c, $fn = 24);
+        // bow slot along y, open at the mouth
+        translate([-slot_w/2, -slot_l/2, cap_z0 - eps_c]) cube([slot_w, slot_l, slot_top - cap_z0 + eps_c]);
+        // lead-in: wider at the mouth, narrowing to the slot over slot_mouth_h
+        hull() {
+            translate([-slot_mouth_w/2, -slot_l/2 - 1, cap_z0 - eps_c]) cube([slot_mouth_w, slot_l + 2, eps_c]);
+            translate([-slot_w/2, -slot_l/2, cap_z0 + slot_mouth_h]) cube([slot_w, slot_l, eps_c]);
+        }
+        // outer bottom edge chamfer
+        translate([0, 0, cap_z0 - eps_c]) difference() {
+            cylinder(d = cap_od + 1, h = 1.2);
+            cylinder(d1 = cap_od - 2.4, d2 = cap_od + 0.01, h = 1.2 + eps_c, $fn = 96);
+        }
+        // direction marks on the roof edge: the slot direction (= bow, vertical at insertion)
+        for (s = [-1, 1]) translate([0, s * (cap_od/2), cap_top - 1]) cylinder(d = 2.5, h = 2, $fn = 16);
     }
 }
 
-// Clamp bar: a separate small printed part. One M3 bolt + nut (or a
-// captive nut in the far ear) draws it down across the slot opening
-// once the bow is in place, taking up whatever thickness the real bow
-// turns out to be within slot_width_max.
-module clamp_bar() {
-    bar_len = (slot_width_max/2 + 4) * 2 + 8;
+module motor_hub() {
     difference() {
-        translate([-bar_len/2, -4, 0])
-            cube([bar_len, 8, 5]);
-        for (s = [-1, 1])
-            translate([s * (slot_width_max/2 + 4), 0, -eps_c])
-                cylinder(d = clamp_screw_d, h = 5 + 2*eps_c, $fn = 24);
+        translate([0, 0, hub_z0]) cylinder(d = hub_od, h = hub_z1 - hub_z0, $fn = 96);
+        // groove along x (perpendicular to the bow slot), through
+        translate([-hub_od, -groove_w/2, hub_z0 - eps_c]) cube([2*hub_od, groove_w, groove_top - hub_z0 + eps_c]);
+        // D-bore from the motor side; the inserted 13.5mm is all on the shaft's flat
+        translate([0, 0, hub_z1]) mirror([0, 0, 1]) dshaft_bore(bore_len = hub_bore_len, screw_z = hub_bore_len / 2);
     }
 }
 
-// ============================================================
-// Static frame: mounting plate (magnets) + NEMA17 boss, directly
-// behind the gripper hub — no offset needed for a single motor.
-// ============================================================
-boss_h = 6;
-module frame() {
+// FIRST PRINT: the cap plus a lever that engages the cap's tongue like the
+// hub does. Slide it onto the real key by hand and turn it to the stop:
+// checks the slot, the lead-in and the Oldham joint. The lever's hole is
+// lever_r from the axis: hook a luggage scale there and pull square to the
+// lever to measure the key's turning torque (torque = reading x lever_r).
+lever_r = 50;
+module key_fit_lever() {
     difference() {
         union() {
-            cylinder(d = plate_dia, h = plate_thickness, $fn = 64);
-            translate([0, 0, plate_thickness - eps_c])
-                cylinder(d = nema17_bolt_square + 10, h = boss_h, $fn = 64);
+            translate([0, 0, hub_z0]) cylinder(d = hub_od, h = 10, $fn = 96);
+            translate([0, -6, hub_z0]) cube([lever_r + 8, 12, 8]);
         }
-        magnet_pocket_ring(3, plate_dia/2 - 6);
-        translate([0, 0, plate_thickness])
-            nema17_bolt_holes(depth = 12);
-        // Motor shaft clearance, straight through the boss AND the
-        // plate. The motor bolts to the boss's outer (away-from-door)
-        // face; its shaft has to reach all the way through to the
-        // door-facing side to drive gripper_hub() there. This was
-        // missing entirely in the v0.1 pass — the only things cut here
-        // were the bolt holes and the magnet ring, so the shaft would
-        // have driven straight into solid plastic. See
-        // docs/housing_decisions.md.
-        translate([0, 0, -eps_c])
-            cylinder(d = nema17_shaft_d + 2, h = plate_thickness + boss_h + 2*eps_c, $fn = 24);
+        translate([-hub_od, -groove_w/2, hub_z0 - eps_c]) cube([2*hub_od, groove_w, groove_top - hub_z0 + eps_c]);
+        translate([lever_r, 0, hub_z0 - eps_c]) cylinder(d = 5, h = 10, $fn = 24);
     }
 }
-// Note: the gripper hub is a separate printed part (below), not
-// touching this frame — the real running clearance between hub and
-// plate comes from a washer/spacer at assembly, not from geometry
-// here. An earlier version cut a shallow clearance notch for this
-// directly into the plate; it was purely cosmetic (a fraction of a
-// mm) and produced a degenerate coplanar sliver in the exported STL,
-// so it was dropped rather than fought.
-//
-// Shaft-length check (real motor: STEPPERONLINE 55Ncm/2A, 24mm shaft
-// protrusion — see docs/housing_decisions.md for the source): 24mm
-// total, minus plate_thickness + boss_h (11mm) to clear frame() above,
-// leaves 13mm for the washer/spacer gap plus gripper_hub()'s own
-// shaft_len (10mm) bore — about 3mm of spacer budget. A single thin
-// washer fits that comfortably; don't stack multiple washers here.
 
-// ---- output: static frame, gripper hub, and clamp bar as 3 loose parts ----
-frame();
-translate([80, 0, 0]) gripper_hub();
-translate([80, 40, 2.5]) clamp_bar();
+// ---------------- key dummy (from the measurements, for checks only) ----------------
+module key_dummy(angle = 0) {
+    rotate([0, 0, -angle]) {   // clockwise as seen from in front = -angle about +z
+        translate([0, 0, -5]) cylinder(d = key_collar_d, h = 5.6 + 5, $fn = 48);
+        hull() {   // collar top -> swelling -> where the bow is thin
+            translate([0, 0, 5.6]) cylinder(d = key_collar_d, h = 0.01, $fn = 48);
+            translate([-key_swell_t/2, -5, key_swell_z]) cube([key_swell_t, 10, 0.01]);
+            translate([-key_bow_t_max/2, -key_bow_w/2, key_flat_from_z]) cube([key_bow_t_max, key_bow_w, 0.01]);
+            translate([-key_bow_t_max/2, -key_bow_w/2, key_bow_full_z]) cube([key_bow_t_max, key_bow_w, 0.01]);
+        }
+        difference() {   // flat bow: full width from 12.6, round end reaching the tip
+            rotate([0, 90, 0]) linear_extrude(height = key_bow_t_max, center = true)
+                hull() {
+                    translate([-key_bow_full_z, 0]) square([0.01, key_bow_w], center = true);
+                    translate([-(key_protrusion - key_bow_w/2), 0]) circle(d = key_bow_w, $fn = 96);
+                }
+            translate([0, 0, key_ring_z]) rotate([0, 90, 0]) cylinder(d = key_ring_d, h = 10, center = true, $fn = 48);
+        }
+    }
+}
+module motor_dummy() {
+    translate([-nema17_body/2, -nema17_body/2, motor_face_z]) cube([nema17_body, nema17_body, 48]);
+    translate([0, 0, motor_face_z - nema17_boss_h]) cylinder(d = nema17_boss_d, h = nema17_boss_h);
+    translate([0, 0, shaft_tip_z]) cylinder(d = nema17_shaft_d, h = 24, $fn = 24);
+}
+
+// assembled view / checks. angle = key rotation (0..100, CW). off = [x, y]
+// offset of the KEY axis from the unit's (motor) axis, i.e. how far off-centre
+// the unit was put on; the cap takes up the difference.
+module assembled(part = "all", angle = 0, off = [0, 0]) {
+    if (part == "all" || part == "base") base_assembly();
+    if (part == "all" || part == "plate") motor_plate();
+    if (part == "all" || part == "key") translate([off[0], off[1], 0]) key_dummy(angle);
+    // the cap can slide along the bow (slot direction u, turning with the key)
+    // relative to the key, and along the hub groove (perpendicular to u)
+    // relative to the motor axis -> its centre is the key position minus its
+    // component along u... i.e. the projection of the key offset onto v.
+    a = -angle;
+    u = [-sin(a), cos(a)];
+    k = off;
+    c = k - (k[0]*u[0] + k[1]*u[1]) * u;
+    if (part == "all" || part == "cap") translate([c[0], c[1], 0]) rotate([0, 0, a]) key_cap();
+    if (part == "all" || part == "hub") rotate([0, 0, a]) motor_hub();
+    if (part == "all" || part == "motor") motor_dummy();
+}
+
+echo(KEY_TURNER = [["cap_z0", cap_z0], ["slot_top", slot_top], ["cap_top", cap_top], ["hub", hub_z0, hub_z1],
+                   ["shaft_tip_z", shaft_tip_z], ["motor_face_z", motor_face_z], ["max_offset", max_offset],
+                   ["leg_clear", leg_inner_r - cap_orbit_r], ["key_ring_z", key_ring_z]]);
+
+// print placements
+module print_base()       base_assembly();
+module print_motor_plate() translate([0, 0, -motor_plate_z0]) motor_plate();
+module print_cap()        translate([0, 0, -cap_z0]) key_cap();                     // mouth down
+module print_hub()        translate([0, 0, -hub_z0]) motor_hub();                   // groove face down
+module print_fit_lever()  translate([0, 0, -hub_z0]) key_fit_lever();
+
+show_print_layout = true;
+if (show_print_layout) {
+    print_base();
+    translate([100, 0, 0]) print_motor_plate();
+    translate([-70, 30, 0]) print_cap();
+    translate([-70, -20, 0]) print_hub();
+}
 
 // ============================================================
-// PRINT NOTES:
-//  - Frame: PETG, same as the dial unit frame — structural, not
-//    wear-facing.
-//  - Gripper hub + clamp bar: also fine in plain PETG (low duty cycle,
-//    hand-tightened once per session, unlike the dial couplers' ~8,000
-//    repeated engagements) — no need for the PETG-CF used on the dial
-//    couplers here.
-//  - Bench-fit TODO: once the unit's built, measure the real bow's
-//    thickness and the width of the section you want to grip, and
-//    confirm both fit inside slot_width_max (9mm) / slot_depth (20mm)
-//    — resize and reprint the hub if not. This is a cheap, fast
-//    reprint since it's a small standalone part.
+// PRINT / ASSEMBLY NOTES
+//  1. Print key_fit_test (cap + lever) FIRST and try it on the real key:
+//     it should slide over the bow without forcing, sit with the key tip
+//     just short of the slot bottom, and turn the key to its stop. Then
+//     hang a luggage scale on the lever hole and note the force at the
+//     stop and while turning — that sizes the motor current and the door
+//     attachment.
+//  2. Cap + hub in PETG-CF (wear surfaces), base and motor plate in PETG.
+//     Elephant-foot compensation on for the cap (the slot mouth is on the bed).
+//  3. Hardware: 4x M3x10 countersunk (motor, from the plate's inner face),
+//     3x M6x20 countersunk (plate to legs, self-tapping, same as the dial unit),
+//     optional M3x3/x4 grub in the hub.
+//  4. Assembly: motor onto the plate, hub onto the shaft, plate onto the
+//     legs. Mounting: key in the lock, bow vertical; turn the cap so its
+//     two roof marks are top and bottom; slide the unit straight on.
 // ============================================================
