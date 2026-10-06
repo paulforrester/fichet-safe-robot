@@ -2,9 +2,9 @@
 
 Written 2026-10-06 (cloud session, no hardware). Everything below is from the
 sources listed at the bottom; anything I could not establish is marked
-**ASSUMPTION** or **VERIFY** and gets a bench step in `control/bringup.md`
-(that file and the firmware come in the follow-up firmware PR, built on this
-pin map).
+**ASSUMPTION** or **VERIFY** and gets a bench step in `control/bringup.md`.
+The firmware (`control/firmware/`) is built on this pin map
+(`safe_robot/pins.h`).
 Decision log for this file is at the end (most recent first).
 
 ## Summary — what was decided
@@ -381,7 +381,8 @@ GCONF.en_spreadCycle) — StallGuard4 only works in StealthChop (DS §11).
    supply current is below its 0.6 A coil current (chopper), so 1.1 A doesn't
    nuisance-trip, and a short on the cable or remote board trips it.
 6. **Emergency stop**: pull the 12 V plug. The button (Y_MIN) pauses a run;
-   the serial command `abort` stops and disables all drivers.
+   `!` on the serial line aborts the current move and switches all drivers
+   off.
 
 ## 9. Diagrams
 
@@ -409,7 +410,7 @@ Regenerate: `wireviz control/harness/harness.yml` and
 | Solder (already on the list if the station had none) | — | |
 | Flush cutters (if not already in the workshop) | 1 | DIAG pin mod |
 
-## 11. Things to verify on the bench (steps in `control/bringup.md`, firmware PR)
+## 11. Things to verify on the bench (steps in `control/bringup.md`)
 
 - UART lead on the correct MS3 jumper pin (firmware `ping`).
 - Which top-edge pin is DIAG (`ping` + a hand stall).

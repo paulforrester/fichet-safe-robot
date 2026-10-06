@@ -211,6 +211,41 @@ housing against its magnets harder than it needs to.
    e. If achieved angle clears the success threshold: stop, report
       the combination.
 
+### As implemented (firmware v0.1, 2026-10-06 — `control/firmware/`)
+
+Decisions made while writing the firmware, on top of the sequence above:
+
+- **Start (step 3)**: both — the serial command `start` or the push button
+  (on RAMPS Y_MIN). The button also pauses a run and resumes a stored one.
+- **Order of the 8,000**: serpentine. Consecutive attempts differ in one dial
+  by one position, so each attempt turns one dial one click, and no dial ever
+  wraps from position 20 back to 1 (a wheel with a hard stop couldn't).
+- **Key home every attempt**: retract until the key stalls at its rest
+  (anticlockwise) stop, so every angle is measured from the same point.
+  Whether that rest stop exists is still to be checked (bench stage 5). If it
+  doesn't, a config switch makes the key return by step count instead.
+- **Seat**: turns each dial 1/8 turn slowly **clockwise**, the direction in
+  which the dials never meet their stop. (Changed 2026-10-06 after Paul's
+  check: the first version turned toward the stop.)
+- **Homing (step 4)** runs twice per dial (stall, back off 2 positions, stall
+  again); the two must agree. Before homing, the key is homed, then the slow
+  1/8-turn seat runs.
+- **N (step 5)** is the median of 3 tries. It is learned at the most recent
+  attempt that was a clean fail — never at a possible false set. On a fresh
+  run it's learned at the first two combinations, keeping the lower.
+- **Each try** drives the key to N + 15°: clean ≤ N + 4°, false set between,
+  success ≥ N + 10°, "early" < N − 8°. All are config values, to be set from
+  the measured spread. The raw angle is always logged.
+- **Re-check every 200 attempts**: re-home the dials (the stall must come
+  where the step count says) and re-learn N. On a mismatch (a unit slipped),
+  stop and rewind to the last good re-check.
+- **Resume after power loss** (or a re-seat): progress lives in EEPROM. A
+  resume redoes the whole session start and restarts from the last good
+  re-check (≤ 200 attempts redone). A pause re-checks first, so it loses
+  nothing.
+- **Results reach Paul** as USB serial lines. `tools/logger.py` saves a raw
+  log and an attempts CSV, and can re-classify afterwards.
+
 ## False sets
 
 Some wheel-pack locks have false sets — positions that let the fence
@@ -266,10 +301,22 @@ Still open:
       (Superseded by the caliper measurement above — the old ~55mm
       photo estimate for the dial-to-lock gap was low; it's ~125mm
       centre-to-centre.)
-- [ ] Verify each dial wheel has a hard stop near position 1, for the
-      homing move in step 4 to find.
+- [x] Verify each dial wheel has a hard stop near position 1, for the
+      homing move in step 4 to find — **Paul, 2026-10-06**: each dial turns
+      clockwise without limit and stops when turned anticlockwise; 20 clicks
+      per turn. Homing is anticlockwise to that stop. The seat turn was
+      changed to clockwise so it can never press into it. Still to measure:
+      the angle from the stop to the first click (home offset, bringup 4a).
+- [ ] Do the dials still turn with the real key inserted at rest? The
+      manual's normal use dials the combination *before* inserting the key
+      (`docs/photos/complice_manual_normal_use.png`); the robot keeps the
+      key in throughout. Bench check: `control/bringup.md` stage 4a.
 - [ ] Torque/effort needed to turn each dial wheel and the key, to
       size motors and gearing.
-- [ ] Whether the Fichet-Bauche "Complice" line has any known
-      anti-manipulation relocking behavior, before running thousands
-      of automated attempts.
+- [x] Whether the Fichet-Bauche "Complice" line has any known
+      anti-manipulation relocking behavior — **researched 2026-10-06**,
+      `control/lock_research.md`. No source mentions an attempt-counting
+      lockout. A relocker ("délateur") fires on mechanical or thermal attack,
+      so forces stay low. The firmware stops if the key's stop angle changes.
+      Confidence medium: only search excerpts were readable from the cloud
+      session. Paul to read the manual's "Opening" / "Troubleshooting" pages.
