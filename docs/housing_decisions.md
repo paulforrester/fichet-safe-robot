@@ -6,6 +6,33 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## 2026-10-06 (evening): assembly order written up in `docs/manual.md` §1.4–1.6
+
+The print notes at the end of `cad/dial_unit_housing.scad` point to "the
+bottom of the v2 entry" for the dial unit's assembly order, but that entry
+has none. The manual now gives one, **derived from the CAD, not yet tried**:
+magnets → bearings → gear-shafts → motors on the sled (their screws go in
+from the sled's inner face, so before the sled meets the front) → pinions →
+springs → sled onto the front legs → deck → Mega base plate (deck first: two
+of its M6 screws sit under the base plate, 2026-10-04 entry). The magnets go
+first because they sit under the sled's outline. The key turner's order is
+the one in `cad/key_turner_housing.scad` (motor → hub → plate onto legs),
+with the magnets first. Paul to correct either from the real build.
+
+Also noted there:
+- the cap's tongue sits in a through-groove, so it may slide out while the
+  unit is being placed; if it does, the cap goes on the bow first.
+
+Paul's answers, same evening:
+- **Key-turner plate screws: M6 × 16, not M6 × 20.** He has both and found
+  the 16 mm work better. That gives 10 mm of thread in the 16 mm pilot,
+  the same as the dial unit. The print note in `cad/key_turner_housing.scad`
+  is corrected (a comment only; no geometry change), and `docs/bom.md`
+  lists them.
+- **Slicer:** Bambu Studio's default settings for the H2D, for every part so
+  far.
+- **Springs:** ordered, arriving 2026-10-07.
+
 ## 2026-10-06: key fit test passed; key torque 0.07–0.08 N·m — direct drive is fine
 
 **Fit test (Paul, `key_fit_test.stl`, cap in PETG-CF):** the cap slides onto
@@ -111,7 +138,8 @@ Replaces v0.1's thumbscrew clamp (sized before the key was measured).
   Backlash ~3-4deg total (two sliding joints), fine for finding a stop at ~100deg.
 - **Frame.** Base plate r43 with a 28mm opening that passes the bow as the unit
   slides on; 3 legs at r36 (180/60/-60deg, none toward the dials); motor plate
-  on M6x20 countersunk self-tappers (the dial unit's bench-proven 5.4 pilot);
+  on M6x20 countersunk self-tappers (the dial unit's bench-proven 5.4 pilot;
+  **Correction 2026-10-06 evening:** M6x16, Paul's choice, see the top entry);
   motor on 4x M3x10 countersunk in the same 6.3mm countersinks as the dial sled.
 - **Fit next to the dial unit.** The keyhole is 125.2mm from the dial plate's
   centre, level with it, so ~50mm from the dial plate's edge: the key turner

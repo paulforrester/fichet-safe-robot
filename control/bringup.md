@@ -28,7 +28,7 @@ both at once.)
    `control/firmware/safe_robot/safe_robot.ino`, board "Arduino Mega or Mega
    2560". Upload with only USB connected (RAMPS may be on or off the Mega).
 2. Start the logger and type `status`. You should see
-   `# Fichet safe robot 0.1 ...` and `# state=IDLE run=0 next=0 ...`.
+   `# Fichet safe robot 0.2 (2026-10-06) - type help` and `# state=IDLE run=0 next=0 ...`.
 3. **RAMPS jumpers** (under the sockets): X none; Y **MS1** only; Z **MS2**
    only; **no MS3 jumper anywhere**.
 4. **DIAG mod** on 3 drivers (the dial ones; keep one untouched for the key

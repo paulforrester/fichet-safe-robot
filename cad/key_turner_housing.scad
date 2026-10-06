@@ -310,7 +310,8 @@ if (show_print_layout) {
 //     Elephant-foot compensation on for the cap (the slot mouth is on the bed).
 //  3. Hardware: 3x Wukong 22mm rubber magnets + their M4 screws, 3 printed
 //     retainers (print_magnet_retainer.scad), 4x M3x10 countersunk (motor, from the plate's inner face),
-//     3x M6x20 countersunk (plate to legs, self-tapping, same as the dial unit),
+//     3x M6x16 countersunk (plate to legs, self-tapping, same as the dial unit;
+//     Paul 2026-10-06: 16mm works better than the M6x20 listed before),
 //     optional M3x3/x4 grub in the hub.
 //  4. Assembly: motor onto the plate, hub onto the shaft, plate onto the
 //     legs. Mounting: key in the lock, bow vertical; turn the cap so its

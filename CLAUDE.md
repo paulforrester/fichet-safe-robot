@@ -62,6 +62,7 @@ designed (`control/wiring.md`); firmware written and host-tested
 | Path | What |
 |---|---|
 | `README.md` | Overview + status |
+| `docs/manual.md` | **Build and operating manual for Paul**: print + assembly, electrical assembly, building and uploading the firmware, running and monitoring. Procedure only; the docs below are the reference — keep it in step when they change |
 | `control/sequence.md` | **Control architecture, wiring plan, operating sequence, open items — the main input for firmware and harness work** |
 | `control/wiring.md` | **Wiring harness: full pin map, driver jumpers/addresses, cable pin-out, hub and remote driver boards, currents, power order, shopping list, sources** |
 | `control/harness/` | WireViz harness (`harness.yml` → `.svg/.png`) and Graphviz overview (`overview.dot` → `.svg`) |

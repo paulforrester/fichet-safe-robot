@@ -29,6 +29,9 @@ axis — print `print_key_fit_test.scad` first). Both attach to the door with
 Electronics ordering is done — four orders placed 2026-09-29 cover
 essentially the full `docs/bom.md`, tracked there against every line.
 
+**How to build and run it:** `docs/manual.md` (mechanical and electrical
+assembly, building and uploading the firmware, operating and monitoring).
+
 ## Repo layout
 
 - `CLAUDE.md` — context and working rules for Claude sessions (cloud or
@@ -74,7 +77,7 @@ HEIGHT (radial), DEPTH (axial into the socket) — see
 - Dial unit v2 (geared, 608 bearings — see `docs/housing_decisions.md`):
   print the door-pattern test (`cad/print_dial_pattern_test.scad`) and the
   three gear-shafts first, and check them on the real door, before the
-  big parts. Buy 3 small compression springs.
+  big parts. Springs ordered (arriving 2026-10-07).
 - Wiring harness designed (`control/wiring.md`); firmware written and
   host-tested (`control/firmware/`); next: the bench bring-up
   (`control/bringup.md`).
