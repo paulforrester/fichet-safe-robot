@@ -42,6 +42,9 @@ Replaces v0.1's thumbscrew clamp (sized before the key was measured).
   key angles 0/50/100deg and key offsets up to 2.5mm in five directions: no
   overlap (0.000mm^3). Sanity: a 2.0mm slot gives 166mm^3 of overlap, and a 4mm
   offset (past the 2.7mm range) 1.8mm^3, so the check sees real clashes.
+- SketchUp review model: `cad/sketchup/key_turner_sketchup_build.py` ->
+  `fichet_key_turner_v1_2026-10-06.skp` (4 scenes). Every part closed with outward
+  faces; volumes within 1% of the STLs.
 - **Not verified:** the key dummy's outline between the measured points
   (swelling width, the bow's exact outline) is approximate — hence the fit
   test print (`print_key_fit_test.scad`: cap + a hand lever with a hole 50mm
