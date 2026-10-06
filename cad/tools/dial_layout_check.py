@@ -25,7 +25,7 @@ SCAD = os.path.join(HERE, '..', 'dial_unit_housing.scad')
 
 NEMA_HALF = (42.3 + 1.5) / 2        # can + the 1.5mm relief the sled uses (half-width)
 BOLT_R = 31 / 2 * math.sqrt(2)      # bolt-hole radius from the motor axis
-LEG_R, CSK_R, CB_R = 6.0, 7.0, 3.25
+LEG_R, CSK_R, CB_R = 6.0, 7.0, 3.5   # CB_R: M3 countersink mouth (7.0mm) on the sled's inner face
 SPRING_R, BOSS_REC_R, PINION_HUB_R = 4.3, 11.5, 6.0
 
 
@@ -66,7 +66,7 @@ def clearances(H, M, rot, bolts, J, D, rg, rp, front_r=75.0):
     c['pinion tip to OTHER dials\' gear tips (>= 3mm)'] = min(
         np.linalg.norm(M[i] - H[j]) - rp - rg for i in range(3) for j in range(3) if i != j) - 3
     c['gear tip to gear tip (>= 2mm)'] = min(np.linalg.norm(H[i] - H[j]) - 2 * rg for i, j in itertools.combinations(range(3), 2)) - 2
-    c['motor-screw counterbore to spring pocket (>= 2mm)'] = min(np.linalg.norm(b - h) - CB_R - SPRING_R for b in allb for h in H) - 2
+    c['motor-screw countersink to spring pocket (>= 2mm)'] = min(np.linalg.norm(b - h) - CB_R - SPRING_R for b in allb for h in H) - 2
     c['spring pocket to motor boss recess (>= 1mm)'] = min(np.linalg.norm(H[j] - M[i]) - SPRING_R - BOSS_REC_R for i in range(3) for j in range(3)) - 1
     c['can corners inside r=70 (front plate is 75)'] = 70 - max(np.linalg.norm(np.array(s.exterior.coords), axis=1).max() for s in cans)
     jt = []
@@ -200,7 +200,7 @@ def main():
             (pz0 > bh, f'pinion front {pz0} clear of the boss tops {bh} by {pz0 - bh:.1f}mm'),
             (pz0 <= gz0 and gz1 + travel <= pz1, f'gear ({gz0}-{gz1}) stays on the pinion ({pz0}-{pz1}) over the full {travel}mm travel'),
             (pz0 - 0.5 <= tip <= pz1 - 10, f'motor shaft tip at {tip} (+/-0.5) lands inside the pinion ({pz0}-{pz1})'),
-            (gz1 + travel < ctop - 1.0 - 0.5, f'gear rear at full travel ({gz1 + travel}) clear of the motor-screw heads (sled face {ctop}, heads stand 1mm proud)'),
+            (gz1 + travel < ctop - 0.5, f'gear rear at full travel ({gz1 + travel}) clear of the sled face {ctop} (countersunk motor-screw heads sit flush)'),
             (plug1 + travel >= -0.01, f'plug tip at full travel {plug1 + travel:.1f} (>= 0: plate can sit flush on the door)'),
             (sp_back >= 9, f'spring length {sp_fwd} forward / {sp_back} pushed back (needs solid length < {sp_back})')]
     # the pinion is located by the end of the shaft's flat, and can float between the

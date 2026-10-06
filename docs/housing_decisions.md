@@ -6,6 +6,35 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## 2026-10-06: motor screws countersunk instead of counterbored
+
+Paul printed the motor sled: the 2mm-deep flat counterbores for the motor
+screws came out full of stray strings that were hard to dig out. Cause:
+the sled prints inner face down, so each counterbore's flat shoulder is
+printed in mid-air (an unsupported bridge ring around the 3.4mm hole). He
+has M3 countersunk screws, so the 12 counterbores are now **90deg
+countersinks**: a cone prints as a 45deg overhang, each 0.2mm layer
+stepping in 0.2mm, with no bridge.
+
+- Cone: 7.0mm mouth on the inner face down to the 3.4mm clearance hole
+  (1.8mm deep). ISO 10642 M3 heads are dk 6.72 theoretical max, k 1.86
+  ([Engineers Edge, BS EN ISO 10642](https://engineersedge.com/hardware/bs_en_iso_10642_14583.htm)),
+  so a head sits 0.14mm below the face — flush.
+- Screw: **M3x10 countersunk** (a countersunk screw's length includes the
+  head): 10 - (6 - 0.14) = **4.1mm of thread** in the motor's 4.5mm-min
+  holes. Asserted in the SCAD (>= 3.5, <= 4.2). M3x8 would grip only ~2.1mm;
+  M3x12 would bottom out.
+- Side benefit: the old cap heads stood 1mm proud into the gear cavity;
+  countersunk heads are flush.
+- Re-checked: layout check all pass (countersink to spring pocket 2.35mm
+  over the 2mm requirement, was 2.60 with the 6.5mm counterbore);
+  interference check no overlap (largest 0.105mm^3, the dummy screw heads
+  touching their own seats — faceting); sled STL watertight, one body,
+  90.66cm^3; slices through a screw hole show the cone 6.9 -> 5.2 -> 3.5mm at
+  z = 0.05 / 0.9 / 1.75mm as designed; the SketchUp build script's sled
+  updated the same way (closed, volume within 0.1% of the STL).
+- Only the sled changes; the front plate, deck and drivetrain are untouched.
+
 ## v2 (2026-10-05): geared drivetrain on 608 bearings — the Oldham coupler could not have worked, and the hole pattern was wrong
 
 **What prompted it.** Paul, with every printed part in hand: "the motor
@@ -117,9 +146,10 @@ nail this on the first try."
   countersinks by >21mm.
 - Stack: door 0 | plate 0-5 | bosses to 16 | gear 17.5-23.5 (24.5-30.5
   pushed back) | pinion 17-31 + hub to 35 | sled 35.5-41.5 | cans to 89.5 |
-  deck 95.5-100.5. Motor shaft tip lands 0.5mm inside the pinion. M3x8
-  motor screws in 2mm counterbores leave 4mm of thread in the motor's 4.5mm
-  holes.
+  deck 95.5-100.5. Motor shaft tip lands 0.5mm inside the pinion. Motor
+  screws: M3x10 countersunk, flush in 90deg countersinks, 4.1mm of thread in
+  the motor's 4.5mm holes (was M3x8 in 2mm counterbores — see 2026-10-06
+  entry above).
 - **Pointer** now points up on the door for real (the top pair side).
 - Magnet field: 147 pockets, kept clear of the bearing pockets.
 

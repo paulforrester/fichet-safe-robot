@@ -53,7 +53,7 @@ DECK_H = 48.0 + 6.0; DECK_Z = MOTOR_FACE + DECK_H; DECK_T = 5.0
 LEG_R = 6.0; PILOT_R = 5.4 / 2; PILOT_D = 12.0
 M6_CLR_R = 6.4 / 2; CSK_R = 14.0 / 2; CSK_D = (14.0 - 6.4) / 2
 BOSS_REC_R = 23.0 / 2; BOSS_REC_H = 2.5; SHAFT_HOLE_R = 7.0 / 2
-BOLT_SQ = 31.0; BOLT_R = 3.4 / 2; CB_R = 6.5 / 2; CB_D = 2.0
+BOLT_SQ = 31.0; BOLT_R = 3.4 / 2; CB_R = 7.0 / 2; CB_D = (7.0 - 3.4) / 2   # M3 90deg countersink (2026-10-06)
 NEMA = 42.3; CAN_CLR = 1.5
 MAG_R, MAG_D, MAG_PITCH, MAG_OFF = 4.0, 1.9, 10.0, (5.0, 3.0)
 FRONT_R = 75.0; PTR_LEN, PTR_W = 10.0, 16.0
@@ -287,8 +287,7 @@ def motor_sled():
         F.append(hface(rec[i], zr, True, [shaft[i]]))
         F += wall(rec[i], zr, z1, outward=False)
     for k in range(len(cb)):
-        F += wall(cb[k], z0, z0 + CB_D, outward=False)
-        F.append(hface(cb[k], z0 + CB_D, False, [bh[k]]))
+        F += wall(cb[k], z0, z0 + CB_D, outward=False, loop2_top=bh[k])   # countersink cone
         F += wall(bh[k], z0 + CB_D, z1, outward=False)
     for h in H: F += blind_hole_from_bottom(h, SPRING_R, 24, z0, SLED_SPRING_D)
     zc = z1 - CSK_D
