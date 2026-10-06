@@ -122,15 +122,9 @@ behaved. If 50 % is too tight or too loose, I'll change `CFG_SG_CAL_PCT`.
 **4a. By hand first (no electronics).** Already answered (Paul,
 2026-10-06): every dial turns clockwise without limit, stops when turned
 anticlockwise, and has 20 evenly spaced clicks (18°). There are no marks on
-the door. The robot now finds the clicks itself. With the key turned to its
-~100° stop and left there, the dials still click (Paul, 2026-10-06). Still
-to do:
-1. **Real key inserted, at rest** (where the robot leaves it while it turns
-   the dials): with the tube key, turn each dial a full turn clockwise, then
-   back anticlockwise to its stop. **Do the dials still turn, and feel the
-   same as without the key?** The manual sets the combination *before*
-   inserting the key; the robot keeps the key in. If the dials won't turn
-   with the key at rest, stop here and tell me.
+the door. The robot now finds the clicks itself. The dials turn with the real
+key inserted at its start position, and still click with the key turned to
+its ~100° stop (Paul, 2026-10-06). Nothing left to do by hand here.
 
 **4b. On the door** (12 V off while placing): dial unit on, all three motors
 plugged in (A = top-left = X, B = top-right = Y, C = bottom = Z). The key
@@ -156,9 +150,16 @@ turner is not needed yet. 12 V on. `set axes 7`.
 5. **Parked on a click?** `goto 5 5 5`, then `release` (motors off). Watch and
    listen: does any dial **snap** to a click when released? Sitting still
    means it was parked on its click.
+6. **Key out vs. key in.** `release`, take the real key out, then
+   `calibrate`. Put the key back in at its start, then `calibrate` again.
+   This compares the dials' load and click pattern with and without the
+   key. A clear difference would suggest the key changes what the dials
+   drive (`control/sequence.md`, "Does a combination dialled with the key
+   already in count?"). The same numbers are only weak reassurance.
 
-**Send back**: the 4a answer; directions; seated yes/no per dial; the raw log
-(CAL / HOME / OFFSET lines); for 4b.5, which dials snapped, if any.
+**Send back**: directions; seated yes/no per dial; the raw log
+(CAL / HOME / OFFSET lines); for 4b.5, which dials snapped, if any; for
+4b.6, both runs' CAL and OFFSET lines, labelled "key out" and "key in".
 
 ---
 
@@ -222,7 +223,8 @@ spread and start the real run with `resume`.
 | Motor step angle (1.8° assumed) | 2 |
 | StallGuard thresholds — now self-calibrated; the 50 % rule and speeds | 3, 4, 5 |
 | Hard stop and clicks per turn | answered 2026-10-06: stop anticlockwise, unlimited clockwise, 20 clicks |
-| Dials still turn with the key inserted at rest | 4a (with the key at its ~100° stop: yes, Paul 2026-10-06) |
+| Dials still turn with the key inserted at rest | answered 2026-10-06: yes, at rest and at the key's ~100° stop |
+| Does a combination dialled with the key in count? | weak hint from 4b.6; the real test is the first full run |
 | Motor direction ↔ dial direction | 4b |
 | Plug seating (seat routine angle and speed) | 4b |
 | Position 1 relative to the stop — now found from the clicks; parked-on-click check | 4b |

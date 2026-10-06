@@ -113,8 +113,10 @@ designed (`control/wiring.md`); firmware written and host-tested
 - Real key goes in by hand before each session; the cap slides over it. It
   goes in one way only, can't turn anticlockwise from there, turns ~100°
   clockwise to its stop, **stays wherever it is left (no spring back)**, and
-  comes out only at the start (Paul, 2026-10-06). With the key left at its
-  ~100° stop, the dials still click (Paul, 2026-10-06).
+  comes out only at the start (Paul, 2026-10-06). The dials turn with the
+  key in at its start, and still click with it at its ~100° stop (Paul,
+  2026-10-06). The robot returns the key to its start after every attempt
+  (Paul's decision, 2026-10-06).
 - **Dials (Paul, 2026-10-06):** each turns clockwise without limit and stops
   turning anticlockwise; 20 evenly spaced clicks (18°); where the first click
   sits relative to the stop can't be read by hand; no marks on the door. The
@@ -204,12 +206,13 @@ click positions from the dials' 18° StallGuard ripple; `calibrate` does it as
 a separate step and EEPROM keeps the last result (the key needs it to home
 at the next session start).
 
+Biggest unknown (no source; `control/sequence.md` Open items): **whether a
+combination dialled with the key already in counts.** The manual dials
+before inserting the key. If it doesn't count, the key turner needs a way to
+pull the key out and push it back in at every attempt. Only a weak hint is
+available on the bench (stage 4b.6); the first full run is the real test.
+
 Still open — each has a `config.h` entry and a stage in `control/bringup.md`:
-**whether the dials still turn with the key inserted at rest** (stage 4a —
-the manual dials before inserting the key; the robot keeps it in; at the
-key's ~100° stop they do), whether to park the key near N between attempts
-instead of returning it to rest (Paul to decide; `control/sequence.md` Open
-items),
 motor↔dial/key directions (4b, 5), whether the 50 % rule and the click
 ripple hold on the real hardware (3, 4), key current (5), step angle (2),
 the classification bands (5–6).

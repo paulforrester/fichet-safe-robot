@@ -20,13 +20,23 @@ from this session) and describe the *current* Complice.
 
 **New point from the manual — to check before the long run:** in normal use
 you **set the combination first, then insert the key**. The robot keeps the
-key inserted, at rest, while it turns the dials. Paul (2026-10-06): with the
-key turned to its ~100° stop, the dials still click. With the key at rest:
-not tried yet (`control/bringup.md` stage 4a). Paul's caution (a possibility,
-no source): the lock might let the bolts retract only if the key has gone
-back to the start since the combination was set. Firmware v0.2 returns the
-key to its rest stop after every attempt, so it doesn't depend on this
-(`control/sequence.md`, Open items).
+key inserted, at rest, while it turns the dials. Paul (2026-10-06): the
+dials turn with the key at its start, and still click with the key turned to
+its ~100° stop. Paul's two cautions (possibilities, no source):
+- The lock might let the bolts retract only if the key has gone back to the
+  start since the combination was set. Firmware v0.2 returns the key to its
+  rest stop after every attempt, so it doesn't depend on this.
+- The lock might only count a combination dialled with the key *out*, as
+  in the manual. The dials turning with the key in doesn't rule this out.
+  If it's true, the robot can't open the safe without a way to pull the key
+  out and push it back in at every attempt. There's no bench test I know of
+  that settles it short of finding the combination. Stage 4b.6 gives a weak
+  hint, and the first full run is the real test.
+
+Searched again 2026-10-06 (evening) for how the 3-tube combination and the
+M3B key interact: nothing found. Fichet's manual PDF and the patent sites
+are blocked from the cloud session. A search excerpt mentions a separate
+Fichet "3-tube combination" user manual; Paul may have it.
 
 ## What the sources say
 
@@ -106,8 +116,7 @@ the links as where to look. Paul can open them.
    combinations.
 2. **With the key inserted at rest, can each dial still be turned by hand
    with the tube key?** If not, the robot as designed can't work: it can't
-   take the key out between tries (`control/bringup.md` stage 4a). Partly
-   done (Paul, 2026-10-06): with the key at its ~100° stop, the dials still
-   click.
+   take the key out between tries. Done (Paul, 2026-10-06): yes, at the
+   key's start, and they still click with the key at its ~100° stop.
 3. With the dials at some setting, turn the key to its stop by hand, with
    normal force, 10 times. Does anything change (stop angle, feel, a click)?

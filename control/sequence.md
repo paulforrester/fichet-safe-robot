@@ -226,8 +226,8 @@ Decisions made while writing the firmware, on top of the sequence above:
   in (Paul, 2026-10-06). A config switch can make the key return by step count
   instead. Paul also found (2026-10-06) that the dials still click with the
   key left at its ~100° stop, so the key wouldn't *have* to come all the way
-  back between tries. Not changed: see "Return the key to rest every attempt,
-  or park it near N?" under Open items.
+  back between tries. **Kept anyway (Paul, 2026-10-06)**: see "Return the key
+  to rest every attempt, or park it near N?" under Open items.
 - **Self-calibration (v0.2, 2026-10-06, Paul's suggestion)**: each session
   measures each motor's free-running StallGuard reading and sets its own
   stall threshold (stall = reading down to 50 % of it). Each dial makes one
@@ -330,14 +330,28 @@ Still open:
       18° apart; no marks on the door. The firmware now finds the clicks
       from StallGuard each session (v0.2). Key: stays wherever it's left (no
       spring back).
-- [ ] Do the dials still turn with the real key inserted at rest? The
+- [x] Do the dials still turn with the real key inserted at rest? The
       manual's normal use dials the combination *before* inserting the key
       (`docs/photos/complice_manual_normal_use.png`); the robot keeps the
-      key in throughout. **Partly answered (Paul, 2026-10-06): with the key
-      turned to its ~100° stop and left there, the dials still click.** Not
-      yet tried with the key at rest, which is where firmware v0.2 leaves it
-      while it turns the dials. Bench check: `control/bringup.md` stage 4a.
-- [ ] Return the key to rest every attempt, or park it near N? Raised by
+      key in throughout. **Yes (Paul, 2026-10-06): the dials turn with the
+      key at its start position, and still click with the key turned to its
+      ~100° stop and left there.**
+- [ ] **Does a combination dialled with the key already in count?** (Paul,
+      2026-10-06.) The dials turn and click with the key in, but nothing
+      shows that they still set the wheels then. The manual dials *before*
+      inserting the key. If the lock only checks a combination set with the
+      key out, the robot as designed can never open it, and it would need
+      to pull the key out and push it back in at every attempt (a mechanical
+      redesign of the key turner). No source either way: searched
+      2026-10-06, but Fichet's manual PDF and the patent sites are blocked
+      from the cloud session. A search excerpt mentions a separate Fichet
+      "3-tube combination" user manual. How we'll know:
+      (1) bench stage 4b.6 compares the dials' calibration with the key out
+      and in: a clear difference is a warning sign, while the same numbers
+      are only weak reassurance;
+      (2) the first full run is the real test (≤ ~2 h of motion).
+      If it ends with no success and clean data, this is the first suspect.
+- [x] Return the key to rest every attempt, or park it near N? Raised by
       Paul's check above (2026-10-06). Firmware v0.2 returns it to its rest
       stop every attempt, which re-zeroes the angle each time and matches the
       manual's sequence. Parking it ~10° short of N between tries would save
@@ -354,7 +368,8 @@ Still open:
       counting since the key last touched its rest stop, so a lost step
       would shift later readings until the next re-zero. Recommendation:
       keep the full return for the first full run. Revisit if stage 6 shows
-      attempts much slower than this estimate. **Paul to decide.**
+      attempts much slower than this estimate. **Decided (Paul,
+      2026-10-06): keep the full return.**
 - [ ] Torque/effort needed to turn each dial wheel and the key, to
       size motors and gearing.
 - [x] Whether the Fichet-Bauche "Complice" line has any known
