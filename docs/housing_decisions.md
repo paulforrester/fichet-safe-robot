@@ -6,6 +6,24 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## 2026-10-06 (evening): assembly order written up in `docs/manual.md` §1.4–1.6
+
+The print notes at the end of `cad/dial_unit_housing.scad` point to "the
+bottom of the v2 entry" for the dial unit's assembly order, but that entry
+has none. The manual now gives one, **derived from the CAD, not yet tried**:
+magnets → bearings → gear-shafts → motors on the sled (their screws go in
+from the sled's inner face, so before the sled meets the front) → pinions →
+springs → sled onto the front legs → deck → Mega base plate (deck first: two
+of its M6 screws sit under the base plate, 2026-10-04 entry). The magnets go
+first because they sit under the sled's outline. The key turner's order is
+the one in `cad/key_turner_housing.scad` (motor → hub → plate onto legs),
+with the magnets first. Paul to correct either from the real build.
+
+Also noted there, not changed here:
+- the key turner's 3 × M6 × 20 screws are not in `docs/bom.md`;
+- the cap's tongue sits in a through-groove, so it may slide out while the
+  unit is being placed; if it does, the cap goes on the bow first.
+
 ## 2026-10-06: key fit test passed; key torque 0.07–0.08 N·m — direct drive is fine
 
 **Fit test (Paul, `key_fit_test.stl`, cap in PETG-CF):** the cap slides onto

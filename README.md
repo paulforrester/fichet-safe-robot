@@ -29,6 +29,9 @@ axis — print `print_key_fit_test.scad` first). Both attach to the door with
 Electronics ordering is done — four orders placed 2026-09-29 cover
 essentially the full `docs/bom.md`, tracked there against every line.
 
+**How to build and run it:** `docs/manual.md` (mechanical and electrical
+assembly, building and uploading the firmware, operating and monitoring).
+
 ## Repo layout
 
 - `CLAUDE.md` — context and working rules for Claude sessions (cloud or
