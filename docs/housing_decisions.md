@@ -6,6 +6,20 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## 2026-10-06: key-turner inputs (Paul's measurements)
+
+- Lock hole 12.05mm dia. Centre to centre (caliper far/near average): top-left
+  dial hole 110.13mm (far 122.25 / near 98.01), bottom dial hole 126.95mm
+  (far 139.4 / near 114.5). Check: far - near should equal the two hole
+  diameters (25.0): bottom 24.9, top-left 24.24, so the top-left pair carries
+  ~0.4mm of uncertainty. Solving both: the keyhole is at (-125.2, -1.8) in the
+  dial unit's frame — 125.2mm from the dial plate's centre, level with it, so
+  ~50mm from the 150mm dial plate's edge (the earlier ~55mm "gap" note was a
+  photo estimate of something else).
+- Key: 84.75mm long; fully inserted it protrudes 31.89mm from the door; turns
+  clockwise ~100deg then stops. Photo estimates only (to confirm with calipers):
+  bow ~26mm wide, ring hole ~9.5mm, bow thickness tapering toward its end.
+
 ## 2026-10-06: motor screws countersunk instead of counterbored
 
 Paul printed the motor sled: the 2mm-deep flat counterbores for the motor
