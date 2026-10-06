@@ -219,7 +219,18 @@ def main():
     dm = min(np.linalg.norm(p - q) for p in mb for q in D) - CSK_R - 1.3
     ok = dm >= 2; fails += not ok
     print(f'  {"ok  " if ok else "FAIL"} {dm:7.2f}  Mega base screw pilots vs deck-leg countersinks (margin, need >= 2)')
-    print(f"\nmagnet pockets: {L['magnet_count']}")
+    print('\ndoor magnets (22mm rubber pot magnets, seat ring OD 29):')
+    E = openscad_echo()
+    M = np.array(E['MAGNET_PTS']); RING_R = 29 / 2
+    J = np.array(L['joint_pts']); Hh = np.array(L['hole_pts'])
+    rows = [(min(np.linalg.norm(m - j) for m in M for j in J) - RING_R - LEG_R, 1.5, 'seat ring vs front legs'),
+            (min(np.linalg.norm(m - h) for m in M for h in Hh) - RING_R - L['boss_d'] / 2, 1.5, 'seat ring vs bearing bosses'),
+            (L['front_plate_r'] - max(np.linalg.norm(m) for m in M) - RING_R, 2.0, 'seat ring inside the plate rim'),
+            (min(np.linalg.norm(a - b) for a, b in itertools.combinations(M, 2)) - 2 * RING_R, 2.0, 'seat ring to seat ring')]
+    for v, need, txt in rows:
+        ok = v - need >= 0; fails += not ok
+        print(f'  {"ok  " if ok else "FAIL"} {v - need:7.2f}  {txt} (>= {need}mm)')
+    print(f"  {L['magnet_count']} magnets")
     print('\nRESULT:', 'ALL PASS' if fails == 0 else f'{fails} FAIL(S)')
     sys.exit(1 if fails else 0)
 

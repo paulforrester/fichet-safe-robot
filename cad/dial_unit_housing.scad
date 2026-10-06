@@ -315,23 +315,18 @@ module front_plate_outline() {
                  [0, front_plate_r + pointer_len]]);
 }
 
-// Magnet field (door face), same hex-lattice idea as v1: pocket centres
-// magnet_pitch apart, magnet_rim_wall inside the rim, and clear of the
-// bearing pocket that sits above each dial (a pocket under it would leave
-// 0.1mm of plastic between the magnet and the bearing).
-magnet_wall     = 2;
-magnet_rim_wall = 2.5;
-magnet_pitch    = magnet_pocket_d + magnet_wall;
-magnet_offset   = [5, 3];
-magnet_dial_excl_r = bearing_pocket_d/2 + magnet_wall + magnet_pocket_d/2;
-function magnet_ok(p) =
-    norm(p) <= front_plate_r - magnet_rim_wall - magnet_pocket_d/2
-    && min([for (h = hole_pts) norm(p - h)]) >= magnet_dial_excl_r;
-magnet_pts = [for (i = [-12 : 12]) for (j = [-12 : 12])
-    let(p = [(i + j/2) * magnet_pitch + magnet_offset[0],
-             j * magnet_pitch * sqrt(3)/2 + magnet_offset[1]])
-    if (magnet_ok(p)) p];
-echo(magnet_pocket_count = len(magnet_pts));
+// Door attachment (2026-10-06): 6 rubber-coated 22mm pot magnets (rmag_* in
+// common_mounts.scad), replacing the 147-pocket field of 8x2mm discs (those
+// pockets printed with strings on their floors, and a bare disc only resists
+// sliding at ~15% of its pull vs ~30% for rubber). Six evenly spaced, radius
+// and rotation searched for the best clearance to the three front legs and
+// the bearing bosses (cad/tools/dial_layout_check.py checks both). The plate
+// now stands 0.2mm off the door on the rubber, so the dial plugs sit 0.2mm
+// shallower in the stars (3.7 instead of 3.9mm) — not worth a reprint.
+rmag_r     = 53.5;
+rmag_rot   = 26.75;
+magnet_pts = [for (k = [0 : 5]) let(a = rmag_rot + 60*k) [rmag_r * cos(a), rmag_r * sin(a)]];
+echo(magnet_count = len(magnet_pts));
 show_magnets = true;   // false only speeds up check renders (cad/tools/)
 
 // the bearing bores (lip hole + pocket), shared by the plate and the test coupon
@@ -351,9 +346,10 @@ module front_plate() {
         union() {
             linear_extrude(height = plate_thickness) front_plate_outline();
             bearing_bosses();
+            rmag_rings(magnet_pts, plate_thickness);
         }
         bearing_bores();
-        if (show_magnets) for (p = magnet_pts) translate([p[0], p[1], -eps_c]) magnet_pocket();
+        rmag_holes(magnet_pts, plate_thickness);
     }
 }
 
@@ -581,6 +577,10 @@ module assembled(part = "all", retract = 0, phase = 0) {
             for (b = motor_bolt_pts[i])
                 translate([b[0], b[1], cavity_top + m3_csk_sink])   // ISO 10642 head, seated in its countersink
                     cylinder(d1 = m3_csk_head_d, d2 = 3.0, h = (m3_csk_head_d - 3.0)/2, $fn = 24);
+    }
+    if (part == "all" || part == "rmags") {   // magnets + retainers + M4 screw heads (8 x 3.2 envelope)
+        rmag_dummies(magnet_pts);
+        for (p = magnet_pts) translate([p[0], p[1], rmag_seat_z + rmag_ret_t]) cylinder(d = 8, h = 3.2, $fn = 32);
     }
 }
 

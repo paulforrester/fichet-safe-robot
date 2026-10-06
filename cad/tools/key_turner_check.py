@@ -13,7 +13,7 @@ import numpy as np, trimesh, manifold3d as mf
 HERE = os.path.dirname(os.path.abspath(__file__))
 ASM = os.path.join(HERE, '..', 'key_turner_assembled.scad')
 TOL = 0.5
-PARTS = ['base', 'plate', 'key', 'cap', 'hub', 'motor']
+PARTS = ["base", "plate", "key", "cap", "hub", "motor", "rmags"]
 EXPECTED = {frozenset(('hub', 'motor'))}          # D-bore on the shaft (designed fit)
 
 

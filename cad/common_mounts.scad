@@ -89,6 +89,55 @@ module magnet_pocket_ring(n, r, start_angle = 90) {
                 magnet_pocket();
 }
 
+// ---- rubber-coated pot magnet mount (both units, 2026-10-06) ----
+// Wukong 22mm rubber-coated neodymium magnets, M4 threaded hole in the back,
+// listed 6mm tall (Amazon.fr B0DGQ52DY9 / B0D5B4TJ7B; no pull rating listed —
+// test one on the door). CONFIRM rmag_d / rmag_h / thread depth with calipers
+// when they arrive; everything below follows from these numbers.
+//
+// The magnet drops into a THROUGH hole (no floor printed over air -> no
+// strings). On the plate's inner face a ring stands up around the hole; a
+// flat printed retainer disc sits on the ring and the magnet's own M4 screw
+// goes through it into the magnet. The ring's top sets the magnet's depth,
+// so the rubber stands rmag_proud past the door face on every magnet, and
+// the door's pull goes retainer -> ring, not into a press fit.
+rmag_d        = 22;
+rmag_h        = 6;
+rmag_proud    = 0.2;     // rubber face past the plate's door face
+rmag_hole_d   = rmag_d + 0.4;
+rmag_ring_od  = 29;
+rmag_ret_d    = 27;      // retainer bears on the ring from 22.4 to 27
+rmag_ret_t    = 3;
+rmag_screw_d  = 4.5;     // M4 clearance
+rmag_seat_z   = rmag_h - rmag_proud;   // 5.8: ring top / magnet back, from the door face
+
+// holes, cut from z = 0 (door face) up through a plate of thickness t
+module rmag_holes(pts, t) {
+    for (p = pts) translate([p[0], p[1], -eps_c]) cylinder(d = rmag_hole_d, h = max(t, rmag_seat_z) + 2*eps_c, $fn = 96);
+}
+// seat rings on the plate's inner face (plate top at z = t)
+module rmag_rings(pts, t) {
+    assert(t <= rmag_seat_z, "plate thicker than the magnet seat: magnet would sit too deep");
+    for (p = pts) translate([p[0], p[1], t - eps_c]) difference() {
+        cylinder(d = rmag_ring_od, h = rmag_seat_z - t + eps_c, $fn = 96);
+        translate([0, 0, -eps_c]) cylinder(d = rmag_hole_d, h = rmag_seat_z - t + 3*eps_c, $fn = 96);
+    }
+}
+// the retainer disc (print flat, any quantity)
+module rmag_retainer() {
+    difference() {
+        cylinder(d = rmag_ret_d, h = rmag_ret_t, $fn = 96);
+        translate([0, 0, -eps_c]) cylinder(d = rmag_screw_d, h = rmag_ret_t + 2*eps_c, $fn = 32);
+    }
+}
+// assembled dummies for the 3D checks: magnet (rubber face rmag_proud below z = 0) + retainer
+module rmag_dummies(pts) {
+    for (p = pts) translate([p[0], p[1], 0]) {
+        translate([0, 0, -rmag_proud]) cylinder(d = rmag_d, h = rmag_h, $fn = 96);
+        translate([0, 0, rmag_seat_z]) rmag_retainer();
+    }
+}
+
 // ---- D-shaft coupler bore + set screw ----
 // Standard NEMA17 5mm shaft with a D-flat on one side (17HE19-2004S
 // drawing: 4.5mm across the flat, flat 15mm long from the tip). The bore is

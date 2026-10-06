@@ -22,8 +22,9 @@ for how we got here):
 Housings: the **dial unit v2** (`cad/dial_unit_housing.scad`, geared, on 608
 bearings — door-pattern test passed on the real door) and the **key turner v1**
 (`cad/key_turner_housing.scad`, slotted cap over the key's bow, motor on the key
-axis — print `print_key_fit_test.scad` first). How both attach to the door is
-still open. See `docs/housing_decisions.md` and `control/sequence.md`.
+axis — print `print_key_fit_test.scad` first). Both attach to the door with
+22mm rubber-coated M4 pot magnets (6 + 3) held by printed retainers
+(`print_magnet_retainer.scad`) — pull-test one on the door when they arrive. See `docs/housing_decisions.md` and `control/sequence.md`.
 
 Electronics ordering is done — four orders placed 2026-09-29 cover
 essentially the full `docs/bom.md`, tracked there against every line.
@@ -34,8 +35,8 @@ essentially the full `docs/bom.md`, tracked there against every line.
   - `tube_socket_test_key.scad` — the confirmed spline/tooth geometry,
     parametric (tooth height, width, and an engraved label are all
     top-level variables — see the file header for CLI override examples).
-  - `common_mounts.scad` — shared NEMA17 bolt pattern, magnet-pocket,
-    and D-shaft coupler-bore modules, used by both housings below.
+  - `common_mounts.scad` — shared NEMA17 bolt pattern, rubber-magnet
+    mount (`rmag_*`), and D-shaft coupler-bore modules, used by both housings below.
   - `dial_unit_housing.scad` / `key_turner_housing.scad` — the two
     mounting housings (see `docs/housing_decisions.md`). The dial unit is
     v2 (geared); `dial_unit_assembled.scad` shows it assembled and the

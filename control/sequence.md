@@ -128,7 +128,11 @@ this exact magnet: **8.00mm diameter × 1.9mm depth** (0.1mm undersize on
 depth vs. the 2mm-thick magnet, for an interference press fit rather
 than a loose slot — glue optional/backup, not load-bearing). Reuse that
 pocket geometry directly in both units' mounting faces rather than
-re-deriving it. Splitting avoids one large frame needing to be
+re-deriving it. **Superseded 2026-10-06:** both units now mount with
+22mm rubber-coated M4 pot magnets (Wukong) — 6 on the dial unit, 3 on the
+key turner — in through holes with printed retainers; the disc pockets
+printed with strings and bare discs grip poorly sideways. See
+`docs/housing_decisions.md`. Splitting avoids one large frame needing to be
 dimensionally accurate across the full door width, and each unit is
 small enough to print in one piece.
 
@@ -212,6 +216,8 @@ Resolved 2026-09-29:
       neodymium magnets, pocket geometry reused from a prior project
       (8.00mm dia × 1.9mm depth for 2mm×8mm disc magnets, press fit).
       ~100 magnets already on hand.
+      **Changed 2026-10-06** to 22mm rubber pot magnets (6 + 3), ordered —
+      measure them and do a one-magnet sideways pull test on arrival.
 
 Still open:
 - [x] Key / lock-hole measurements (Paul, calipers, 2026-10-06): lock hole
