@@ -57,7 +57,8 @@ essentially the full `docs/bom.md`, tracked there against every line.
   reference photos (`docs/photos/`).
 - `control/` — control architecture and operating sequence
   (`sequence.md`), the wiring harness (`wiring.md`, diagrams in
-  `control/harness/`); firmware not started.
+  `control/harness/`), the firmware (`control/firmware/`), the bench
+  bring-up plan (`bringup.md`) and the lock research (`lock_research.md`).
 
 ## Terminology
 
@@ -74,5 +75,6 @@ HEIGHT (radial), DEPTH (axial into the socket) — see
   print the door-pattern test (`cad/print_dial_pattern_test.scad`) and the
   three gear-shafts first, and check them on the real door, before the
   big parts. Buy 3 small compression springs.
-- Wiring harness designed (`control/wiring.md`); next: firmware and the bench
-  bring-up plan.
+- Wiring harness designed (`control/wiring.md`); firmware written and
+  host-tested (`control/firmware/`); next: the bench bring-up
+  (`control/bringup.md`).

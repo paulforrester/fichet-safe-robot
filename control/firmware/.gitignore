@@ -1,0 +1,8 @@
+# host test binaries
+test/tests
+test/tests_asan
+test/sim_run
+# logger output
+runs/
+tools/__pycache__/
+tools/.pytest_cache/

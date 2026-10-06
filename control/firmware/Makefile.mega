@@ -1,0 +1,14 @@
+# Command-line build of the sketch for the Arduino Mega 2560, using
+# avr-gcc + the Arduino AVR core + Arduino-Makefile (Ubuntu packages:
+# gcc-avr avr-libc arduino-core-avr arduino-mk). Paul builds with the Arduino
+# IDE instead; this is how the cloud session checks that the sketch compiles.
+#
+#   make -C control/firmware/safe_robot -f ../Makefile.mega USER_LIB_PATH=<dir with TMCStepper/>
+ARDUINO_DIR    ?= /usr/share/arduino
+BOARD_TAG      := mega
+BOARD_SUB      := atmega2560
+ARDUINO_LIBS   := TMCStepper SPI SoftwareSerial EEPROM
+LOCAL_CPP_SRCS := $(wildcard *.cpp) $(wildcard src/core/*.cpp)
+OBJDIR         ?= /tmp/safe_robot-build
+CXXFLAGS_STD   := -std=gnu++11
+include $(ARDUINO_DIR)/Arduino.mk
