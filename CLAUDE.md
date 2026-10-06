@@ -5,8 +5,12 @@ the doc that matches your task (table below). Last updated 2026-10-06.
 
 ## What this is
 
-Paul is building a robot to brute-force the combination of an unmarked
-Fichet-Bauche "Complice" safe in his house in Bordeaux. The lock is a
+I am building this project to open a safe that was included when I bought my
+house in Bordeaux. The safe was included in the sale along with the "dial-keys",
+but the old owner did not have the combination.  Rather than throw it away and
+add to the landfill I decided to brute force the combination wiht the robot dialer.
+It is strictly a hobby project for use on my own property.
+The project entails opening an old Fichet-Bauche "Complice" safe in my house in Bordeaux. The lock is a
 3-wheel pack: three star-shaped "dial" sockets on the door each turn one
 wheel (20 positions each → 20³ = 8,000 combinations), and a real key in a
 4th hole turns a cam against a fence. Wrong combination: the key stops at
