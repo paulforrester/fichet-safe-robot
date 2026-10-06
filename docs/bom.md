@@ -27,7 +27,7 @@ Status is marked inline in each table below: ✅ ordered, ⬜ still to buy.
 - **Multimeter** — on the prototyping-basics checklist, not in any order.
 - **F–F / M–F jumper wires** — both jumper-wire items ordered are M–M only; the RAMPS DIAG-to-endstop-header wiring and other point-to-point hookups will likely need female-ended jumpers too.
 - **Solder wire** (consumable) — unconfirmed whether it's bundled with the Yofuly soldering station kit; check contents on arrival and buy separately if not included.
-- **Harness parts (added 2026-10-06, `control/wiring.md` §10):** 2.54mm female and male header strips, a ~1.1A-hold radial PTC fuse (×2), 100µF ≥25V electrolytic (×2), a female DC-jack-to-screw-terminal adapter matching the PSU plug, ~1m each of red/black 20AWG wire, flush cutters if not already owned. Buy the multimeter before connecting the remote driver board.
+- **Harness parts (added 2026-10-06, `control/wiring.md` §10):** 2.54mm female and male header strips, a ~1.1A-hold radial PTC fuse (×2), 100µF ≥25V electrolytic (×2), a female **5.5×2.1mm** DC-jack-to-screw-terminal adapter (the PSU is a Ledmo HTY-1200500, 5.5×2.1 barrel, centre positive — Paul, 2026-10-06), ~1m each of red/black 20AWG wire, flush cutters if not already owned. Buy the multimeter before connecting the remote driver board.
 
 **Substitution to be aware of:** the JST-XH 8-pin connector pair specified below was replaced with a Phoenix-style 5.08mm screw-terminal 8-pin connector (Order 3). Still detachable and keyed for the same purpose (unplugging the key-turner unit), just a different connector family than originally planned — flagging in case it wasn't deliberate, otherwise no action needed.
 
@@ -47,7 +47,7 @@ Status is marked inline in each table below: ✅ ordered, ⬜ still to buy.
 
 | Item | Qty | Est. unit price | Est. total | Status | Notes |
 |---|---|---|---|---|---|
-| 12V DC power supply, 5A | 1 | €12–18 | €12–18 | ✅ Ordered (Order 1, ledmo 12V/5A-6A, €14.98) | Sized up from an earlier 3A estimate to match the higher-torque (2A/phase) motors above and avoid a reorder if all 4 motors draw current together — 4× 2A would be 8A peak, but they rarely all stall simultaneously, so 5A is a reasonable working budget with headroom, not a hard minimum. RAMPS 1.4 has its own screw-terminal power input, so no separate barrel jack adapter is needed — if the supply ends in a barrel plug, cut it off and wire the bare leads straight into RAMPS's terminal (or get a supply with bare leads/screw terminals to begin with). |
+| 12V DC power supply, 5A | 1 | €12–18 | €12–18 | ✅ Ordered (Order 1, ledmo 12V/5A-6A, €14.98) — on hand: **Ledmo HTY-1200500**, 5.5×2.1mm barrel, centre positive (Paul, 2026-10-06) | Sized up from an earlier 3A estimate to match the higher-torque (2A/phase) motors above and avoid a reorder if all 4 motors draw current together — 4× 2A would be 8A peak, but they rarely all stall simultaneously, so 5A is a reasonable working budget with headroom, not a hard minimum. RAMPS 1.4 has its own screw-terminal power input, so no separate barrel jack adapter is needed — if the supply ends in a barrel plug, cut it off and wire the bare leads straight into RAMPS's terminal (or get a supply with bare leads/screw terminals to begin with). |
 
 ## Inter-unit cable and connectors
 

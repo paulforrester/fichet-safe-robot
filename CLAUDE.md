@@ -111,7 +111,7 @@ firmware (not started — see "Where things stand" below).
 - **RAMPS 1.4** shield (Fasizi). 5 StepStick sockets; X/Y/Z used for the
   3 dial drivers. Screw-terminal 12 V input.
 - **BigTreeTech TMC2209 V1.3** ×5 (with heatsinks), StallGuard + UART.
-- **12 V / 5 A** supply (ledmo).
+- **12 V / 5 A** supply (Ledmo HTY-1200500, 5.5 × 2.1 mm barrel, centre +).
 - **1 kΩ resistors** ×100 (UART).
 - Inter-unit cable: **QUARKZMAN 22 AWG shielded, 6-conductor**, ~5.5 m roll.
 - Connectors: **Phoenix-style 5.08 mm 8-pin pluggable screw terminals**
@@ -121,7 +121,7 @@ firmware (not started — see "Where things stand" below).
   key proves unreliable), 7 mm momentary pushbuttons ×12 (start trigger).
 - Still to buy: multimeter, F–F / M–F jumpers, possibly solder — plus the
   harness parts in `control/wiring.md` §10 (header strips, 1.1 A PTC,
-  100 µF cap, DC-jack adapter, 20 AWG wire).
+  100 µF cap, 5.5 × 2.1 DC-jack adapter, 20 AWG wire).
 
 ## Wiring — settled 2026-10-06 in `control/wiring.md` (read it for details and sources)
 
@@ -139,8 +139,8 @@ firmware (not started — see "Where things stand" below).
   Key STEP on D23 (AUX-4 16).
 - The BTT V1.3's DIAG pin points down into nothing on RAMPS: the 3 dial
   drivers get a one-time mod (clip it, solder a lead to its top joint).
-- Cable (6 cores + shield): 12 V, GND, 5 V (VIO, from the Mega), STEP, UART,
-  DIAG. Remote EN and DIR tied to GND; firmware disables it with
+- Cable (6 cores + shield): 12 V red, GND black, 5 V orange (VIO, from the
+  Mega), STEP yellow, UART green, DIAG white. Remote EN and DIR tied to GND; firmware disables it with
   CHOPCONF.TOFF = 0 and sets direction with GCONF.shaft (read back before
   each move). Remote 12 V through a 1.1 A PTC on a small hub board at the
   dial end; 100 µF at the remote driver.
@@ -151,8 +151,8 @@ firmware (not started — see "Where things stand" below).
 ## Harness: what's left (bench, not design)
 
 Verify on the bench (steps go in `control/bringup.md`): UART lead on the
-right MS3 jumper pin; which top-edge pin is DIAG; Phoenix plug keying and
-cable colours; perfboard/heatsink/plug dimensions for the remote board's
+right MS3 jumper pin; which top-edge pin is DIAG; Phoenix plug keying;
+perfboard/heatsink/plug dimensions for the remote board's
 mount (CAD change for a mechanical session — needs listed in
 `control/wiring.md` §6.2); a place on the electronics deck for the hub board.
 

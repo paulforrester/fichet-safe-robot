@@ -226,15 +226,19 @@ numbers at both ends** (straight through).
 
 | Pin | Signal | Dial end (hub board) | Key-turner end (remote board) | Conductor colour |
 |---|---|---|---|---|
-| 1 | +12 V (after 1.1 A PTC) | PTC output | driver VM + 100 µF (+) | red if the cable has one — **fill in** |
-| 2 | GND (motor return + logic) | hub GND | driver GND (both pins), 100 µF (−) | black if present — **fill in** |
+| 1 | +12 V (after 1.1 A PTC) | PTC output | driver VM + 100 µF (+) | **red** |
+| 2 | GND (motor return + logic) | hub GND | driver GND (both pins), 100 µF (−) | **black** |
 | 3 | — empty (keeps 12 V/GND away from 5 V logic) | — | — | — |
-| 4 | +5 V (VIO) | RAMPS 5 V (Y_MAX +) | driver VIO, MS1, MS2 | **fill in** |
-| 5 | KEY_STEP | Mega D23 | driver STEP | **fill in** |
-| 6 | UART bus | bus node | driver RX (= PDN_UART) | **fill in** |
-| 7 | KEY_DIAG | Mega D19 (Z_MAX S) | driver DIAG (via its socket) | **fill in** |
+| 4 | +5 V (VIO) | RAMPS 5 V (Y_MAX +) | driver VIO, MS1, MS2 | **orange** |
+| 5 | KEY_STEP | Mega D23 | driver STEP | **yellow** |
+| 6 | UART bus | bus node | driver RX (= PDN_UART) | **green** |
+| 7 | KEY_DIAG | Mega D19 (Z_MAX S) | driver DIAG (via its socket) | **white** |
 | 8 | Shield drain | hub GND | **not connected** — fold back, cover with heat shrink | shield |
 
+- **Colours**: the cable's six are red, green, black, white, orange and
+  yellow (Paul, 2026-10-06). The assignment is my choice: red and black for
+  12 V and GND by the usual convention, and orange for 5 V, so that red only
+  ever means 12 V. Mark it on both plugs.
 - **Shield grounded at the dial end only.** That's the usual practice for a
   shield on a single-ended signal cable, so no current flows in it (a design
   convention, not from a datasheet). The motor current returns on pin 2.
@@ -257,7 +261,7 @@ add it to the mechanical to-do with the remote board mount.**
 
 | Hub point | Connects to | With |
 |---|---|---|
-| 12V IN +/− | PSU (via DC-jack screw adapter, or its bare leads) | 20 AWG pair |
+| 12V IN +/− | PSU (Ledmo HTY-1200500, 5.5 × 2.1 mm barrel, **centre +**) via a DC-jack-to-screw-terminal adapter | 20 AWG pair |
 | 12V OUT +/− | RAMPS power terminal, the pair marked **5A** (+ and − per silkscreen) | 20 AWG pair |
 | F1 PTC 1.1 A hold | 12V IN+ → F1 → Phoenix pin 1 | on board |
 | R1 1 kΩ | TX2 pin → R1 → BUS | on board (one of the 100 ordered) |
@@ -372,7 +376,7 @@ GCONF.en_spreadCycle) — StallGuard4 only works in StealthChop (DS §11).
    KiCad D1, so the Mega runs without USB too; USB first is so the logger sees
    the start.)
 4. **Power-down**: 12 V off first, then USB.
-5. **Fusing**: PSU 5 A max. RAMPS 5 A polyfuse (F1) feeds the three dial
+5. **Fusing**: PSU (Ledmo HTY-1200500) 5 A max. RAMPS 5 A polyfuse (F1) feeds the three dial
    drivers. 1.1 A PTC on the hub feeds the remote branch. The key motor's
    supply current is below its 0.6 A coil current (chopper), so 1.1 A doesn't
    nuisance-trip, and a short on the cable or remote board trips it.
@@ -400,7 +404,7 @@ Regenerate: `wireviz control/harness/harness.yml` and
 | 2.54 mm male header strips | 1 pack | hub jumper pins, remote motor header |
 | Radial PTC resettable fuse, ~1.1 A hold, rated ≥ 16 V (e.g. Bourns MF-R110 class) | 2 (1 spare) | remote 12 V branch |
 | Electrolytic capacitor 100 µF, ≥ 25 V (35 V fine), low ESR | 2 (1 spare) | remote driver VM |
-| Female DC barrel jack → screw terminal adapter, matching the PSU plug (5.5 × 2.1 or 5.5 × 2.5 — **check the PSU**) | 1 | PSU → hub without cutting the plug |
+| Female DC barrel jack **5.5 × 2.1 mm** → screw terminal adapter (fits the Ledmo HTY-1200500 plug, centre positive) | 1 | PSU → hub without cutting the plug. Check its + / − marking against the multimeter before first use |
 | 20 AWG wire, red + black, ~1 m each | 1 | PSU → hub → RAMPS 12 V |
 | Solder (already on the list if the station had none) | — | |
 | Flush cutters (if not already in the workshop) | 1 | DIAG pin mod |
@@ -409,7 +413,7 @@ Regenerate: `wireviz control/harness/harness.yml` and
 
 - UART lead on the correct MS3 jumper pin (firmware `ping`).
 - Which top-edge pin is DIAG (`ping` + a hand stall).
-- Phoenix plug keying; cable colours (fill in the table above).
+- Phoenix plug keying.
 - Perfboard size, heatsink height, Phoenix plug overhang (for the mount).
 - Motor step angle 1.8° (one commanded revolution returns to a mark).
 - Motor direction vs dial numbering and vs key clockwise (firmware config).
@@ -442,6 +446,15 @@ Regenerate: `wireviz control/harness/harness.yml` and
    2026-10-03). The step angle is still not confirmed against its data sheet.
 
 ## Decision log (most recent first)
+
+### 2026-10-06 (evening) — PSU plug and cable colours, from Paul
+
+- PSU: **Ledmo HTY-1200500**, 5.5 × 2.1 mm barrel, centre positive. The
+  shopping list now names a 5.5 × 2.1 DC-jack-to-screw-terminal adapter
+  (§5, §10).
+- Cable colours: red, green, black, white, orange, yellow. Assigned in §4:
+  red 12 V, black GND, orange 5 V, yellow STEP, green UART, white DIAG.
+  The WireViz harness has been re-rendered with these colours.
 
 ### 2026-10-06 — harness v1 (this file)
 
