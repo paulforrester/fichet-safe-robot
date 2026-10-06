@@ -106,7 +106,13 @@ designed (`control/wiring.md`); firmware written and host-tested
 - **Geometry:** the key hole is ~125 mm left of the dial-cluster centre,
   level with it. The inter-unit cable run is short (~125 mm centre to
   centre; allow slack for placing the units by hand).
-- Real key goes in by hand before each session; the cap slides over it.
+- Real key goes in by hand before each session; the cap slides over it. It
+  goes in one way only, can't turn anticlockwise from there, turns ~100°
+  clockwise to its stop, and comes out only at the start (Paul, 2026-10-06).
+- **Dials (Paul, 2026-10-06):** each turns clockwise without limit and stops
+  turning anticlockwise; 20 clicks per turn. Manual (`docs/photos/
+  complice_manual_normal_use.png`): dial the combination, then insert the key
+  and turn it clockwise, then pull the key to open.
 
 ## Electronics as ordered (all on hand or arriving — see `docs/bom.md`)
 
@@ -182,11 +188,17 @@ loss redoes the session start and continues from the last check.
   attempt-counting lockout; a relocker ("délateur") fires on mechanical or
   thermal attack → keep forces low (done).
 
+Answered by Paul 2026-10-06: each dial turns clockwise without limit and
+stops anticlockwise (home = that stop; the seat turns clockwise), 20 clicks
+per turn; the key can't turn anticlockwise from its insertion position (its
+home), turns ~100° clockwise to its stop, and comes out only at the start.
+
 Still open — each has a `config.h` entry and a stage in `control/bringup.md`:
-hard stop near position 1 (stage 4a), dial/key directions (4b, 5), home
-offset to the first detent (4), StallGuard thresholds (3–5, default 0 =
-refuse to run), key rest stop (5), key current (5), step angle (2), the
-classification bands (5–6).
+**whether the dials still turn with the key inserted at rest** (stage 4a —
+the manual dials before inserting the key; the robot keeps it in),
+motor↔dial/key directions (4b, 5), home offset to the first detent (4a/4b),
+StallGuard thresholds (3–5, default 0 = refuse to run), key current (5),
+step angle (2), the classification bands (5–6).
 
 Safety rules for any motion code: start at low current and low speed;
 bound every move (never an unbounded "turn until stall"); stop on stall

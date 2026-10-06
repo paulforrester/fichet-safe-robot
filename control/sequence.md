@@ -224,6 +224,9 @@ Decisions made while writing the firmware, on top of the sequence above:
   (anticlockwise) stop, so every angle is measured from the same point.
   Whether that rest stop exists is still to be checked (bench stage 5). If it
   doesn't, a config switch makes the key return by step count instead.
+- **Seat**: turns each dial 1/8 turn slowly **clockwise**, the direction in
+  which the dials never meet their stop. (Changed 2026-10-06 after Paul's
+  check: the first version turned toward the stop.)
 - **Homing (step 4)** runs twice per dial (stall, back off 2 positions, stall
   again); the two must agree. Before homing, the key is homed, then the slow
   1/8-turn seat runs.
@@ -298,9 +301,16 @@ Still open:
       (Superseded by the caliper measurement above — the old ~55mm
       photo estimate for the dial-to-lock gap was low; it's ~125mm
       centre-to-centre.)
-- [ ] Verify each dial wheel has a hard stop near position 1, for the
-      homing move in step 4 to find. (`control/bringup.md` stage 4a; if not,
-      `CFG_HOME_MODE_x = 1`.)
+- [x] Verify each dial wheel has a hard stop near position 1, for the
+      homing move in step 4 to find — **Paul, 2026-10-06**: each dial turns
+      clockwise without limit and stops when turned anticlockwise; 20 clicks
+      per turn. Homing is anticlockwise to that stop. The seat turn was
+      changed to clockwise so it can never press into it. Still to measure:
+      the angle from the stop to the first click (home offset, bringup 4a).
+- [ ] Do the dials still turn with the real key inserted at rest? The
+      manual's normal use dials the combination *before* inserting the key
+      (`docs/photos/complice_manual_normal_use.png`); the robot keeps the
+      key in throughout. Bench check: `control/bringup.md` stage 4a.
 - [ ] Torque/effort needed to turn each dial wheel and the key, to
       size motors and gearing.
 - [x] Whether the Fichet-Bauche "Complice" line has any known

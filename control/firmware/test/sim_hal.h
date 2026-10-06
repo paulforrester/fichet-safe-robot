@@ -1,8 +1,9 @@
 // Simulated robot + lock for host tests. Models, per the design in
 // control/sequence.md and control/wiring.md:
-//  - 3 dial wheels, each with one hard stop (a pin: the wheel can't pass it
-//    from either side), 20 detents, and a spring-loaded plug that only
-//    engages after some turning (the seat routine);
+//  - 3 dial wheels that turn clockwise without limit and stop turning
+//    anticlockwise at one point per turn (as Paul found on the real dials,
+//    2026-10-06), 20 detents, and a spring-loaded plug that only engages
+//    after some turning (the seat routine). Logical + = clockwise;
 //  - the key: a rest stop at 0 (optional), a stop at N for a wrong
 //    combination, further for false sets, and the bolt end for the right one;
 //  - StallGuard: DIAG only above a speed (TCOOLTHRS), only after a lag of a
@@ -11,7 +12,8 @@
 //    slips a pole (falls back 4 full steps = one electrical cycle), as a
 //    real stepper does at the stop when nothing stops it (e.g. the slow seat).
 // It also polices the firmware: dial moves with the key out, unbounded
-// moves, moves without a timeout.
+// moves, moves without a timeout, pressing into a stop with stall detection
+// off.
 #pragma once
 #include <cmath>
 #include <cstdint>
@@ -26,7 +28,7 @@
 struct SimHal : public core::Hal {
   // ---- world parameters (logical microsteps; 16 usteps/full step)
   int32_t usPerPos = 320;          // 200 full steps * 16 * 2 (gear) / 20
-  int32_t wheelMax = 6400 - 100;   // the pin's other side
+  int32_t turn = 6400;             // usteps per dial turn
   int32_t detentPhase[3] = {140, 150, 130};  // physical position of detent 0
   int32_t detentTol = 80;          // within this of a detent = "on" it
   uint8_t secret[3] = {7, 12, 3};  // the combination, detent indices from the stop
@@ -46,7 +48,9 @@ struct SimHal : public core::Hal {
   bool configFails = false;
   int abortAtMove = -1;            // abort the Nth move (0-based)
   // ---- state
-  struct Dial { bool engaged = false; int32_t engageLeft = 300; int32_t wheel0 = 3000; int32_t off = 0; } dial[3];
+  // wheel0: angle (from the stop, clockwise) while the plug is out; off: field
+  // minus rotor; floor: the stop the rotor is above, in field-rotor units.
+  struct Dial { bool engaged = false; int32_t engageLeft = 300; int32_t wheel0 = 3000; int32_t off = 0; int32_t floor = 0; } dial[3];
   int32_t cmd[4] = {0, 0, 0, 0};   // field (commanded) position per axis
   int32_t keyOff = 0;              // key rotor offset from its field (pole slips)
   static const int32_t kSlip = 32; // 2 full steps: beyond this the rotor slips a pole
@@ -64,18 +68,19 @@ struct SimHal : public core::Hal {
   static int comboKey(int a, int b, int c) { return a * 400 + b * 20 + c; }
   uint32_t rnd() { seed = seed * 1103515245u + 12345u; return (seed >> 16) & 0x7FFF; }
 
-  // Physical wheel position (from the stop) of dial d.
+  // Wheel angle (usteps clockwise from the stop, 0..turn-1) of dial d.
   int32_t wheel(int d) const {
-    if (!dial[d].engaged) return dial[d].wheel0;
-    int32_t p = cmd[d] - dial[d].off;
-    if (dialHasStop[d]) { if (p < 0) p = 0; if (p > wheelMax) p = wheelMax; }
-    return p;
+    const Dial& dl = dial[d];
+    if (!dl.engaged) return dl.wheel0;
+    const int32_t raw = cmd[d] - dl.off;
+    if (dialHasStop[d]) return (raw < dl.floor ? dl.floor : raw) - dl.floor;
+    return ((raw % turn) + turn) % turn;
   }
   int detentOf(int d) const {
     const int32_t p = wheel(d) - detentPhase[d];
     const int32_t k = (int32_t)std::lround((double)p / usPerPos);
-    if (k < 0 || k > 19 || std::abs(p - k * usPerPos) > detentTol) return -1;
-    return (int)k;
+    if (k < 0 || k > 20 || std::abs(p - k * usPerPos) > detentTol) return -1;
+    return (int)(k % 20);
   }
   int32_t keyLimit() const {
     if (keyObstruction >= 0) return keyObstruction;
@@ -97,6 +102,7 @@ struct SimHal : public core::Hal {
   void reseat() {
     for (int d = 0; d < 3; ++d) {
       dial[d].wheel0 = wheel(d);
+      dial[d].floor = 0;
       dial[d].engaged = false;
       dial[d].engageLeft = 1 + (int32_t)(rnd() % 790);  // within the 45-deg seat turn
     }
@@ -153,18 +159,19 @@ struct SimHal : public core::Hal {
         Dial& dl = dial[ax];
         if (!dl.engaged) {
           cmd[ax] += dir;
-          if (--dl.engageLeft <= 0) { dl.engaged = true; dl.off = cmd[ax] - dl.wheel0; }
+          if (--dl.engageLeft <= 0) { dl.engaged = true; dl.off = cmd[ax] - dl.wheel0; dl.floor = 0; }
           isBlocked = false;
         } else {
           // Load only when the field pushes further into a stop; moving back
           // out, the rotor just catches up with the field (no load).
           cmd[ax] += dir;
           if (dialHasStop[ax]) {
-            if (cmd[ax] - dl.off < -kSlip) dl.off -= 64;
-            else if (cmd[ax] - dl.off > wheelMax + kSlip) dl.off += 64;
+            // Clockwise past the stop point: the next stop is one turn on.
+            while (cmd[ax] - dl.off >= dl.floor + turn) dl.floor += turn;
+            if (cmd[ax] - dl.off < dl.floor - kSlip) dl.off -= 64;  // pole slip at the stop
           }
           const int32_t raw = cmd[ax] - dl.off;
-          isBlocked = dialHasStop[ax] && ((raw < 0 && dir < 0) || (raw > wheelMax && dir > 0));
+          isBlocked = dialHasStop[ax] && raw < dl.floor && dir < 0;
         }
       } else {
         cmd[ax] += dir;
@@ -175,6 +182,7 @@ struct SimHal : public core::Hal {
         isBlocked = (raw > hi && dir > 0) || (keyRestStop && raw < 0 && dir < 0);
       }
       if (isBlocked) ++blocked; else blocked = 0;
+      if (isBlocked && !r.stopOnStall) violations.push_back("pressed into a stop with stall detection off");
       if (sgOn && i >= r.ignoreStallSteps && blocked >= lag) {
         res.stalled = true;
         res.stepsDone = dir * (i + 1);

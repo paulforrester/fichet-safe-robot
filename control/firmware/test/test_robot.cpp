@@ -474,3 +474,28 @@ TEST(abort_between_moves_and_key_out_guard) {
   CHECK_EQ(h.moves.size(), before);
   noViolations(h);
 }
+
+TEST(dials_turn_clockwise_freely_and_seat_never_presses_the_stop) {
+  // Paul, 2026-10-06: every dial turns clockwise without limit and stops
+  // only turning anticlockwise. Start each wheel just clockwise of its stop
+  // (the worst case for an anticlockwise seat), and check homing still finds
+  // the stop from there and from nearly a full turn away.
+  SimHal h;
+  h.dial[0].wheel0 = 40;    // just past the stop
+  h.dial[1].wheel0 = 6350;  // almost a full turn from it
+  h.dial[2].wheel0 = 3200;
+  h.secret[0] = 1; h.secret[1] = 0; h.secret[2] = 2;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("start");
+  runUntilIdle(r);
+  CHECK_EQ(r.state(), ST_SUCCESS);
+  CHECK_EQ(r.progress().successIndex, secretIndex(h));
+  // The seat turns are the slow moves: all clockwise (logical +).
+  int seats = 0;
+  for (auto& m : h.moves)
+    if (m.axis != AX_KEY && !m.stopOnStall) { ++seats; CHECK(m.steps > 0); }
+  CHECK_EQ(seats, 3);
+  noViolations(h);
+}

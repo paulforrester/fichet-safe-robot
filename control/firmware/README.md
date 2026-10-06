@@ -8,8 +8,9 @@ Implements the sequence in `control/sequence.md` on the pin map in
 1. **Session start** (on `start`, `resume`, or the button): pings all four
    drivers over UART (version 0x21, right address) and configures them. Then
    it homes the key against its rest stop, seats the dials (slow, bounded
-   1/8-turn), and homes each dial on its hard stop in two passes that must
-   agree. Last, it learns the key's stop angle **N** (3 tries, median, spread
+   1/8 turn clockwise — the dials turn clockwise without limit, so this never
+   meets a stop), and homes each dial anticlockwise on its stop, in two
+   passes that must agree. Last, it learns the key's stop angle **N** (3 tries, median, spread
    checked).
 2. **Attempt loop** over the 8,000 combinations in serpentine order: each
    attempt moves **one dial by one position**, never wraps a dial, turns the
@@ -133,7 +134,7 @@ python3 control/firmware/tools/logger.py --analyse runs/<stamp>_attempts.csv
 
 ## Verified here (cloud session, no hardware)
 
-- **Host tests**: `make -C control/firmware/test` — 34 tests, ~36,000 checks,
+- **Host tests**: `make -C control/firmware/test` — 35 tests, ~36,000 checks,
   0 failures. Built with `-Wall -Wextra -Werror` and also run under
   AddressSanitizer + UBSan. They cover:
   - the serpentine order: a bijection, and each step moves one dial by one
@@ -146,10 +147,13 @@ python3 control/firmware/tools/logger.py --analyse runs/<stamp>_attempts.csv
     the re-check and rewound; pause/resume; untuned / missing driver / no hard
     stop / no key rest stop / DIAG stuck high / abort / repeated early stops;
     the combination at index 0; settings changed between sessions; a too-dull
-    StallGuard fails safe; N is never learned on a false set;
+    StallGuard fails safe; N is never learned on a false set; dials that turn
+    clockwise without limit and stop anticlockwise (as Paul found), with the
+    seat never pressing a stop;
   - the simulator also polices the firmware: no dial moves with the key out,
     every move bounded and with a timeout, never a move on a disabled driver,
-    current never above 1.2 A.
+    never pressing into a stop with stall detection off, current never above
+    1.2 A.
 - **Logger**: `python3 -m pytest control/firmware/tools` (3 tests). A
   simulated full run (`make -C control/firmware/test simlog`, 1,787 attempts)
   replays through `logger.py`, and its offline classes match the firmware's on

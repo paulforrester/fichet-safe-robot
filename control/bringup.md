@@ -121,14 +121,19 @@ load at the dial's stop is different).
 ## Stage 4 — Dial unit on the door: seat and home
 
 **4a. By hand first (no electronics)**, with the tube key in each dial hole in
-turn:
-1. Turn the dial slowly one way until it stops, then the other way. Does it
-   have a **hard stop**? Does it stop the same place from both sides (one pin)?
-2. Count the **clicks** in one full turn (expect 20).
-3. If you can: put a paper protractor around the hole and a pointer on the
-   key. Read the angle from the stop to the **first click** and to the
-   **last click**.
-4. Look for numbers or marks around each hole on the door.
+turn. Already answered (Paul, 2026-10-06): every dial turns clockwise without
+limit, stops when turned anticlockwise, and has 20 clicks per turn. Still to
+do:
+1. **Real key inserted, at rest** (as it will be during a run): turn each dial
+   a full turn clockwise, then back anticlockwise to its stop. **Do the dials
+   still turn, and feel the same as without the key?** The manual sets the
+   combination *before* inserting the key; the robot keeps the key in. If the
+   dials won't turn with the key in, stop here and tell me.
+2. From the anticlockwise stop, turn slowly clockwise: does the first click
+   come right at the stop, or some way after it? If you can, put a paper
+   protractor around the hole and a pointer on the tube key, and read the
+   angle from the stop to the **first click** and to the **20th**.
+3. Look for numbers or marks around each hole on the door.
 
 **4b. On the door** (12 V off while placing): dial unit on, all three motors
 plugged in (A = top-left = X, B = top-right = Y, C = bottom = Z). The key
@@ -137,10 +142,11 @@ stage 3 for all three: `set sgA <v>`, `set sgB <v>`, `set sgC <v>`.
 1. **Direction**: `jog A 10`. Watch dial A's big gear, or a tape flag on it.
    Did the *dial* turn clockwise or anticlockwise, seen from in front of the
    safe? Same for `jog B 10` and `jog C 10`.
-   (The firmware's home is "anticlockwise to the stop"; positive moves are
-   clockwise. I'll set the invert flags from your answer.)
-2. **Seat**: `seat`. Each dial turns 1/8 turn slowly. Listen and watch: does
-   each plug **drop into its star** (a click, the plug moves in)?
+   (The dials stop anticlockwise, so the firmware homes anticlockwise and
+   treats clockwise as positive. I'll set the invert flags from your answer.)
+2. **Seat**: `seat`. Each dial turns 1/8 turn slowly **clockwise** (the way it
+   never meets its stop). Listen and watch: does each plug **drop into its
+   star** (a click, the plug moves in)?
 3. **Home** (after I've sent the invert flags, or set them with `set invA 1`
    etc.): `home A`. It turns dial A towards its stop until it stalls, backs
    off 2 positions, comes back. Two `HOME,…,A,1,…` and `HOME,…,A,2,…` lines:
@@ -148,12 +154,12 @@ stage 3 for all three: `set sgA <v>`, `set sgB <v>`, `set sgC <v>`.
    - If it says `unexpected stall` or stops early: lower `sgA` by 10.
    - If it says `turned its full bound without stalling`: raise `sgA` by 10.
    Repeat `home A` 5 times when it works. Then do B and C.
-4. **Detents**: after `home A`, `set sgA 0`, then `sg A 360` (0.9 of a dial
-   turn, short of the far side of the stop). The SG trace may show the 20 clicks as bumps. Then set `sgA`
-   back.
+4. **Detents**: after `home A`, `set sgA 0`, then `sg A 400` (one full dial
+   turn clockwise, which is free). The SG trace may show the 20 clicks as
+   bumps. Then set `sgA` back.
 
-**Send back**: 4a answers (stop yes/no and where, clicks per turn, the
-angles, any door marks); 4b.1 directions; 4b.2 seated yes/no per dial; the
+**Send back**: 4a answers (dials turn with the key in: yes/no; where the
+first click is; the angles; any door marks); 4b.1 directions; 4b.2 seated yes/no per dial; the
 raw log with the HOME lines and the SG trace from 4b.4; the final
 `sgA/sgB/sgC`.
 
@@ -161,10 +167,13 @@ raw log with the HOME lines and the SG trace from 4b.4; the final
 
 ## Stage 5 — Key turner: direction, current, stop angle
 
-**5a. By hand first**, key inserted, nothing mounted:
-1. From the insertion position, try turning the key **anticlockwise**. Does it
-   stop right away (a **rest stop**)? Or does it turn?
-2. Turn it clockwise to its stop (~100°) and let go. Does it spring back?
+**5a. By hand first**, key inserted, nothing mounted. Already answered
+(Paul, 2026-10-06): the key goes in one way only; from there it won't turn
+anticlockwise at all (that rest stop is the firmware's key home,
+`keyhome` 0); it turns ~100° clockwise to its stop; it comes out only back at
+the start. Still to do:
+1. Turn it clockwise to its stop (~100°) and let go. Does it spring back
+   towards the start, or stay?
 
 **5b. Mounted**: key in, key turner on (12 V off while placing and
 plugging). Remote board's VREF pot at minimum. Cable plugged in. 12 V on.
@@ -179,13 +188,13 @@ plugging). Remote board's VREF pot at minimum. Cable plugged in. 12 V on.
    should drop at the stop. Then `jog K -60` to bring the key back to rest.
    Halve the lowest value near the stop: `set sgK <v>`.
 5. **Stop angle**: `learn`, 3 times. Each prints 3 `LEARN` lines and an
-   `NSTOP` line (N and the spread). If it says `found no rest stop`, the key
-   has no anticlockwise stop: `set keyhome 1` and repeat.
+   `NSTOP` line (N and the spread). If it says `found no rest stop`, the key's
+   StallGuard is too dull at the rest stop: raise `sgK` by 10 and repeat.
 6. Watch the key-turner housing during the learns: does it shift or rock
    on its magnets?
 
-**Send back**: 5a answers; directions; the current table from 5b.2; final
-`maK`, `sgK`, `keyhome`; the raw log with the LEARN/NSTOP lines; any housing
+**Send back**: 5a answer; direction; the current table from 5b.2; final
+`maK`, `sgK`; the raw log with the LEARN/NSTOP lines; any housing
 movement.
 
 ---
@@ -218,11 +227,12 @@ spread and start the real run with `resume`.
 | Driver UART addresses and wiring; which MS3 pin | 1 |
 | Motor step angle (1.8° assumed) | 2 |
 | StallGuard thresholds (sgA/B/C/K), speeds | 3, 4, 5 |
-| Hard stop near position 1; clicks per turn | 4a |
+| Hard stop and clicks per turn | answered 2026-10-06: stop anticlockwise, unlimited clockwise, 20 clicks |
+| Dials still turn with the key inserted at rest | 4a |
 | Motor direction ↔ dial direction | 4b |
 | Plug seating (seat routine angle and speed) | 4b |
 | Home offset to the first detent | 4a, 4b |
-| Key direction; rest stop (keyhome) | 5 |
+| Key motor direction | 5 (rest stop answered 2026-10-06: none anticlockwise of the start → `keyhome` 0) |
 | Key current (2 × minimum) | 5 |
 | Key stop angle N and its spread (classification bands) | 5, 6 |
 | Magnets holding under real loads | 5, 6 |

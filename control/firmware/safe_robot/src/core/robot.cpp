@@ -481,9 +481,10 @@ bool Robot::seatDials() {
   for (uint8_t d = 0; d < 3; ++d) {
     homed_[d] = false;
     if (!fitted(d)) continue;
-    // Slow and bounded, toward the stop; below the StallGuard speed, so a
-    // plug that is already in and meets the stop just slips at seat current.
-    MoveResult r = doMove((Axis)d, -steps, s_.seatRps, false, false);
+    // Slow and bounded, clockwise (logical +): the dials turn clockwise
+    // without limit and only stop anticlockwise (Paul, 2026-10-06), so the
+    // seat turn can never press a seated plug into the stop.
+    MoveResult r = doMove((Axis)d, steps, s_.seatRps, false, false);
     if (!checkMove(r, (Axis)d, false, true)) return false;
   }
   event(CP("SEATED"), 0);
@@ -541,7 +542,7 @@ bool Robot::keyHome(int32_t boundUs) {
   MoveResult r = doMove(AX_KEY, -boundUs, s_.ax[AX_KEY].rps, true, false);
   if (!checkMove(r, AX_KEY, true, true)) return false;
   if (!r.stalled) {
-    error(CP("KEYHOME"), CP("key found no rest stop turning anticlockwise: if it has none, `set keyhome 1`"));
+    error(CP("KEYHOME"), CP("key found no rest stop turning anticlockwise: sgK too low? (no stop at all: `set keyhome 1`)"));
     return false;
   }
   keyPos_ = 0;

@@ -2,7 +2,8 @@
 
 Researched 2026-10-06 (cloud session), for the `control/sequence.md` open
 item "anti-manipulation relocking behaviour, before running thousands of
-automated attempts".
+automated attempts". Updated the same evening with the manual's own "Normal
+use" text (a screenshot from Paul) and Paul's checks on the real key.
 
 ## Answer
 
@@ -11,13 +12,40 @@ adds penalty delays, or locks out.** What it does have is a **relocker
 ("délateur")** that blocks the lock *for good* when it is **attacked
 mechanically or with heat**. So the risk to manage is force, not the number
 of tries: never hammer or over-torque the key. The firmware is already built
-that way. Confidence: medium. Only search-result excerpts were readable (the
-manufacturer, retailer and manual pages are blocked from this session), and
-they describe the *current* Complice, not necessarily this older safe.
+that way. Confidence: medium. The manual's normal-use procedure (below) has
+no limit on tries or waiting time. But the rest comes from search-result
+excerpts (the pages are blocked from this session), and they describe the
+*current* Complice, not necessarily this older safe. The manual's
+"Troubleshooting" page is still unread.
+
+**New point from the manual — to check before the long run:** in normal use
+you **set the combination first, then insert the key**. The robot keeps the
+key inserted, at rest, while it turns the dials. Whether the dials still turn
+with the key in at rest isn't known yet (`control/bringup.md` stage 4a).
 
 ## What the sources say
 
-Quoted from search-engine excerpts. The pages themselves could not be
+**0. The Complice manual, "Opening the safe" page, NORMAL USE** (screenshot
+from Paul, `docs/photos/complice_manual_normal_use.png` — primary source):
+
+> **Opening the combination**: Dial the combination - Insert the key into the
+> M3b lock and turn it clockwise - Pull on the key to open the door.
+> **Closing - Locking**: Close the door - Turn the key anticlockwise to engage
+> the bolt - Remove the key - Scramble the combination.
+
+- No limit on tries, and no waiting time, in normal use.
+- Order: combination first, then the key (see the new point above).
+- Clockwise opens; anticlockwise engages the bolt, and the key comes out only
+  then. That matches Paul's checks (2026-10-06): the key goes in one way only;
+  from there it won't turn anticlockwise at all; it turns ~100° clockwise to
+  its stop; it can only be removed back at the start position.
+- "Pull on the key to open the door": the robot only turns the key. On a
+  success it holds the key where it got to; Paul takes the key turner off and
+  pulls.
+- This manual calls the key lock "M3b"; current sales pages say "MxB" or
+  "MPx" — a different generation, probably.
+
+Points 1–6 are quoted from search-engine excerpts. The pages themselves could not be
 opened from here, so I couldn't check which sentence is on which page: treat
 the links as where to look. Paul can open them.
 
@@ -69,9 +97,12 @@ the links as where to look. Paul can open them.
 
 ## Worth doing by hand before the long run (Paul)
 
-1. Read the manual's "Opening the safe", "Scrambling the combination" and
-   "Troubleshooting" pages (ManualsLib link above). Look for any warning about
-   forcing the key, or about a sequence (e.g. counters set before the key is
-   inserted).
-2. With the dials at some setting, turn the key to its stop by hand, with
+1. Done: "Opening the safe" (above). Still to read: "Troubleshooting" and
+   "Scrambling the combination" (ManualsLib link above). Look for any warning
+   about forcing the key, or about what happens if the key is turned with a
+   wrong combination.
+2. **With the key inserted at rest, can each dial still be turned by hand
+   with the tube key?** If not, the robot as designed can't work: it can't
+   take the key out between tries (`control/bringup.md` stage 4a).
+3. With the dials at some setting, turn the key to its stop by hand, with
    normal force, 10 times. Does anything change (stop angle, feel, a click)?

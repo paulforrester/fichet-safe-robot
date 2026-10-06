@@ -18,17 +18,19 @@
 #define CFG_MICROSTEPS           16     // MRES over UART; interpolated to 256 by the driver
 #define CFG_DIAL_GEAR            2      // 14T pinion -> 28T dial gear (cad/dial_unit_housing.scad)
 #define CFG_KEY_GEAR             1      // key turner is direct drive
-#define CFG_POSITIONS            20     // positions per dial wheel (control/sequence.md)
+#define CFG_POSITIONS            20     // positions per dial wheel: 20 clicks per turn (Paul, 2026-10-06)
 
 // Drivers fitted: A=1, B=2, C=4, key=8. 15 = all (needed for `start`). Bench
 // stages with fewer drivers use `set axes <mask>` instead of editing this.
 #define CFG_AXES_MASK            15
 
-// ---- Directions: UNKNOWN until bench stages 4 and 5 ------------------------
+// ---- Directions: motor sense UNKNOWN until bench stages 4b and 5b -----------
 // 1 = flip the motor direction. Dials: set so that a positive jog turns the
-// dial AWAY from its home stop. Key: set so that a positive jog turns the key
-// CLOCKWISE (seen from the front). The dial motors turn opposite to the dials
-// (external gears), so the three dials probably share one value.
+// dial CLOCKWISE seen from the front. That is away from the home stop: every
+// dial turns clockwise without limit and stops only anticlockwise (Paul,
+// 2026-10-06). Key: set so that a positive jog turns the key CLOCKWISE (the
+// way it opens). The dial motors turn opposite to the dials (external
+// gears), so the three dials probably share one value.
 #define CFG_INVERT_A             0
 #define CFG_INVERT_B             0
 #define CFG_INVERT_C             0
@@ -63,10 +65,10 @@
 #define CFG_SGTHRS_KEY           0
 
 // ---- Seat and home (dials) -----------------------------------------------------
-#define CFG_SEAT_DIAL_DEG        45     // at most 1/8 dial turn (control/sequence.md)
-// UNKNOWN: does each wheel have a hard stop near position 1? (CLAUDE.md open
-// item; stage 4). 0 = home on the stop (default). 1 = no stop: positions count
-// from wherever the seat leaves the dial; a run then can't resume after a re-seat.
+#define CFG_SEAT_DIAL_DEG        45     // at most 1/8 dial turn (control/sequence.md); turned clockwise
+// Each dial has a hard stop turning anticlockwise (Paul, 2026-10-06): home on it.
+// (1 = no stop: positions count from wherever the seat leaves the dial, and a
+// run can't resume after a re-seat. Kept for completeness.)
 #define CFG_HOME_MODE_A          0
 #define CFG_HOME_MODE_B          0
 #define CFG_HOME_MODE_C          0
@@ -81,9 +83,9 @@
 #define CFG_DIAL_APPROACH_FULL   0      // >0: always finish dial moves going away from the stop
 
 // ---- Key -----------------------------------------------------------------------
-// UNKNOWN: does the key have a stop at its rest (insertion) position when
-// turned anticlockwise? 0 = yes, re-home against it every attempt (default).
-// 1 = no: return by step count. Stage 5.
+// The key can't turn anticlockwise at all from its insertion position (Paul,
+// 2026-10-06): that rest stop is the key's home, re-found every attempt (0).
+// 1 = return by step count instead (for a key without a rest stop).
 #define CFG_KEY_HOME_MODE        0
 #define CFG_KEY_HOME_SEARCH_DEG  30     // session start: anticlockwise bound to find the rest stop
 #define CFG_KEY_HOME_EXTRA_DEG   15     // retract: anticlockwise bound past the angle reached
