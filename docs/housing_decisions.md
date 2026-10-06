@@ -32,7 +32,9 @@ stepping in 0.2mm, with no bridge.
   touching their own seats — faceting); sled STL watertight, one body,
   90.66cm^3; slices through a screw hole show the cone 6.9 -> 5.2 -> 3.5mm at
   z = 0.05 / 0.9 / 1.75mm as designed; the SketchUp build script's sled
-  updated the same way (closed, volume within 0.1% of the STL).
+  updated the same way (closed, volume within 0.1% of the STL), and the
+  SketchUp model rebuilt from it (`fichet_dial_unit_v2_geared_2026-10-06.skp`)
+  with a new scene 6 showing the sled's door-side face and its countersinks.
 - Only the sled changes; the front plate, deck and drivetrain are untouched.
 
 ## v2 (2026-10-05): geared drivetrain on 608 bearings — the Oldham coupler could not have worked, and the hole pattern was wrong
