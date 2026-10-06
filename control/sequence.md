@@ -211,6 +211,59 @@ housing against its magnets harder than it needs to.
    e. If achieved angle clears the success threshold: stop, report
       the combination.
 
+### As implemented (firmware v0.1, 2026-10-06 — `control/firmware/`)
+
+Decisions made while writing the firmware, on top of the sequence above:
+
+- **Start (step 3)**: both — the serial command `start` or the push button
+  (on RAMPS Y_MIN). The button also pauses a run and resumes a stored one.
+- **Order of the 8,000**: serpentine. Consecutive attempts differ in one dial
+  by one position, so each attempt turns one dial one click, and no dial ever
+  wraps from position 20 back to 1 (a wheel with a hard stop couldn't).
+- **Key home every attempt**: retract until the key stalls at its rest
+  (anticlockwise) stop, so every angle is measured from the same point.
+  The rest stop exists: the key can't turn anticlockwise from where it goes
+  in (Paul, 2026-10-06). A config switch can make the key return by step count
+  instead. Paul also found (2026-10-06) that the dials still click with the
+  key left at its ~100° stop, so the key wouldn't *have* to come all the way
+  back between tries. **Kept anyway (Paul, 2026-10-06)**: see "Return the key
+  to rest every attempt, or park it near N?" under Open items.
+- **Self-calibration (v0.2, 2026-10-06, Paul's suggestion)**: each session
+  measures each motor's free-running StallGuard reading and sets its own
+  stall threshold (stall = reading down to 50 % of it). Each dial makes one
+  free clockwise turn for this. From the same turn's 18° click ripple it
+  finds where the clicks are, so position 1 = the first click clockwise of
+  the stop. Where the first click sits relative to the stop can't be measured
+  by hand (Paul: evenly spaced, 18° apart). The key is measured over 60° of
+  free travel from rest. Datasheet §11.4 recommends this kind of
+  in-application threshold. Bench stages 3–4 check the assumptions (the
+  50 % rule; the ripple being visible).
+- **Key home search 180°** (was 30°): the key stays wherever it is left — it
+  doesn't spring back (Paul, 2026-10-06). After a power cut mid-attempt it
+  can sit at its ~100° stop, and the session start must find the rest stop
+  from there before any dial moves.
+- **Seat**: turns each dial 1/8 turn slowly **clockwise**, the direction in
+  which the dials never meet their stop. (Changed 2026-10-06 after Paul's
+  check: the first version turned toward the stop.)
+- **Homing (step 4)** runs twice per dial (stall, back off 2 positions, stall
+  again); the two must agree. Before homing, the key is homed, then the slow
+  1/8-turn seat runs.
+- **N (step 5)** is the median of 3 tries. It is learned at the most recent
+  attempt that was a clean fail — never at a possible false set. On a fresh
+  run it's learned at the first two combinations, keeping the lower.
+- **Each try** drives the key to N + 15°: clean ≤ N + 4°, false set between,
+  success ≥ N + 10°, "early" < N − 8°. All are config values, to be set from
+  the measured spread. The raw angle is always logged.
+- **Re-check every 200 attempts**: re-home the dials (the stall must come
+  where the step count says) and re-learn N. On a mismatch (a unit slipped),
+  stop and rewind to the last good re-check.
+- **Resume after power loss** (or a re-seat): progress lives in EEPROM. A
+  resume redoes the whole session start and restarts from the last good
+  re-check (≤ 200 attempts redone). A pause re-checks first, so it loses
+  nothing.
+- **Results reach Paul** as USB serial lines. `tools/logger.py` saves a raw
+  log and an attempts CSV, and can re-classify afterwards.
+
 ## False sets
 
 Some wheel-pack locks have false sets — positions that let the fence
@@ -266,10 +319,63 @@ Still open:
       (Superseded by the caliper measurement above — the old ~55mm
       photo estimate for the dial-to-lock gap was low; it's ~125mm
       centre-to-centre.)
-- [ ] Verify each dial wheel has a hard stop near position 1, for the
-      homing move in step 4 to find.
+- [x] Verify each dial wheel has a hard stop near position 1, for the
+      homing move in step 4 to find — **Paul, 2026-10-06**: each dial turns
+      clockwise without limit and stops when turned anticlockwise; 20 clicks
+      per turn. Homing is anticlockwise to that stop. The seat turn was
+      changed to clockwise so it can never press into it. Still to measure:
+      the angle from the stop to the first click (home offset, bringup 4a).
+- [x] Where the first click is relative to each dial's stop — Paul
+      (2026-10-06): can't be read by hand, but the clicks are evenly spaced,
+      18° apart; no marks on the door. The firmware now finds the clicks
+      from StallGuard each session (v0.2). Key: stays wherever it's left (no
+      spring back).
+- [x] Do the dials still turn with the real key inserted at rest? The
+      manual's normal use dials the combination *before* inserting the key
+      (`docs/photos/complice_manual_normal_use.png`); the robot keeps the
+      key in throughout. **Yes (Paul, 2026-10-06): the dials turn with the
+      key at its start position, and still click with the key turned to its
+      ~100° stop and left there.**
+- [ ] **Does a combination dialled with the key already in count?** (Paul,
+      2026-10-06.) The dials turn and click with the key in, but nothing
+      shows that they still set the wheels then. The manual dials *before*
+      inserting the key. If the lock only checks a combination set with the
+      key out, the robot as designed can never open it, and it would need
+      to pull the key out and push it back in at every attempt (a mechanical
+      redesign of the key turner). No source either way: searched
+      2026-10-06, but Fichet's manual PDF and the patent sites are blocked
+      from the cloud session. A search excerpt mentions a separate Fichet
+      "3-tube combination" user manual. How we'll know:
+      (1) bench stage 4b.6 compares the dials' calibration with the key out
+      and in: a clear difference is a warning sign, while the same numbers
+      are only weak reassurance;
+      (2) the first full run is the real test (≤ ~2 h of motion).
+      If it ends with no success and clean data, this is the first suspect.
+- [x] Return the key to rest every attempt, or park it near N? Raised by
+      Paul's check above (2026-10-06). Firmware v0.2 returns it to its rest
+      stop every attempt, which re-zeroes the angle each time and matches the
+      manual's sequence. Parking it ~10° short of N between tries would save
+      time. **Estimate** (motion only, from `config.h` speeds and the
+      firmware's own ramp code; not measured): a full return costs ~0.82 s
+      per attempt (key out 0.30 s + back 0.30 s + one dial click 0.23 s), so
+      ~1.8 h for all 8,000. Parked: ~0.34 s, ~0.75 h. That saves ~1.1 h in
+      the worst case, ~0.5 h on average. Logging, EEPROM writes and the
+      re-checks every 200 attempts are not included; they're the same either
+      way. Risks of parking: (1) Paul's caution: the lock may need the key
+      back at the start before the bolts can retract. If so, the right
+      combination would look like a clean fail, and we'd only find out
+      after a whole run without success. (2) The angle would come from step
+      counting since the key last touched its rest stop, so a lost step
+      would shift later readings until the next re-zero. Recommendation:
+      keep the full return for the first full run. Revisit if stage 6 shows
+      attempts much slower than this estimate. **Decided (Paul,
+      2026-10-06): keep the full return.**
 - [ ] Torque/effort needed to turn each dial wheel and the key, to
       size motors and gearing.
-- [ ] Whether the Fichet-Bauche "Complice" line has any known
-      anti-manipulation relocking behavior, before running thousands
-      of automated attempts.
+- [x] Whether the Fichet-Bauche "Complice" line has any known
+      anti-manipulation relocking behavior — **researched 2026-10-06**,
+      `control/lock_research.md`. No source mentions an attempt-counting
+      lockout. A relocker ("délateur") fires on mechanical or thermal attack,
+      so forces stay low. The firmware stops if the key's stop angle changes.
+      Confidence medium: only search excerpts were readable from the cloud
+      session. Paul to read the manual's "Opening" / "Troubleshooting" pages.

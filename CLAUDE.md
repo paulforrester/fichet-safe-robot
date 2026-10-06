@@ -25,8 +25,9 @@ Two 3D-printed units sit on the steel door (rubber-coated magnets):
 - **Key-turner unit** — 1 NEMA17 on the key axis, driving a cap that slips
   over the key's bow; its own TMC2209 sits locally, cabled to the dial unit.
 
-Project phases: mechanical (nearly done, being printed), wiring harness and
-firmware (not started — see "Where things stand" below).
+Project phases: mechanical (nearly done, being printed); wiring harness
+designed (`control/wiring.md`); firmware written and host-tested
+(`control/firmware/`), bench bring-up next (`control/bringup.md`).
 
 ## How Paul works — follow these
 
@@ -37,6 +38,10 @@ firmware (not started — see "Where things stand" below).
 - **Git: branch + pull request, never commit to `main`.** One topic per
   branch. Paul reviews and merges. Check whether a PR is already merged
   before pushing more to its branch — if it is, start a new branch/PR.
+  **Don't stack PRs** (a PR whose base is another PR's branch): GitHub
+  merges it into that branch, not `main`, unless the base branch is deleted
+  first. That's how #14 (firmware v0.1) missed `main` on 2026-10-06. Target
+  `main` every time.
 - **Ground decisions in measured or sourced data**, and record the
   reasoning in the matching decision log (most recent entry first, dated).
   When something earlier turns out wrong, correct it in place and say so
@@ -60,6 +65,9 @@ firmware (not started — see "Where things stand" below).
 | `control/sequence.md` | **Control architecture, wiring plan, operating sequence, open items — the main input for firmware and harness work** |
 | `control/wiring.md` | **Wiring harness: full pin map, driver jumpers/addresses, cable pin-out, hub and remote driver boards, currents, power order, shopping list, sources** |
 | `control/harness/` | WireViz harness (`harness.yml` → `.svg/.png`) and Graphviz overview (`overview.dot` → `.svg`) |
+| `control/firmware/` | **Firmware** (Arduino sketch + plain-C++ core), host tests, serial logger — see its README |
+| `control/bringup.md` | Bench bring-up, stage by stage, with what Paul sends back |
+| `control/lock_research.md` | Complice relocking / anti-manipulation research |
 | `docs/bom.md` | Bill of materials, tracked against what was actually ordered (vendor, price, status) |
 | `docs/housing_decisions.md` | Mechanical decision log for both housings (most recent first) |
 | `docs/decisions.md` | Dial-plug (tube-socket) tooth geometry log |
@@ -68,7 +76,6 @@ firmware (not started — see "Where things stand" below).
 | `cad/*.stl` | Rendered parts Paul prints |
 | `cad/tools/` | `dial_layout_check.py`, `dial_interference_check.py`, `key_turner_check.py` — run after any CAD change |
 | `cad/sketchup/` | Build scripts for SketchUp review models (run via the Trimble SketchUp connector, not locally) |
-| `control/` | Harness docs (above); firmware goes in `control/firmware/` |
 
 ## Mechanical facts the software and wiring depend on
 
@@ -103,7 +110,19 @@ firmware (not started — see "Where things stand" below).
 - **Geometry:** the key hole is ~125 mm left of the dial-cluster centre,
   level with it. The inter-unit cable run is short (~125 mm centre to
   centre; allow slack for placing the units by hand).
-- Real key goes in by hand before each session; the cap slides over it.
+- Real key goes in by hand before each session; the cap slides over it. It
+  goes in one way only, can't turn anticlockwise from there, turns ~100°
+  clockwise to its stop, **stays wherever it is left (no spring back)**, and
+  comes out only at the start (Paul, 2026-10-06). The dials turn with the
+  key in at its start, and still click with it at its ~100° stop (Paul,
+  2026-10-06). The robot returns the key to its start after every attempt
+  (Paul's decision, 2026-10-06).
+- **Dials (Paul, 2026-10-06):** each turns clockwise without limit and stops
+  turning anticlockwise; 20 evenly spaced clicks (18°); where the first click
+  sits relative to the stop can't be read by hand; no marks on the door. The
+  manual has no warning about wrong combinations. Manual (`docs/photos/
+  complice_manual_normal_use.png`): dial the combination, then insert the key
+  and turn it clockwise, then pull the key to open.
 
 ## Electronics as ordered (all on hand or arriving — see `docs/bom.md`)
 
@@ -156,42 +175,72 @@ perfboard/heatsink/plug dimensions for the remote board's
 mount (CAD change for a mechanical session — needs listed in
 `control/wiring.md` §6.2); a place on the electronics deck for the hub board.
 
-## Firmware — what's decided and what's open
+## Firmware — `control/firmware/` (v0.2, 2026-10-06; read its README)
 
-Decided (see `control/sequence.md`, "Operating sequence" and "False
-sets"): seat → home each dial by stalling against its stop → learn the
-key's stop angle N° each session → loop over 8,000 combinations: set
-dials, try the key to N + margin, **record the actual angle reached**
-(not just pass/fail), retract → stop and report on a clear success.
-Logging every attempt's angle lets false sets be told apart afterwards.
+Built and host-tested, **not yet run on hardware**. Sequence as in
+`control/sequence.md`: session start = ping/configure drivers → key home
+(rest stop, search 180°) → key calibration → seat (clockwise) → one free
+clockwise calibration turn per dial (StallGuard threshold + click positions)
+→ home each dial (two passes on its stop; position 1 = first click) → learn
+N (3 tries, median) → attempt loop in **serpentine order** (each attempt moves one
+dial one position) → key to N + 15°, **log the angle reached** → retract →
+save progress (EEPROM journal). Re-check every 200 attempts (re-home +
+re-learn N at the last clean fail); on a mismatch, stop and rewind to the last
+good check. Success (≥ N + 10°) stops and holds the key. Resume after power
+loss redoes the session start and continues from the last check.
 
-Open (don't build in assumptions about these; make them configurable or
-detect them):
-- Whether each dial wheel has a hard stop near position 1 to home on.
-- Dial torque (sizes the current and StallGuard thresholds).
-- Motor-direction ↔ dial-numbering and key-direction mapping.
-- Whether the Complice line has anti-manipulation relocking — research
-  before running thousands of attempts.
-- How a run is started (button vs. serial command), resumed after a power
-  loss or a unit slipping, and how results reach Paul (USB serial log to a
-  computer is the obvious baseline).
+- Layout: `safe_robot/` Arduino sketch (`config.h` = **every unmeasured
+  value**, `pins.h`, thin `hw_mega.*`), `safe_robot/src/core/` plain C++
+  (no Arduino), `test/` host tests + simulated lock, `tools/logger.py`.
+- Library: TMCStepper 0.7.3 (the version Marlin 2.0.x used for TMC2209 over
+  UART). Step pulses are generated by the firmware itself (bounded trapezoid).
+- Interface: USB serial 115200, commands (`help`), CSV-like log lines; the
+  start/stop button on Y_MIN pauses or resumes; `!` aborts a move.
+- Lock research (`control/lock_research.md`): no evidence of an
+  attempt-counting lockout; a relocker ("délateur") fires on mechanical or
+  thermal attack → keep forces low (done).
+
+Self-calibration (v0.2, Paul's idea): StallGuard thresholds come from each
+motor's measured free-running load every session (stall at 50 % of it), the
+click positions from the dials' 18° StallGuard ripple; `calibrate` does it as
+a separate step and EEPROM keeps the last result (the key needs it to home
+at the next session start).
+
+Biggest unknown (no source; `control/sequence.md` Open items): **whether a
+combination dialled with the key already in counts.** The manual dials
+before inserting the key. If it doesn't count, the key turner needs a way to
+pull the key out and push it back in at every attempt. Only a weak hint is
+available on the bench (stage 4b.6); the first full run is the real test.
+
+Still open — each has a `config.h` entry and a stage in `control/bringup.md`:
+motor↔dial/key directions (4b, 5), whether the 50 % rule and the click
+ripple hold on the real hardware (3, 4), key current (5), step angle (2),
+the classification bands (5–6).
 
 Safety rules for any motion code: start at low current and low speed;
 bound every move (never an unbounded "turn until stall"); stop on stall
 or timeout; make it easy to abort; never drive the key past what the run
-asks for.
+asks for. Keep the sequencing in `src/core` and add a simulated test for
+any change (`make -C control/firmware/test`).
 
 ## Working in a cloud session (no hardware)
 
 - There is no Mega, motor or safe here. Do the work that doesn't need
   hardware (design, pin maps, code, host-side tests, bench procedures) and
   hand Paul the hardware steps.
-- Network goes through an allowlist (package registries and GitHub are
-  usually reachable; other sites often aren't). Arduino/PlatformIO
-  toolchain downloads may be blocked. If you can't compile for the Mega,
-  say so, keep the search/sequencing logic in plain C++ with no Arduino
-  dependency, and unit-test it on the host with `g++`; keep the hardware
-  layer thin.
+- Network goes through an allowlist. Worked on 2026-10-06: `git clone` from
+  GitHub (but not github.com web pages), raw.githubusercontent.com, PyPI,
+  archive.ubuntu.com (apt). Blocked: analog.com, arduino.cc downloads,
+  PlatformIO registry, vendor sites (BTT shop, STEPPERONLINE), reprap.org,
+  ManualsLib, Google Patents. The TMC2209 datasheet is mirrored in
+  `janelia-arduino/TMC2209` (`datasheet/`); BTT's V1.3 docs are in
+  `bigtreetech/BIGTREETECH-Stepper-Motor-Driver`.
+- **Compiling for the Mega works via apt**: `apt-get install gcc-avr avr-libc
+  arduino-core-avr arduino-mk`, clone TMCStepper (tag v0.7.3) into a
+  libraries folder, then
+  `make -C control/firmware/safe_robot -f ../Makefile.mega USER_LIB_PATH=<dir>`.
+- Host tests: `make -C control/firmware/test` (g++), and
+  `python3 -m pytest control/firmware/tools` (logger).
 - CAD checks (only if you touch `cad/`): `openscad` renders, then
   `python3 cad/tools/dial_layout_check.py`, `dial_interference_check.py`,
   `key_turner_check.py`; check STLs are watertight (trimesh). Paul has no
