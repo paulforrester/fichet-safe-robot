@@ -70,48 +70,48 @@
 <text text-anchor="start" x="1019" y="-258.3" font-family="arial" font-size="14.00">+ S</text>
 <polygon fill="none" stroke="black" points="1046.5,-250.5 1046.5,-273.5 1091.5,-273.5 1091.5,-250.5 1046.5,-250.5"/>
 <text text-anchor="start" x="1051.5" y="-258.3" font-family="arial" font-size="14.00">0.3 m</text>
-<text text-anchor="start" x="714" y="-237.3" font-family="arial" font-size="14.00"> </text>
-<text text-anchor="start" x="648.5" y="-218.3" font-family="arial" font-size="14.00">P1:1:+12V (after PTC)</text>
-<text text-anchor="start" x="819.5" y="-218.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;1:+12V &#160;&#160;&#160;</text>
-<text text-anchor="start" x="950" y="-218.3" font-family="arial" font-size="14.00">P2:1:VM + 100uF</text>
+<text text-anchor="start" x="710" y="-237.3" font-family="arial" font-size="14.00"> </text>
+<text text-anchor="start" x="644.5" y="-218.3" font-family="arial" font-size="14.00">P1:1:+12V (after PTC)</text>
+<text text-anchor="start" x="808" y="-218.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;1:RD:+12V &#160;&#160;&#160;</text>
+<text text-anchor="start" x="954" y="-218.3" font-family="arial" font-size="14.00">P2:1:VM + 100uF</text>
 <polygon fill="#000000" stroke="transparent" points="630.5,-210.5 630.5,-212.5 1091.5,-212.5 1091.5,-210.5 630.5,-210.5"/>
-<polygon fill="#ffffff" stroke="transparent" points="630.5,-208.5 630.5,-210.5 1091.5,-210.5 1091.5,-208.5 630.5,-208.5"/>
+<polygon fill="#ff0000" stroke="transparent" points="630.5,-208.5 630.5,-210.5 1091.5,-210.5 1091.5,-208.5 630.5,-208.5"/>
 <polygon fill="#000000" stroke="transparent" points="630.5,-206.5 630.5,-208.5 1091.5,-208.5 1091.5,-206.5 630.5,-206.5"/>
-<text text-anchor="start" x="684.5" y="-193.3" font-family="arial" font-size="14.00">P1:2:GND</text>
-<text text-anchor="start" x="820.5" y="-193.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;2:GND &#160;&#160;&#160;</text>
-<text text-anchor="start" x="972" y="-193.3" font-family="arial" font-size="14.00">P2:2:GND</text>
+<text text-anchor="start" x="680.5" y="-193.3" font-family="arial" font-size="14.00">P1:2:GND</text>
+<text text-anchor="start" x="809.5" y="-193.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;2:BK:GND &#160;&#160;&#160;</text>
+<text text-anchor="start" x="976" y="-193.3" font-family="arial" font-size="14.00">P2:2:GND</text>
 <polygon fill="#000000" stroke="transparent" points="630.5,-185.5 630.5,-187.5 1091.5,-187.5 1091.5,-185.5 630.5,-185.5"/>
-<polygon fill="#ffffff" stroke="transparent" points="630.5,-183.5 630.5,-185.5 1091.5,-185.5 1091.5,-183.5 630.5,-183.5"/>
+<polygon fill="#000000" stroke="transparent" points="630.5,-183.5 630.5,-185.5 1091.5,-185.5 1091.5,-183.5 630.5,-183.5"/>
 <polygon fill="#000000" stroke="transparent" points="630.5,-181.5 630.5,-183.5 1091.5,-183.5 1091.5,-181.5 630.5,-181.5"/>
-<text text-anchor="start" x="673.5" y="-168.3" font-family="arial" font-size="14.00">P1:4:+5V VIO</text>
-<text text-anchor="start" x="823.5" y="-168.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;3:+5V &#160;&#160;&#160;</text>
-<text text-anchor="start" x="931" y="-168.3" font-family="arial" font-size="14.00">P2:4:VIO + MS1 + MS2</text>
+<text text-anchor="start" x="669.5" y="-168.3" font-family="arial" font-size="14.00">P1:4:+5V VIO</text>
+<text text-anchor="start" x="810" y="-168.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;3:OG:+5V &#160;&#160;&#160;</text>
+<text text-anchor="start" x="935" y="-168.3" font-family="arial" font-size="14.00">P2:4:VIO + MS1 + MS2</text>
 <polygon fill="#000000" stroke="transparent" points="630.5,-160.5 630.5,-162.5 1091.5,-162.5 1091.5,-160.5 630.5,-160.5"/>
-<polygon fill="#ffffff" stroke="transparent" points="630.5,-158.5 630.5,-160.5 1091.5,-160.5 1091.5,-158.5 630.5,-158.5"/>
+<polygon fill="#ff8000" stroke="transparent" points="630.5,-158.5 630.5,-160.5 1091.5,-160.5 1091.5,-158.5 630.5,-158.5"/>
 <polygon fill="#000000" stroke="transparent" points="630.5,-156.5 630.5,-158.5 1091.5,-158.5 1091.5,-156.5 630.5,-156.5"/>
-<text text-anchor="start" x="646.5" y="-143.3" font-family="arial" font-size="14.00">P1:5:KEY_STEP (D23)</text>
-<text text-anchor="start" x="818" y="-143.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;4:STEP &#160;&#160;&#160;</text>
-<text text-anchor="start" x="970" y="-143.3" font-family="arial" font-size="14.00">P2:5:STEP</text>
+<text text-anchor="start" x="642.5" y="-143.3" font-family="arial" font-size="14.00">P1:5:KEY_STEP (D23)</text>
+<text text-anchor="start" x="807" y="-143.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;4:YE:STEP &#160;&#160;&#160;</text>
+<text text-anchor="start" x="974" y="-143.3" font-family="arial" font-size="14.00">P2:5:STEP</text>
 <polygon fill="#000000" stroke="transparent" points="630.5,-135.5 630.5,-137.5 1091.5,-137.5 1091.5,-135.5 630.5,-135.5"/>
-<polygon fill="#ffffff" stroke="transparent" points="630.5,-133.5 630.5,-135.5 1091.5,-135.5 1091.5,-133.5 630.5,-133.5"/>
+<polygon fill="#ffff00" stroke="transparent" points="630.5,-133.5 630.5,-135.5 1091.5,-135.5 1091.5,-133.5 630.5,-133.5"/>
 <polygon fill="#000000" stroke="transparent" points="630.5,-131.5 630.5,-133.5 1091.5,-133.5 1091.5,-131.5 630.5,-131.5"/>
-<text text-anchor="start" x="669" y="-118.3" font-family="arial" font-size="14.00">P1:6:UART bus</text>
-<text text-anchor="start" x="817.5" y="-118.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;5:UART &#160;&#160;&#160;</text>
-<text text-anchor="start" x="934" y="-118.3" font-family="arial" font-size="14.00">P2:6:RX = PDN_UART</text>
+<text text-anchor="start" x="665" y="-118.3" font-family="arial" font-size="14.00">P1:6:UART bus</text>
+<text text-anchor="start" x="805" y="-118.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;5:GN:UART &#160;&#160;&#160;</text>
+<text text-anchor="start" x="938" y="-118.3" font-family="arial" font-size="14.00">P2:6:RX = PDN_UART</text>
 <polygon fill="#000000" stroke="transparent" points="630.5,-110.5 630.5,-112.5 1091.5,-112.5 1091.5,-110.5 630.5,-110.5"/>
-<polygon fill="#ffffff" stroke="transparent" points="630.5,-108.5 630.5,-110.5 1091.5,-110.5 1091.5,-108.5 630.5,-108.5"/>
+<polygon fill="#00ff00" stroke="transparent" points="630.5,-108.5 630.5,-110.5 1091.5,-110.5 1091.5,-108.5 630.5,-108.5"/>
 <polygon fill="#000000" stroke="transparent" points="630.5,-106.5 630.5,-108.5 1091.5,-108.5 1091.5,-106.5 630.5,-106.5"/>
-<text text-anchor="start" x="647" y="-93.3" font-family="arial" font-size="14.00">P1:7:KEY_DIAG (D19)</text>
-<text text-anchor="start" x="819" y="-93.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;6:DIAG &#160;&#160;&#160;</text>
-<text text-anchor="start" x="970.5" y="-93.3" font-family="arial" font-size="14.00">P2:7:DIAG</text>
+<text text-anchor="start" x="643" y="-93.3" font-family="arial" font-size="14.00">P1:7:KEY_DIAG (D19)</text>
+<text text-anchor="start" x="805.5" y="-93.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;6:WH:DIAG &#160;&#160;&#160;</text>
+<text text-anchor="start" x="974.5" y="-93.3" font-family="arial" font-size="14.00">P2:7:DIAG</text>
 <polygon fill="#000000" stroke="transparent" points="630.5,-85.5 630.5,-87.5 1091.5,-87.5 1091.5,-85.5 630.5,-85.5"/>
 <polygon fill="#ffffff" stroke="transparent" points="630.5,-83.5 630.5,-85.5 1091.5,-85.5 1091.5,-83.5 630.5,-83.5"/>
 <polygon fill="#000000" stroke="transparent" points="630.5,-81.5 630.5,-83.5 1091.5,-83.5 1091.5,-81.5 630.5,-81.5"/>
-<text text-anchor="start" x="714" y="-68.3" font-family="arial" font-size="14.00"> </text>
-<text text-anchor="start" x="651" y="-49.3" font-family="arial" font-size="14.00">P1:8:SHIELD to GND</text>
+<text text-anchor="start" x="710" y="-68.3" font-family="arial" font-size="14.00"> </text>
+<text text-anchor="start" x="647" y="-49.3" font-family="arial" font-size="14.00">P1:8:SHIELD to GND</text>
 <text text-anchor="start" x="839.5" y="-49.3" font-family="arial" font-size="14.00">Shield</text>
 <polygon fill="#000000" stroke="transparent" points="630.5,-41.5 630.5,-43.5 1091.5,-43.5 1091.5,-41.5 630.5,-41.5"/>
-<text text-anchor="start" x="714" y="-28.3" font-family="arial" font-size="14.00"> </text>
+<text text-anchor="start" x="710" y="-28.3" font-family="arial" font-size="14.00"> </text>
 <polygon fill="none" stroke="black" points="630.5,0.5 630.5,-22.5 1091.5,-22.5 1091.5,0.5 630.5,0.5"/>
 <text text-anchor="start" x="634.5" y="-7.3" font-family="arial" font-size="14.00">Shield drain to GND at the dial end only (P1&#45;8); cut back and insulate at P2.</text>
 </g>
@@ -119,35 +119,35 @@
 <g id="edge1" class="edge">
 <title>P1:e&#45;&#45;W1:w</title>
 <path fill="none" stroke="#000000" stroke-width="2" d="M486,-221.5C548.96,-222.02 564.35,-208.02 630,-207.5"/>
-<path fill="none" stroke="#ffffff" stroke-width="2" d="M486,-223.5C550.3,-223.5 565.7,-209.5 630,-209.5"/>
+<path fill="none" stroke="#ff0000" stroke-width="2" d="M486,-223.5C550.3,-223.5 565.7,-209.5 630,-209.5"/>
 <path fill="none" stroke="#000000" stroke-width="2" d="M486,-225.5C551.65,-224.98 567.04,-210.98 630,-211.5"/>
 </g>
 <!-- P1&#45;&#45;W1 -->
 <g id="edge3" class="edge">
 <title>P1:e&#45;&#45;W1:w</title>
 <path fill="none" stroke="#000000" stroke-width="2" d="M486,-198.5C548.94,-199.12 564.16,-183.12 630,-182.5"/>
-<path fill="none" stroke="#ffffff" stroke-width="2" d="M486,-200.5C550.39,-200.5 565.61,-184.5 630,-184.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M486,-200.5C550.39,-200.5 565.61,-184.5 630,-184.5"/>
 <path fill="none" stroke="#000000" stroke-width="2" d="M486,-202.5C551.84,-201.88 567.06,-185.88 630,-186.5"/>
 </g>
 <!-- P1&#45;&#45;W1 -->
 <g id="edge5" class="edge">
 <title>P1:e&#45;&#45;W1:w</title>
 <path fill="none" stroke="#000000" stroke-width="2" d="M486,-151.5C550.76,-151.63 566.65,-157.63 630,-157.5"/>
-<path fill="none" stroke="#ffffff" stroke-width="2" d="M486,-153.5C550.06,-153.5 565.94,-159.5 630,-159.5"/>
+<path fill="none" stroke="#ff8000" stroke-width="2" d="M486,-153.5C550.06,-153.5 565.94,-159.5 630,-159.5"/>
 <path fill="none" stroke="#000000" stroke-width="2" d="M486,-155.5C549.35,-155.37 565.24,-161.37 630,-161.5"/>
 </g>
 <!-- P1&#45;&#45;W1 -->
 <g id="edge7" class="edge">
 <title>P1:e&#45;&#45;W1:w</title>
 <path fill="none" stroke="#000000" stroke-width="2" d="M486,-128.5C550.51,-128.56 566.46,-132.56 630,-132.5"/>
-<path fill="none" stroke="#ffffff" stroke-width="2" d="M486,-130.5C550.02,-130.5 565.98,-134.5 630,-134.5"/>
+<path fill="none" stroke="#ffff00" stroke-width="2" d="M486,-130.5C550.02,-130.5 565.98,-134.5 630,-134.5"/>
 <path fill="none" stroke="#000000" stroke-width="2" d="M486,-132.5C549.54,-132.44 565.49,-136.44 630,-136.5"/>
 </g>
 <!-- P1&#45;&#45;W1 -->
 <g id="edge9" class="edge">
 <title>P1:e&#45;&#45;W1:w</title>
 <path fill="none" stroke="#000000" stroke-width="2" d="M486,-105.5C550.25,-105.52 566.24,-107.52 630,-107.5"/>
-<path fill="none" stroke="#ffffff" stroke-width="2" d="M486,-107.5C550.01,-107.5 565.99,-109.5 630,-109.5"/>
+<path fill="none" stroke="#00ff00" stroke-width="2" d="M486,-107.5C550.01,-107.5 565.99,-109.5 630,-109.5"/>
 <path fill="none" stroke="#000000" stroke-width="2" d="M486,-109.5C549.76,-109.48 565.75,-111.48 630,-111.5"/>
 </g>
 <!-- P1&#45;&#45;W1 -->
@@ -511,35 +511,35 @@
 <g id="edge2" class="edge">
 <title>W1:e&#45;&#45;P2:w</title>
 <path fill="none" stroke="#000000" stroke-width="2" d="M1091,-207.5C1212.09,-207.72 1241.72,-222.72 1361,-222.5"/>
-<path fill="none" stroke="#ffffff" stroke-width="2" d="M1091,-209.5C1211.19,-209.5 1240.81,-224.5 1361,-224.5"/>
+<path fill="none" stroke="#ff0000" stroke-width="2" d="M1091,-209.5C1211.19,-209.5 1240.81,-224.5 1361,-224.5"/>
 <path fill="none" stroke="#000000" stroke-width="2" d="M1091,-211.5C1210.28,-211.28 1239.91,-226.28 1361,-226.5"/>
 </g>
 <!-- W1&#45;&#45;P2 -->
 <g id="edge4" class="edge">
 <title>W1:e&#45;&#45;P2:w</title>
 <path fill="none" stroke="#000000" stroke-width="2" d="M1091,-182.5C1212.24,-182.77 1241.76,-199.77 1361,-199.5"/>
-<path fill="none" stroke="#ffffff" stroke-width="2" d="M1091,-184.5C1211.24,-184.5 1240.76,-201.5 1361,-201.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M1091,-184.5C1211.24,-184.5 1240.76,-201.5 1361,-201.5"/>
 <path fill="none" stroke="#000000" stroke-width="2" d="M1091,-186.5C1210.24,-186.23 1239.76,-203.23 1361,-203.5"/>
 </g>
 <!-- W1&#45;&#45;P2 -->
 <g id="edge6" class="edge">
 <title>W1:e&#45;&#45;P2:w</title>
 <path fill="none" stroke="#000000" stroke-width="2" d="M1091,-157.5C1210.69,-157.53 1240.65,-152.53 1361,-152.5"/>
-<path fill="none" stroke="#ffffff" stroke-width="2" d="M1091,-159.5C1211.02,-159.5 1240.98,-154.5 1361,-154.5"/>
+<path fill="none" stroke="#ff8000" stroke-width="2" d="M1091,-159.5C1211.02,-159.5 1240.98,-154.5 1361,-154.5"/>
 <path fill="none" stroke="#000000" stroke-width="2" d="M1091,-161.5C1211.35,-161.47 1241.31,-156.47 1361,-156.5"/>
 </g>
 <!-- W1&#45;&#45;P2 -->
 <g id="edge8" class="edge">
 <title>W1:e&#45;&#45;P2:w</title>
 <path fill="none" stroke="#000000" stroke-width="2" d="M1091,-132.5C1210.81,-132.51 1240.79,-129.51 1361,-129.5"/>
-<path fill="none" stroke="#ffffff" stroke-width="2" d="M1091,-134.5C1211.01,-134.5 1240.99,-131.5 1361,-131.5"/>
+<path fill="none" stroke="#ffff00" stroke-width="2" d="M1091,-134.5C1211.01,-134.5 1240.99,-131.5 1361,-131.5"/>
 <path fill="none" stroke="#000000" stroke-width="2" d="M1091,-136.5C1211.21,-136.49 1241.19,-133.49 1361,-133.5"/>
 </g>
 <!-- W1&#45;&#45;P2 -->
 <g id="edge10" class="edge">
 <title>W1:e&#45;&#45;P2:w</title>
 <path fill="none" stroke="#000000" stroke-width="2" d="M1091,-107.5C1210.93,-107.5 1240.93,-106.5 1361,-106.5"/>
-<path fill="none" stroke="#ffffff" stroke-width="2" d="M1091,-109.5C1211,-109.5 1241,-108.5 1361,-108.5"/>
+<path fill="none" stroke="#00ff00" stroke-width="2" d="M1091,-109.5C1211,-109.5 1241,-108.5 1361,-108.5"/>
 <path fill="none" stroke="#000000" stroke-width="2" d="M1091,-111.5C1211.07,-111.5 1241.07,-110.5 1361,-110.5"/>
 </g>
 <!-- W1&#45;&#45;P2 -->

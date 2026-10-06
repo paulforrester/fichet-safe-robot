@@ -1,7 +1,6 @@
 # Wiring harness for the Fichet safe robot — see control/wiring.md.
 # Render: wireviz control/harness/harness.yml   (WireViz 0.4.1 + Graphviz)
-# Conductor colours of the QUARKZMAN cable are not known yet: fill them in
-# (colors: [...]) once Paul has looked at the cable.
+# Cable colours from Paul (2026-10-06); assignment in control/wiring.md §4.
 
 connectors:
   P1:
@@ -48,6 +47,7 @@ cables:
     gauge: 22 AWG
     length: 0.3
     shield: true
+    colors: [RD, BK, OG, YE, GN, WH]
     wirelabels: [+12V, GND, +5V, STEP, UART, DIAG]
     notes: Shield drain to GND at the dial end only (P1-8); cut back and insulate at P2.
   J1:
