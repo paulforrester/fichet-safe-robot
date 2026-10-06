@@ -214,12 +214,24 @@ Resolved 2026-09-29:
       ~100 magnets already on hand.
 
 Still open:
-- [ ] Key bow dimensions (width, thickness, how far it protrudes from
-      the socket face) — needed to design the key-turner's gripper.
-      `cad/key_turner_housing.scad` v0.1 sidesteps this with an
-      adjustable clamp rather than a fitted pocket — see
-      `docs/housing_decisions.md` — but the clamp's own working range
-      (9mm slot) still needs the real bow checked against it.
+- [~] Key / lock-hole measurements (Paul, calipers, 2026-10-06):
+      lock hole **12.05mm** dia; the key **protrudes 31.89mm** from the
+      door when fully home; **overall key length 84.75mm** (so the
+      shaft in the lock is ~53mm); the key turns **clockwise ~100deg
+      then stops**. Still needed for a fitted gripper (vs. the v0.1
+      adjustable clamp): the bow's width and thickness, the ring-hole
+      diameter and its centre offset from the key axis, the round
+      shaft's diameter just below the bow, and the bow's rest
+      orientation when the key is home. Torque to turn is still
+      unmeasured (sized once the motor is on it).
+- [x] Lock hole position relative to the dial cluster — **calipers
+      2026-10-06**: top-left dial->lock 110.13mm (far 122.25 / near
+      98.01), bottom dial->lock 126.95mm (far 139.4 / near 114.5).
+      Trilaterated against the dial triangle: the lock sits **~125mm to
+      the left of the dial-cluster centre, essentially level** (1.8mm
+      low), matching the door photo. The dial plate is r75, so ~50mm of
+      clear door between the plate edge and the lock hole — the two
+      units sit side by side with room. Cable run between them ~125mm.
 - [x] Center-to-center spacing between the 3 dial holes — **measured with
       calipers 2026-10-05**: isosceles, 33.0mm across the top pair, 42.5mm
       from each to the bottom hole (apex down). Holes 13.0mm dia; the
@@ -228,11 +240,9 @@ Still open:
       stops at 8.92mm). In
       `cad/dial_unit_housing.scad` (v2); the 36mm equilateral placeholder
       was wrong by up to ~5mm. See `docs/housing_decisions.md`.
-- [ ] Rough distance from the dial cluster to socket #4 (doesn't need
-      precision — just enough to plan cable length between the two
-      units, now that they're not one rigid frame). Same photos give
-      ~55mm — see `docs/housing_decisions.md`. This one probably can be
-      treated as answered, given the stated precision bar.
+      (Superseded by the caliper measurement above — the old ~55mm
+      photo estimate for the dial-to-lock gap was low; it's ~125mm
+      centre-to-centre.)
 - [ ] Verify each dial wheel has a hard stop near position 1, for the
       homing move in step 4 to find.
 - [ ] Torque/effort needed to turn each dial wheel and the key, to
