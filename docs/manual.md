@@ -90,9 +90,9 @@ the print notes in `cad/dial_unit_housing.scad` (end of file) and
 
 PETG-CF needs the hardened (tungsten carbide) hotend.
 
-**Not stated in the repo:** infill, walls, layer height, supports. Use your
-usual settings for functional parts, and tell me what you used so I can
-record it.
+**Slicer:** Bambu Studio's default settings for the H2D, which is what
+you've used so far (Paul, 2026-10-06). Turn on elephant-foot compensation
+where the table says so.
 
 **Don't print:**
 - `dial_unit_housing.stl` and `key_turner_housing.stl`: whole-unit layouts
@@ -116,9 +116,9 @@ key-turner base (both changed 2026-10-06), plus the retainers.
 | Item | Dial unit | Key turner | Status |
 |---|---|---|---|
 | 608 bearings (8 × 22 × 7) | 6 (2 per dial) | — | on hand |
-| Compression springs ≤ 8 mm OD, ~18–20 mm free, solid < 10 mm | 3 | — | **chosen, not yet marked ordered** in `docs/bom.md`: QUARKZMAN 0.5 × 7 × 20 mm, 304 stainless. Count the coils on arrival |
+| Compression springs ≤ 8 mm OD, ~18–20 mm free, solid < 10 mm | 3 | — | ordered: QUARKZMAN 0.5 × 7 × 20 mm, 304 stainless, arriving 2026-10-07 (Paul). Count the coils on arrival |
 | M3 × 10 countersunk, hex socket (motor screws; the length includes the head) | 12 | 4 | on hand (kit has 55) |
-| M6 countersunk self-tapping | 6 × ~16 mm | 3 × **20 mm** | ~16 mm on hand. **VERIFY you have M6 × 20**: they're not in `docs/bom.md` |
+| M6 countersunk self-tapping, 16 mm | 6 | 3 | on hand. On the key turner, 16 mm works better than the 20 mm the CAD notes listed (Paul, 2026-10-06) |
 | M3 × 6–8, self-tapping into PETG (Mega base plate to deck) | 4 (3 go in) | — | on hand |
 | M3 × 3 or × 4 **grub** screws (pinion / hub), optional | 3 | 1 | optional. **Never a cap screw**: its head would hit the gear |
 | 22 mm rubber pot magnets, M4 back (Wukong) | 6 | 3 | ordered |
@@ -209,8 +209,8 @@ From the notes at the end of `cad/key_turner_housing.scad`:
 3. **Hub onto the shaft.** Its D-bore sits entirely on the shaft's flat.
    Push it on until the shaft tip bottoms in the bore. The grub screw is
    optional.
-4. **Plate onto the legs.** Three M6 × 20 countersunk self-tappers, the first
-   by hand.
+4. **Plate onto the legs.** Three M6 × 16 countersunk self-tappers, the first
+   by hand. That's 10 mm of thread in each leg, as on the dial unit.
 5. **Cap.** It's a loose part that sits between the key and the hub: its
    slot takes the bow, and its tongue sits in the hub's groove. It lets the
    unit sit up to 2.7 mm off the key axis without side-loading the lock.
@@ -243,7 +243,6 @@ From the notes at the end of `cad/key_turner_housing.scad`:
 ### 1.7 Mechanical items still open
 
 - Magnet pull test (1.3), and whether the magnets alone hold the units.
-- Springs: order them, if not done yet.
 - Reprint the dial front assembly and key-turner base with magnet holes.
 - CAD: mount for the remote driver board; a place on the deck for the hub
   board and the button.
@@ -459,8 +458,7 @@ There are three pieces:
 - **Host tests** (`control/firmware/test/`) are optional. They check the
   firmware's logic on the Mac against a simulated lock.
 
-**ASSUMPTION: you're on a Mac.** On Windows or Linux, only the port names
-and the Python install differ; tell me and I'll add those.
+Written for a Mac (Paul, 2026-10-06).
 
 ### 3.1 Get the code
 

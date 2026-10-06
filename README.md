@@ -77,7 +77,7 @@ HEIGHT (radial), DEPTH (axial into the socket) — see
 - Dial unit v2 (geared, 608 bearings — see `docs/housing_decisions.md`):
   print the door-pattern test (`cad/print_dial_pattern_test.scad`) and the
   three gear-shafts first, and check them on the real door, before the
-  big parts. Buy 3 small compression springs.
+  big parts. Springs ordered (arriving 2026-10-07).
 - Wiring harness designed (`control/wiring.md`); firmware written and
   host-tested (`control/firmware/`); next: the bench bring-up
   (`control/bringup.md`).
