@@ -166,6 +166,11 @@ Until the dial torque is measured, run the dial drivers at about 1A RMS:
 the reduction doubles what the motor can put into the printed gear and
 plug teeth.
 
+**Key torque (measured 2026-10-06): 0.69 N·m** (1.4 kg at 50mm). More than
+the motor's 0.59 N·m holding torque, so the key turner gets a ~4:1 reduction
+(redesign pending). Set the key motor's current / StallGuard threshold so the
+drive stops at the end stop instead of pushing the housing off the door.
+
 ## Operating sequence
 
 1. Real key inserted into hole 4 (manual, one-time per session).
