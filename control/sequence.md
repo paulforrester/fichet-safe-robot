@@ -89,6 +89,11 @@ carry each local driver's DIAG (stall-output) signal** instead of an
 actual mechanical switch — X_MIN (pin 3), Y_MIN (pin 14), Z_MIN (pin
 18), one per local dial motor's driver. With UART on `Serial2`, none of
 these three are double-booked.
+**Correction (2026-10-06, `control/wiring.md`):** the DIAG lines go to
+X_MIN (D3), **X_MAX (D2)** and Z_MIN (D18) for dials A/B/C, and the key's
+DIAG to Z_MAX (D19). DIAG is a *pulse* (TMC2209 datasheet §11.2), so the
+firmware latches it with an interrupt, and Y_MIN's D14 has no external
+interrupt on the Mega. Y_MIN now takes the start/stop button.
 
 For the remote key-turner driver (off-shield): STEP/DIR/ENABLE + its
 DIAG line are wired from 4 free Mega digital pins (exact pins aren't
@@ -98,6 +103,14 @@ alongside the shared `Serial2` UART tap and 12V/GND motor power. Each
 driver (all 4) also needs a ~1kΩ resistor between the MCU's UART TX pin
 and its own PDN_UART pin — standard TMC2209 single-wire UART wiring,
 one resistor per driver regardless of bus-sharing.
+
+**Correction (2026-10-06, `control/wiring.md`):** (1) one 1kΩ resistor in
+total, not one per driver: TX2 → 1kΩ → bus, RX2 and every driver's
+PDN_UART straight on the bus — the datasheet's own circuit (TMC2209 DS
+Fig. 4.1). (2) The key-turner driver gets only STEP (D23), DIAG (D19),
+UART, 12V, GND and 5V over the 6-conductor cable; its EN and DIR are tied
+to GND on its board, and the firmware disables it and sets its direction
+over UART (CHOPCONF.TOFF, GCONF.shaft).
 
 ## Mounting: two independent units, not one frame
 
@@ -144,7 +157,9 @@ force feedback. So only logic-level signals cross the cable to the
 key-turner unit (step/dir/enable + UART for the stall threshold) plus
 motor power — a 6-8 conductor cable with a small keyed connector
 (e.g. JST-XH) at each end, so the key-turner unit can be unplugged
-for repositioning.
+for repositioning. (Built with the 6-conductor shielded cable and 5.08mm
+8-pin pluggable screw terminals that were ordered — pin-out in
+`control/wiring.md` §4.)
 
 **Alignment**: the key-turner unit has an easier mounting job than the
 dial unit — since the real key is already seated in socket #4 by hand

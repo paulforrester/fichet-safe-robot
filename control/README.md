@@ -1,9 +1,11 @@
-# Control (motors, servos, circuitry, firmware)
+# Control (motors, drivers, wiring, firmware)
 
-Not started yet. This will hold:
-
-- Motor/servo selection for turning and reading each dial
-- Driver circuitry (schematics, BOM)
-- Firmware for indexing a dial and detecting the "click" of a correct
-  digit
-- The combination-search logic once mechanical + electrical are solid
+- `sequence.md` — control architecture and the operating sequence (seat,
+  home, learn the key's stop angle, the 8,000-combination loop, false sets).
+- `wiring.md` — the wiring harness: pin map, driver jumpers and UART
+  addresses, inter-unit cable pin-out, the dial-end hub board and the
+  key-turner driver board, motor currents, power-up order, shopping list,
+  with sources.
+- `harness/` — WireViz harness diagram and a Graphviz overview (sources +
+  rendered SVG/PNG).
+- Firmware (`firmware/`) and the bench bring-up plan (`bringup.md`) come next.
