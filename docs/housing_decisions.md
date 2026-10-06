@@ -6,33 +6,32 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
-## 2026-10-06: key fit test passed; key torque measured, and direct drive is not enough
+## 2026-10-06: key fit test passed; key torque 0.07–0.08 N·m — direct drive is fine
 
 **Fit test (Paul, `key_fit_test.stl`, cap in PETG-CF):** the cap slides onto
 the bow without forcing, sits with the key tip just short of the slot bottom,
 and turns the key to its stop. Cap geometry confirmed as designed.
 
 **Torque:** luggage scale in the lever hole (50mm from the axis) read
-**1.4 kg** to turn the key: 1.4 × 9.81 × 0.050 = **0.69 N·m**. (Assumes the
-pull was square to the lever and 1.4 kg is the highest reading over the turn.)
+**0.14–0.16 kg** to turn the key: × 9.81 × 0.050 = **0.069–0.078 N·m**.
+(Correction: first reported as 1.4 kg, a misread decimal — Paul caught it
+the same day. The 1.4 kg version had concluded the motor was too weak and
+needed a 4:1 reduction; that conclusion is withdrawn.)
 
-**Consequence 1: the motor can't turn it direct.** The 17HE19-2004S is rated
-0.59 N·m *holding* at its full 2.0 A — less than the key needs even before
-running torque (lower, and falling with speed) and the lower current a
-TMC2209 runs at comfortably are counted. At ~1.0–1.4 A expect roughly
-0.3–0.4 N·m. Key turner v1's direct drive therefore needs a reduction:
-about **4:1** gives ~2× margin (≈1.4 N·m out from ≈0.35 in). Speed doesn't
-matter — 100° of key is 400° of motor at 4:1.
+**Motor:** the 17HE19-2004S is rated 0.59 N·m holding at 2.0 A; running
+torque is lower and falls with speed, and at the ~1 A the drivers are
+planned to run at, expect roughly 0.3 N·m. That is about 4× the key's
+torque, so **v1's direct drive stays** — no gearing.
 
-**Consequence 2: the housing has to hold the same torque.** Whatever turns
-the key pushes back on the housing, gears or not. On the three door magnets
-at r31mm, 0.69 N·m is 22 N (~2.3 kgf) of sideways load, ~0.75 kg per magnet
-on top of the unit's weight — and at the key's end stop the drive can push
-harder than 0.69 unless StallGuard / the current limit stops it (with 4:1,
-up to ~1.4 N·m → ~1.5 kg per magnet). The magnets' shear grip is unknown
-until the pull test. Options: a rigid tie bar to the dial unit (125mm
-arm → only ~5.5 N on the dial unit's six magnets), or more magnets on a
-wider circle on the key turner. Decision pending (Paul).
+**Housing / magnets:** whatever turns the key pushes back on the housing.
+While turning: 0.078 N·m ÷ 0.031m (magnet circle radius) = 2.5 N (~0.26 kgf)
+across 3 magnets, ~0.09 kg each — small. The bigger load is at the key's
+end stop, where the motor pushes with everything it has until it is
+stopped: at full 2 A that could approach 0.59 N·m (~0.65 kg per magnet).
+So run the key motor at reduced current — enough for ~2× the key's torque
+— and stop on StallGuard at the end stop; that keeps the stop load to a
+fraction of what the magnets need to hold anyway. Still confirm with the
+one-magnet pull test.
 
 ## 2026-10-06: both units mount with 22mm rubber-coated pot magnets (Wukong)
 
