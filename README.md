@@ -31,6 +31,8 @@ essentially the full `docs/bom.md`, tracked there against every line.
 
 ## Repo layout
 
+- `CLAUDE.md` — context and working rules for Claude sessions (cloud or
+  local): project facts, decisions, open issues, how Paul works.
 - `cad/` — OpenSCAD source for 3D-printed parts.
   - `tube_socket_test_key.scad` — the confirmed spline/tooth geometry,
     parametric (tooth height, width, and an engraved label are all
