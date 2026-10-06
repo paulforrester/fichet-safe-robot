@@ -13,6 +13,7 @@
 #
 # Use: paste PART 1 into build_model (clean: true), then PART 2, then
 # PART 3, then save_model. Units are set to mm in PART 1.
+# Rebuilt 2026-10-06 (countersunk motor-screw holes in the sled, scene 6 added).
 # ============================================================
 
 # ======================= PART 1: geometry + definitions =======================
@@ -53,7 +54,7 @@ DECK_H = 48.0 + 6.0; DECK_Z = MOTOR_FACE + DECK_H; DECK_T = 5.0
 LEG_R = 6.0; PILOT_R = 5.4 / 2; PILOT_D = 12.0
 M6_CLR_R = 6.4 / 2; CSK_R = 14.0 / 2; CSK_D = (14.0 - 6.4) / 2
 BOSS_REC_R = 23.0 / 2; BOSS_REC_H = 2.5; SHAFT_HOLE_R = 7.0 / 2
-BOLT_SQ = 31.0; BOLT_R = 3.4 / 2; CB_R = 6.5 / 2; CB_D = 2.0
+BOLT_SQ = 31.0; BOLT_R = 3.4 / 2; CB_R = 6.3 / 2; CB_D = (6.3 - 3.4) / 2   # M3 90deg countersink (2026-10-06)
 NEMA = 42.3; CAN_CLR = 1.5
 MAG_R, MAG_D, MAG_PITCH, MAG_OFF = 4.0, 1.9, 10.0, (5.0, 3.0)
 FRONT_R = 75.0; PTR_LEN, PTR_W = 10.0, 16.0
@@ -287,8 +288,7 @@ def motor_sled():
         F.append(hface(rec[i], zr, True, [shaft[i]]))
         F += wall(rec[i], zr, z1, outward=False)
     for k in range(len(cb)):
-        F += wall(cb[k], z0, z0 + CB_D, outward=False)
-        F.append(hface(cb[k], z0 + CB_D, False, [bh[k]]))
+        F += wall(cb[k], z0, z0 + CB_D, outward=False, loop2_top=bh[k])   # countersink cone
         F += wall(bh[k], z0 + CB_D, z1, outward=False)
     for h in H: F += blind_hole_from_bottom(h, SPRING_R, 24, z0, SLED_SPRING_D)
     zc = z1 - CSK_D
@@ -537,11 +537,68 @@ ge = build('Dial unit - exploded', (260, 0, 130),
 ge.set_layer(tags['Exploded view'])
 
 # ======================= PART 3: style, scenes, camera =======================
-# (product-studio look from the connector's sketchup-styles skill, AO off)
-# apply_preset(...) with DEFAULTS + FURNITURE_STUDIO, then 5 scenes, each
-# hiding tags: 1 Assembled on the door / 2 Gear train (sled, motors, deck
-# hidden) / 3 Exploded / 4 Seen from in front of the safe / 5 Motor sled
-# side (deck hidden). Camera eye/target in inches, SketchUp frame:
-#   1: (-8.4,-13.7,11.2) -> (0,-2.2,5.3) fov 35   2: (4.6,-7.8,10.4) -> (0,-0.6,5.1) fov 35
-#   3: (37.4,-3.5,20) -> (10.2,-11.3,5.3) fov 35  4: (0,-40,5.12) -> (0,0,5.12) fov 12
-#   5: (9.5,-13,9.5) -> (0,-2.2,5.1) fov 35
+# Product-studio look (connector's sketchup-styles skill, AO off). Scene tabs
+# hide tags; camera eye/target are inches in the SketchUp frame.
+DEFAULTS = {
+    "rendering_options": {
+        "EDGE_DISPLAY_MODE": TypedValue(int_value=1), "EDGE_COLOR_MODE": TypedValue(int_value=0),
+        "RENDER_MODE": TypedValue(int_value=2), "MODEL_TRANSPARENCY": TypedValue(bool_value=False),
+        "MATERIAL_TRANSPARENCY": TypedValue(bool_value=True), "DRAW_DEPTH_QUE": TypedValue(bool_value=False),
+        "DEPTH_QUE_WIDTH": TypedValue(int_value=2), "DRAW_SILHOUETTES": TypedValue(bool_value=True),
+        "SILHOUETTE_WIDTH": TypedValue(int_value=2), "DRAW_HORIZON": TypedValue(bool_value=False),
+        "DRAW_GROUND": TypedValue(bool_value=False), "DISPLAY_SKETCH_AXES": TypedValue(bool_value=False),
+        "HIGHLIGHT_COLOR": TypedValue(color_value=SUColor(0, 1, 255, 255)),
+        "LOCKED_COLOR": TypedValue(color_value=SUColor(255, 0, 0, 255)),
+    },
+    "shadow_info": {},
+}
+FURNITURE_STUDIO = {
+    "rendering_options": {
+        "BACKGROUND_COLOR": TypedValue(color_value=SUColor(214, 216, 218, 255)),
+        "FACE_FRONT_COLOR": TypedValue(color_value=SUColor(245, 240, 230, 255)),
+        "FACE_BACK_COLOR": TypedValue(color_value=SUColor(180, 178, 170, 255)),
+        "FOREGROUND_COLOR": TypedValue(color_value=SUColor(50, 48, 45, 255)),
+        "DEPTH_QUE_WIDTH": TypedValue(int_value=1),
+        "AMBIENT_OCCLUSION": TypedValue(bool_value=False),
+    },
+    "shadow_info": {
+        "DISPLAY_SHADOWS": TypedValue(bool_value=True),
+        "LIGHT": TypedValue(int_value=80), "DARK": TypedValue(int_value=60),
+    },
+}
+apply_preset(model, {
+    "rendering_options": {**DEFAULTS["rendering_options"], **FURNITURE_STUDIO["rendering_options"]},
+    "shadow_info": {**DEFAULTS["shadow_info"], **FURNITURE_STUDIO["shadow_info"]},
+})
+tags = {l.get_name(): l for l in model.get_layers()}
+EXP = 'Exploded view'
+scene_defs = [
+    ("1 Assembled on the door", [EXP], (-8.4, -13.7, 11.2), (0, -2.2, 5.3), 35.0),
+    ("2 Gear train", [EXP, 'Motor sled', 'Motors (dummy)', 'Electronics deck', 'Mega envelope (placeholder)'],
+     (4.6, -7.8, 10.4), (0, -0.6, 5.1), 35.0),
+    ("3 Exploded", ['Assembled view'], (37.4, -3.5, 20.0), (10.2, -11.3, 5.3), 35.0),
+    ("4 Seen from in front of the safe", [EXP], (0, -40.0, 5.12), (0, 0, 5.12), 12.0),
+    ("5 Motor sled side", [EXP, 'Electronics deck', 'Mega envelope (placeholder)'], (9.5, -13.0, 9.5), (0, -2.2, 5.1), 35.0),
+    # 2026-10-06: the sled's door-side face, to show the countersunk motor-screw holes
+    ("6 Sled inner face (countersunk motor screws)",
+     [EXP, 'Safe door (reference)', 'Front plate', 'Gear-shafts', '608 bearings', 'Springs (placeholder)', 'Pinions'],
+     (3.5, 9.5, 8.0), (0, -1.5, 5.12), 35.0),
+]
+scenes = []
+for name, _, _, _, _ in scene_defs:
+    sc = Scene(); sc.set_name(name); scenes.append(sc)
+model.add_scenes(scenes)                       # must be in the model before configuring
+for sc, (name, hide, eye, tgt, fov) in zip(scenes, scene_defs):
+    cam = Camera()
+    cam.set_orientation(SUPoint3D(*eye), SUPoint3D(*tgt), SUVector3D(0, 0, 1))
+    cam.enable_perspective(); cam.set_perspective_frustum_fov(fov)
+    sc.set_use_camera(True); sc.set_camera(cam)
+    sc.set_use_hidden_layers(True)
+    for h in hide: sc.add_layer(tags[h])       # add_layer = HIDE in that scene
+model.set_active_scene(scenes[0])
+tags[EXP].set_visibility(False)                # opening view matches scene 1
+mc = Camera()
+mc.set_orientation(SUPoint3D(-8.4, -13.7, 11.2), SUPoint3D(0, -2.2, 5.3), SUVector3D(0, 0, 1))
+mc.enable_perspective(); mc.set_perspective_frustum_fov(35.0)
+model.set_camera(mc)
+# then save_model. (Its thumbnail ignores the camera/scenes; open the file to check.)

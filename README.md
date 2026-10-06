@@ -19,12 +19,11 @@ for how we got here):
 | Tip diameter | 7.73 mm (measured), 7.38mm printed (0.35mm clearance) | working |
 | Collar diameter | 11.75 mm | confirmed, clears the ~12mm door recess |
 
-Housings for both units (dial unit, key-turner unit) have a **first
-pass** (v0.1) built — `cad/dial_unit_housing.scad` and
-`cad/key_turner_housing.scad`, see `docs/housing_decisions.md`. Not yet
-bench-fit; two dimensions (dial-hole spacing, key bow size) are
-placeholders pending real measurement — see that doc and
-`control/sequence.md`'s open items.
+Housings: the **dial unit v2** (`cad/dial_unit_housing.scad`, geared, on 608
+bearings — door-pattern test passed on the real door) and the **key turner v1**
+(`cad/key_turner_housing.scad`, slotted cap over the key's bow, motor on the key
+axis — print `print_key_fit_test.scad` first). How both attach to the door is
+still open. See `docs/housing_decisions.md` and `control/sequence.md`.
 
 Electronics ordering is done — four orders placed 2026-09-29 cover
 essentially the full `docs/bom.md`, tracked there against every line.

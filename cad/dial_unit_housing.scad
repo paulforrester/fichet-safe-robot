@@ -149,7 +149,7 @@ pinion_tip_r = gear_m * (pinion_teeth/2 + 1 + pinion_x);  // 8.2
 // own shaft. NOT picked by eye: annealing search (cad/tools/dial_layout_
 // check.py --optimise) over all 6 angles AND the 6 leg positions below,
 // maximising the worst margin over every clearance listed there (can-to-can
-// >= 6mm, pinion vs the OTHER dials' gears, counterbores vs spring pockets,
+// >= 6mm, pinion vs the OTHER dials' gears, countersinks vs spring pockets,
 // legs vs gears/pinions/cans, screw-driver access to every countersink,
 // everything inside the 150mm front plate). Re-run it if dial_* change.
 motor_dir = [216.4, 114.1, 337.1];  // degrees, dial -> motor shaft
@@ -262,9 +262,34 @@ m6_csk_depth       = (m6_csk_top_d - m6_clear_d) / 2;
 boss_recess_d  = nema17_boss_d + 1;    // 23 (Paul's sizing, v1)
 boss_recess_h  = nema17_boss_h + 0.5;  // 2.5
 motor_shaft_hole_d = nema17_shaft_d + 2;
-m3_cbore_d     = 6.5;   // M3 socket head 5.5 + 1
-m3_cbore_depth = 2;     // leaves 4mm under the head: an M3x8 then engages 4mm of the
-                        // motor's "M3 DEPTH 4.5 MIN" holes without bottoming
+// Motor screws: M3 COUNTERSUNK (ISO 10642 / DIN 7991, 90deg head), heads on the
+// sled's inner (cavity) face. 2026-10-06, Paul: the old 2mm flat counterbores
+// print with that face on the bed, so their shoulder is an unsupported bridge
+// and left strings that were hard to dig out. A 90deg cone prints as a 45deg
+// overhang (each layer steps in 0.2mm) — no bridge, no strings.
+// Paul's screws (2026-10-06): a generic 1080-pc kit of zinc-plated hex-socket
+// countersunk screws, M3x10 included — standard not printed on the box, so the
+// cone is sized to work with EITHER head standard:
+//   ISO 10642 M3: dk theoretical 6.72 at the top face, k 1.86 (= (6.72-3)/2, no land)
+//   DIN 7991  M3: dk 6.0 max, k 1.7 max (so up to a 0.2 cylindrical land above the cone)
+// A countersunk screw's length INCLUDES the head. Thread in the motor =
+// length - (plate + how far the head top stands proud of the face).
+// First pass used a 7.0 mouth: a DIN head with no land would then sit 0.5 deep
+// and put 4.5mm into the motor's "4.5 MIN" holes — could bottom. 6.3 instead:
+m3_csk_head_d   = 6.72;                                    // ISO head (the dummy below)
+m3_csk_top_d    = 6.3;                                     // cone mouth on the inner face
+m3_csk_depth    = (m3_csk_top_d - nema17_bolt_clear) / 2;  // 1.45 (90deg cone to the 3.4 hole)
+m3_csk_sink     = (m3_csk_top_d - m3_csk_head_d) / 2;      // -0.21: ISO head top 0.21 PROUD (harmless:
+                                                           //  nothing moves within 4.5mm of the sled face)
+m3_csk_len      = 10;   // M3x10 countersunk
+m3_engage_iso     = m3_csk_len - (motor_plate_h - m3_csk_sink);                         // 3.79
+m3_engage_din     = m3_csk_len - (motor_plate_h + 0.2 - (m3_csk_top_d - 6.0) / 2);     // 3.95 (0.2 land)
+m3_engage_din_max = m3_csk_len - (motor_plate_h - (m3_csk_top_d - 6.0) / 2);           // 4.15 (no land)
+for (e = [m3_engage_iso, m3_engage_din, m3_engage_din_max]) {
+    assert(e <= 4.5 - 0.3, "motor screw could bottom in the motor's 4.5mm-min holes");
+    assert(e >= 3.5, "motor screw too short for a solid grip");
+}
+echo(M3_ENGAGE_ISO_DIN_DINMAX = [m3_engage_iso, m3_engage_din, m3_engage_din_max]);
 
 function rot2(p, a) = [p[0]*cos(a) - p[1]*sin(a), p[0]*sin(a) + p[1]*cos(a)];
 motor_bolt_pts = [for (i = [0 : 2]) [for (k = [0 : 3])
@@ -368,7 +393,7 @@ module motor_plate() {
                 cylinder(d = boss_recess_d, h = boss_recess_h + eps_c, $fn = 64);
             for (b = motor_bolt_pts[i]) translate([b[0], b[1], -eps_c]) {
                 cylinder(d = nema17_bolt_clear, h = motor_plate_h + 2*eps_c, $fn = 24);
-                cylinder(d = m3_cbore_d, h = m3_cbore_depth + eps_c, $fn = 32);  // heads on the cavity side
+                cylinder(d1 = m3_csk_top_d + 2*eps_c, d2 = nema17_bolt_clear, h = m3_csk_depth + eps_c, $fn = 32);  // countersink, heads on the cavity side
             }
         }
         // spring pockets above each dial (inner face)
@@ -554,7 +579,8 @@ module assembled(part = "all", retract = 0, phase = 0) {
                 }
         if (part == "all" || part == str("m3heads", i))
             for (b = motor_bolt_pts[i])
-                translate([b[0], b[1], cavity_top + m3_cbore_depth - 3]) cylinder(d = 5.5, h = 3, $fn = 24);
+                translate([b[0], b[1], cavity_top + m3_csk_sink])   // ISO 10642 head, seated in its countersink
+                    cylinder(d1 = m3_csk_head_d, d2 = 3.0, h = (m3_csk_head_d - 3.0)/2, $fn = 24);
     }
 }
 
@@ -569,7 +595,7 @@ echo(LAYOUT = [
     ["z", [boss_h, gear_z0, gear_z1, pinion_z0, pinion_z1, cavity_top, motor_face_z, shaft_tip_z, deck_z, travel, plug_z0, plug_z1]],
     ["spring", [spring_len_fwd, spring_len_back, spring_pocket_d]], ["pinion_hub_h", pinion_hub_h],
     ["boss_d", boss_d], ["bearing_pocket_d", bearing_pocket_d], ["leg_dia", leg_dia], ["m6_csk_top_d", m6_csk_top_d],
-    ["m3_cbore_d", m3_cbore_d], ["boss_recess_d", boss_recess_d], ["front_plate_r", front_plate_r],
+    ["m3_csk_top_d", m3_csk_top_d], ["boss_recess_d", boss_recess_d], ["front_plate_r", front_plate_r],
     ["magnet_count", len(magnet_pts)]
 ]);
 echo(MAGNET_PTS = magnet_pts);
@@ -613,13 +639,14 @@ for (i = [0 : 2]) {
 //  - FIRST print dial_pattern_test() + the 3 gear-shafts and try them on
 //    the door (see section 10). Only then print the plate and sled.
 //  - front_assembly(): door face down (PETG). rear_assembly(): INNER face
-//    down (the face with the spring pockets/counterbores), legs up (PETG).
+//    down (the face with the spring pockets/screw countersinks), legs up (PETG).
 //    electronics_deck(): flat (PETG).
 //  - dial_gear_shaft(): gear face down, plug up, PETG-CF (wear part).
 //    motor_pinion(): hub down, teeth up, PETG-CF. Turn elephant-foot
 //    compensation on for both, or the bottom layer of the teeth binds.
 //  - Hardware: 6x 608 bearings, 3x compression springs (<= 8mm OD,
-//    ~18-20mm free, solid length < 10mm), 12x M3x8 socket head (motors),
+//    ~18-20mm free, solid length < 10mm), 12x M3x10 COUNTERSUNK (motors;
+//    ISO 10642 / DIN 7991 — length includes the head),
 //    optional 3x M3x3/M3x4 GRUB screws for the pinions (never a cap screw —
 //    see pinion_round_len), 6x M6 countersunk ~16mm
 //    (6mm plate + 10mm engagement, both joints), 4x M3 (Mega base).
