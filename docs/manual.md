@@ -395,6 +395,15 @@ PSU (Ledmo HTY-1200500, 12 V 5 A, 5.5 × 2.1 mm barrel, centre +) → DC-jack
 adapter → hub 12V IN → hub 12V OUT → RAMPS **5A** terminal. Use 20 AWG red
 for + and black for −.
 
+**Leave the Mega's own barrel jack empty.**
+- It feeds only the Mega (its VIN).
+- The motor drivers get 12 V only through the RAMPS "5A" terminal.
+- The RAMPS diode D1 passes power from that terminal to the Mega's VIN,
+  never back (RAMPS KiCad netlist: VIN connects only to D1's cathode).
+
+So a PSU in the Mega's jack would run the Mega but not the drivers: `ping`
+would report every driver missing.
+
 **Check the adapter's + / − marking with the multimeter** before the first
 power-up (`control/wiring.md` §10).
 

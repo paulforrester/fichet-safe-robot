@@ -23,7 +23,7 @@ from reportlab.pdfgen import canvas
 W, H = landscape(A4)          # 841.9 x 595.3 pt
 MIN_PT = 8
 DATE = "2026-10-07"
-REV = "3"
+REV = "4"
 BOTTOM = H - 82               # content above this; legend + title block below
 
 # ---------------------------------------------------------------- fonts
@@ -469,6 +469,10 @@ def sheet_power(s):
     s.para(142, 130, [("DC jack", True), "5.5 × 2.1 →", "screw terminal", ("VERIFY + / −", True, WARN)], 8)
     s.wire([(118, 136), (136, 136)], "12V")
     s.wire([(118, 170), (136, 170)], "GND")
+    s.para(24, 210, [("Not the Mega's own barrel", True, WARN), ("jack: that feeds only the", True, WARN),
+                     ("Mega (VIN). The drivers get", True, WARN), ("12 V only through the", True, WARN),
+                     ("RAMPS '5A' input; D1 passes", True, WARN), ("power from there to the", True, WARN),
+                     ("Mega, never back.", True, WARN)], 8)
 
     # hub board, power part
     s.board(222, 72, 286, 262, "Hub board (you build) — power", "build", "12V IN, 12V OUT: 20 AWG red + black pairs")

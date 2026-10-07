@@ -373,7 +373,10 @@ GCONF.en_spreadCycle) — StallGuard4 only works in StealthChop (DS §11).
 3. **Power-up**: USB first (Mega + every driver's VIO), then 12 V. The firmware
    pings all 4 drivers and won't move anything until all answer — so it just
    waits for 12 V. (RAMPS also feeds 12 V to the Mega's VIN through a diode,
-   KiCad D1, so the Mega runs without USB too; USB first is so the logger sees
+   KiCad D1, so the Mega runs without USB too. **The Mega's own barrel jack
+   stays empty.** It feeds only VIN, and D1 conducts only from the RAMPS
+   +12 V rail to VIN, so a supply there would never reach the drivers'
+   VMOT (netlist: `/AM-VIN` = U1.VIN + D1 cathode only). USB first is so the logger sees
    the start.)
 4. **Power-down**: 12 V off first, then USB.
 5. **Fusing**: PSU (Ledmo HTY-1200500) 5 A max. RAMPS 5 A polyfuse (F1) feeds the three dial
