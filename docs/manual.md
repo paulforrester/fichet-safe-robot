@@ -286,9 +286,9 @@ bring-up stage before the next one is added:
   - the 1.1 A PTC fuse (hub F1);
   - the 100 µF ≥ 25 V capacitor (C1).
 
-  The rest to buy is connectors and wiring:
-  - 2.54 mm male and female header strips;
-  - a 5.5 × 2.1 mm DC-jack-to-screw-terminal adapter;
+  The rest to buy is connectors and wiring (the header strips are on hand):
+  - a 5.5 × 2.1 mm DC-jack-to-screw-terminal adapter, for the PSU's
+    plug to go into;
   - 20 AWG red and black wire;
   - ~20 F–F jumpers;
   - zip ties.

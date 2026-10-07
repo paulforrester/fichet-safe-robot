@@ -412,8 +412,8 @@ discrete part" (2026-10-07).
 |---|---|---|
 | **Multimeter** — **on hand** (Paul, 2026-10-07). Use it before connecting the remote board | 1 | check 5 V/12 V polarity at the hub and remote board before plugging the driver in; cable continuity |
 | F–F Dupont jumpers, 10–20 cm (already on the list) | ~20 | UART taps, DIAG leads (3 get cut in half for the mod), hub ↔ RAMPS |
-| 2.54 mm female header strips (cuttable) | 1 pack | remote driver sockets (2 × 1×8, 1 × 1×2) |
-| 2.54 mm male header strips | 1 pack | hub jumper pins, remote motor header |
+| 2.54 mm female header strips (cuttable) — **on hand** (Paul, 2026-10-07) | 1 pack | remote driver sockets (2 × 1×8, 1 × 1×2) |
+| 2.54 mm male header strips — **on hand** (Paul, 2026-10-07) | 1 pack | hub jumper pins, remote motor header |
 | Radial PTC resettable fuse, ~1.1 A hold, rated ≥ 16 V (e.g. Bourns MF-R110 class) | 2 (1 spare) | remote 12 V branch |
 | Electrolytic capacitor 100 µF, ≥ 25 V (35 V fine), low ESR | 2 (1 spare) | remote driver VM |
 | Female DC barrel jack **5.5 × 2.1 mm** → screw terminal adapter (fits the Ledmo HTY-1200500 plug, centre positive) | 1 | PSU → hub without cutting the plug. Check its + / − marking against the multimeter before first use |

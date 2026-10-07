@@ -19,23 +19,34 @@ price, stock and seller on each page before you order.**
 ## Recommendation
 
 - **One order that covers everything: amazon.fr.**
-  - Items 1–8: **€64.84**, plus €2 delivery on the fuse.
+  - Items 1, 2 and 5–8: **€53.13**, plus €2 delivery on the fuse.
   - Most picks are generic, unbranded parts. That's fine for this use.
 - **mouser.fr** has branded parts (Bourns, Panasonic, Würth, Samtec,
   Adafruit) and real stock counts.
   - It has no 20 AWG wire in a sensible length: the smallest spool found
     is 100 ft, at about $96 a colour. So it can't cover everything in one
     order.
-  - The parts come to about $27 at mouser.com prices. That's under the
+  - The parts come to about $21 at mouser.com prices. That's under the
     €75 free-delivery threshold, so delivery would be charged (the amount
     wasn't found).
-- **Checked (Paul, 2026-10-07), so items 9–12 aren't needed:**
+- **Checked (Paul, 2026-10-07), so items 3, 4 and 9–12 aren't needed:**
+  - the **header strips** (male and female) came with another order;
   - the Phoenix pack holds **5 headers + 5 plugs**: 2 + 2 needed, 3 + 3
     spare;
   - the soldering station came with **solder and solder wick**;
   - Paul **has flush cutters** and **a multimeter**.
 
-  **The order is items 1–8.**
+  **The order is items 1, 2 and 5–8.**
+- **Why the DC-jack adapter (item 6):** the PSU ends in a barrel *plug*,
+  but the hub's 12V IN and the RAMPS '5A' input are screw terminals. The
+  adapter is the socket the plug goes into; two 20 AWG wires run from its
+  screws to the hub.
+  - Without it you'd cut the plug off and screw the bare leads in,
+    identifying + with the multimeter. That's free but can't be undone.
+  - Don't use the Mega's own barrel jack instead. It feeds only the Mega
+    (VIN). The RAMPS motor rail would get no 12 V, because D1 conducts
+    only from that rail to VIN (RAMPS KiCad netlist, `control/wiring.md`
+    log 2026-10-07).
 
 ## Table 1 — amazon.fr
 
@@ -43,7 +54,7 @@ price, stock and seller on each page before you order.**
 |---|---|---|---|---|---|---|
 | 1 | PTC fuse, radial, 1.1 A hold, ≥ 16 V ×2 | 30V 1.1A resettable fuse, radial "Polyswitch" — [B0848QX3FS](https://www.amazon.fr/fusible-r%C3%A9armable-plomb-radial-Polyswitch/dp/B0848QX3FS) | 20 | €10.21 (+ €2 delivery in snippet) | not shown; third-party seller | radial, 30 V, 1.1 A: meets spec. Generic, no reviews |
 | 2 | 100 µF ≥ 25 V low-ESR electrolytic ×2 | Elna RJH 35 V 100 µF, 8 × 12 mm — [B07H9BKFGF](https://www.amazon.fr/Condensateur-%C3%A9lectrolytique-Electrolytic-Capacitor-Elna/dp/B07H9BKFGF) | 20 | €9.46 | not shown | RJH is a low-impedance series. 3.5 mm lead pitch: bend the leads to fit the perfboard. Alternative: sourcing map low-ESR 35 V, 6.3 × 7 mm, 50 pcs, €9.99 — [B07LDZ5HF8](https://www.amazon.fr/sourcing-map-Radial-Faible-Resist/dp/B07LDZ5HF8) |
-| 3+4 | 2.54 mm male + female header strips | IZOKEE male + female 40-pin kit — [B07DBY753C](https://www.amazon.fr/IZOKEE-Connecteur-Femelle-Broches-Prototype/dp/B07DBY753C) | 15 + 15 strips | €11.71 | not shown | 4.6/5 (683). Female strips don't snap: cut them with the flush cutters (you lose one pin per cut). One strip gives 2 × 8 + 1 × 2 |
+| 3+4 | **Not needed** (from another order) — header strips | IZOKEE male + female 40-pin kit — [B07DBY753C](https://www.amazon.fr/IZOKEE-Connecteur-Femelle-Broches-Prototype/dp/B07DBY753C) | 15 + 15 strips | €11.71 | not shown | 4.6/5 (683). Female strips don't snap: cut them with the flush cutters (you lose one pin per cut). One strip gives 2 × 8 + 1 × 2 |
 | 5 | F–F jumpers 10–20 cm, ~20 | ELEGOO 120 Dupont wires, 20 cm (40 F–F) — [B01JD5WCG2](https://www.amazon.fr/Elegoo-Multicolore-M%C3%A2le-Femelle-M%C3%A2le-M%C3%A2le-Femelle-Femelle/dp/B01JD5WCG2) | 120 | €8.99 | not shown | 4.7/5 (2,811) |
 | 6 | DC jack, female 5.5 × 2.1 mm → screw terminal | LitaElek 5.5 × 2.1 adapters — [B019HAC6V4](https://www.amazon.fr/LitaElek-Femelle-Adaptateur-Connecteur-dispositifs/dp/B019HAC6V4) | 5 female + 5 male | €8.99 | not shown | 4.5/5 (1,235), 3 A. Check + / − with the multimeter before first use |
 | 7 | 20 AWG wire, red + black, ≥ 1 m each | QUARKZMAN 20 AWG 2-core PVC, red/black, 4.5 m — [B0CW9M53BS](https://www.amazon.fr/QUARKZMAN-Parall%C3%A8le-Conducteurs-Longueur-Diam%C3%A8tre/dp/B0CW9M53BS) | 4.5 m pair | €9.49 | "only 3 left" (snippet) | true 20 AWG, tinned copper. The cores peel apart |
@@ -54,13 +65,15 @@ price, stock and seller on each page before you order.**
 | 12 | **Not needed** (on hand) — flush cutters | Knipex 78 61 125 SB Electronic Super Knips — [B000OIB7J6](https://www.amazon.fr/Knipex-78-61-125-SB/dp/B000OIB7J6) | 1 | €25.99 | not shown | 4.7/5 (3,695). Alternative: Hakko CHP-170, €24.31 — [B00FZPDG1K](https://www.amazon.fr/Hakko-CHP-170-Pince-coupe-fil-souple/dp/B00FZPDG1K) |
 
 **Totals at the prices shown:**
-- Parts (1–8): **€64.84**, plus €2 delivery on the fuse.
-- **That is the whole order now.** It's over the €35 free-delivery
-  threshold for the items Amazon ships itself.
-- For the record, before items 9–12 were ruled out:
-  - €87.07 with the UT33D+ (€142.22 with the Fluke);
-  - before that, €128.05 with UT33D+, solder and Knipex (€183.20 with
-    the Fluke).
+- **The order (1, 2, 5–8): €53.13**, plus €2 delivery on the fuse.
+  Without the DC-jack adapter it's €44.14. Either is over the €35
+  free-delivery threshold for the items Amazon ships itself.
+- For the record:
+  - €64.84 before the header strips were ruled out;
+  - before items 9–12 were ruled out:
+    - €87.07 with the UT33D+ (€142.22 with the Fluke);
+    - before that, €128.05 with UT33D+, solder and Knipex (€183.20 with
+      the Fluke).
 
 **Free delivery** is over €35, but only for items sold or shipped by
 Amazon ([help page](https://www.amazon.fr/gp/help/customer/display.html?nodeId=GZXW7X6AKTHNUP6H)).
@@ -73,8 +86,8 @@ each.
 |---|---|---|---|---|---|---|
 | 1 | PTC fuse ×2 | Bourns **MF-R110**, radial, 1.1 A hold / 2.2 A trip, 30 V — [⇄ link](https://www.mouser.fr/ProductDetail/Bourns/MF-R110?qs=wd8kHz0doL7LkwIbzZb5mA%3D%3D) | 2 | ~$0.40 each (mouser.com, unreliable) | 19,054 | alternative: Littelfuse RUEF110 — [⇄ link](https://www.mouser.fr/ProductDetail/Littelfuse/RUEF110?qs=hv6pn79dJPSNtwKNbPwPHQ%3D%3D) |
 | 2 | 100 µF ≥ 25 V low ESR ×2 | Panasonic **EEU-FR1E101**, 25 V, 6.3 × 11.2 mm, 2.5 mm pitch, 130 mΩ — [⇄ link](https://www.mouser.fr/ProductDetail/Panasonic/EEU-FR1E101?qs=Ao3mORb5HCDieoJwtkb8Dw%3D%3D) | 2 | $0.45 each (mouser.com) | 19,980 | alternative: Rubycon 35ZLH100MEFC6.3X11 (35 V) — [⇄ link](https://www.mouser.fr/ProductDetail/Rubycon/35ZLH100MEFC6.3X11?qs=T3oQrply3y8xzyooRx3RZg%3D%3D) |
-| 3 | male header ≥ 13 pins | Würth **61302011121**, 1 × 20, 2.54 mm, gold — [⇄ link](https://www.mouser.fr/ProductDetail/Wurth-Elektronik/61302011121?qs=PhR8RmCirEbj/FsnpbhNaw%3D%3D) | 2 | $1.23 each (mouser.com) | 1,288 | |
-| 4 | female sockets 2 × (1 × 8) + 1 × (1 × 2) | Samtec **SSW-108-01-G-S** (1 × 8) — [⇄ link](https://www.mouser.fr/ProductDetail/Samtec/SSW-108-01-G-S?qs=FESYatJ8odLaL9GxbCQJ2g%3D%3D) and **SSW-102-01-G-S** (1 × 2) — [⇄ link](https://www.mouser.fr/ProductDetail/Samtec/SSW-102-01-G-S?qs=92ilVni64gwMaw8Iglb9kA%3D%3D) | 2 + 1 | 1 × 8: $1.76 each (mouser.com); 1 × 2: not shown | 1 × 8: 6,306 | |
+| 3 | **Not needed** — male header ≥ 13 pins | Würth **61302011121**, 1 × 20, 2.54 mm, gold — [⇄ link](https://www.mouser.fr/ProductDetail/Wurth-Elektronik/61302011121?qs=PhR8RmCirEbj/FsnpbhNaw%3D%3D) | 2 | $1.23 each (mouser.com) | 1,288 | |
+| 4 | **Not needed** — female sockets 2 × (1 × 8) + 1 × (1 × 2) | Samtec **SSW-108-01-G-S** (1 × 8) — [⇄ link](https://www.mouser.fr/ProductDetail/Samtec/SSW-108-01-G-S?qs=FESYatJ8odLaL9GxbCQJ2g%3D%3D) and **SSW-102-01-G-S** (1 × 2) — [⇄ link](https://www.mouser.fr/ProductDetail/Samtec/SSW-102-01-G-S?qs=92ilVni64gwMaw8Iglb9kA%3D%3D) | 2 + 1 | 1 × 8: $1.76 each (mouser.com); 1 × 2: not shown | 1 × 8: 6,306 | |
 | 5 | F–F jumpers ~20 | Adafruit **4447**, silicone F–F, 200 mm, 40 pcs — [⇄ link](https://www.mouser.fr/ProductDetail/Adafruit/4447?qs=CUBnOrq4ZJzovVmrsSU55g%3D%3D) | 1 | $9.95 (mouser.com) | 724–1,513 | |
 | 6 | DC jack adapter, female | SparkFun **PRT-10288** "DC Barrel Jack Adapter – Female" — [⇄ link](https://www.mouser.fr/ProductDetail/SparkFun/PRT-10288?qs=WyAARYrbSnbv/ypDwaDLyg%3D%3D) | 1 | $2.95 (mouser.com) | 101 | **VERIFY 5.5 × 2.1 mm and screw terminals** on the page |
 | 7 | 20 AWG wire, ≥ 1 m red + black | Alpha Wire 3053 RD005 / BK005, 100 ft spools | — | ~$96 per spool (mouser.com, a 3053 variant) | 239–251 | **not sensible for 2 m** (see Table 3) |
@@ -84,9 +97,12 @@ each.
 | 11 | **Not needed** — solder | MG Chemicals **4900-35G**, SAC305 lead-free, 0.81 mm (Mouser 590-4900-35G) | 1 | $5.35 (old USD catalogue: may be stale) | not shown | no product page seen. Alternative: 4900-112G (¼ lb) — [⇄ link](https://www.mouser.fr/ProductDetail/MG-Chemicals/4900-112G?qs=YqNA2qefETAK87e3A6/Oig%3D%3D) |
 | 12 | **Not needed** — flush cutters | Adafruit **152** (Hakko CHP-170) — [⇄ link](https://www.mouser.fr/ProductDetail/Adafruit/152?qs=N/3wi2MvZWC96jMaJ3xvTg%3D%3D) | 1 | $7.25 (mouser.com) | 588–621 | |
 
-**Total:** about **$27** for items 1–6 and 8 at mouser.com prices, plus
-delivery (the order is under €75), plus the wire bought elsewhere. It was
-about $40 with items 11 and 12, before Paul ruled them out on 2026-10-07.
+**Total:** about **$21** for items 1, 2, 5, 6 and 8 at mouser.com prices,
+plus delivery (the order is under €75), plus the wire bought elsewhere.
+- It was about $27 with the headers (items 3, 4).
+- It was about $40 with items 11 and 12 as well.
+
+Paul ruled those out on 2026-10-07.
 
 **Shipping:**
 - Free on most orders **over €75**

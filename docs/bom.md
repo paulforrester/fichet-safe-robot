@@ -27,7 +27,7 @@ Status is marked inline in each table below: ✅ ordered, ⬜ still to buy.
 - **Multimeter** — on the prototyping-basics checklist, not in any order. **Update 2026-10-07 (Paul): he already has one. Nothing to buy.**
 - **F–F / M–F jumper wires** — both jumper-wire items ordered are M–M only; the RAMPS DIAG-to-endstop-header wiring and other point-to-point hookups will likely need female-ended jumpers too. **Update 2026-10-07:** the harness as designed (`control/wiring.md` §10) uses **F–F only, ~20 × 10–20 cm**; M–F aren't needed for it.
 - **Solder wire** (consumable) — unconfirmed whether it's bundled with the Yofuly soldering station kit; check contents on arrival and buy separately if not included. **Update 2026-10-07 (Paul): the station came with solder and solder wick. Nothing to buy.**
-- **Harness parts (added 2026-10-06, `control/wiring.md` §10):** 2.54mm female and male header strips, a ~1.1A-hold radial PTC fuse (×2), 100µF ≥25V electrolytic (×2), a female **5.5×2.1mm** DC-jack-to-screw-terminal adapter (the PSU is a Ledmo HTY-1200500, 5.5×2.1 barrel, centre positive — Paul, 2026-10-06), ~1m each of red/black 20AWG wire, flush cutters if not already owned (**Paul has them**, 2026-10-07). Use the multimeter (on hand) before connecting the remote driver board. **Every discrete part, one line each: see the next section.**
+- **Harness parts (added 2026-10-06, `control/wiring.md` §10):** 2.54mm female and male header strips (**on hand** from another order, Paul 2026-10-07), a ~1.1A-hold radial PTC fuse (×2), 100µF ≥25V electrolytic (×2), a female **5.5×2.1mm** DC-jack-to-screw-terminal adapter (the PSU is a Ledmo HTY-1200500, 5.5×2.1 barrel, centre positive — Paul, 2026-10-06), ~1m each of red/black 20AWG wire, flush cutters if not already owned (**Paul has them**, 2026-10-07). Use the multimeter (on hand) before connecting the remote driver board. **Every discrete part, one line each: see the next section.**
 
 ## Electronics assembly — every discrete part (2026-10-07)
 
@@ -50,10 +50,10 @@ lists what neither site has. amazon.fr covers everything in one order.
 |---|---|---|---|---|---|---|
 | 🛒 **TO BUY** | **hub F1** | **Resettable fuse (PTC), radial** | **~1.1 A hold, ≥ 16 V** (Bourns MF-R110 class) | **1 (+1)** | hub board: 12 V to the key-turner branch only | `control/wiring.md` §3.5, §5, §10 |
 | 🛒 **TO BUY** | **C1** | **Electrolytic capacitor** | **100 µF, ≥ 25 V** (35 V fine), low ESR | **1 (+1)** | remote board: across VM–GND, right at the key driver | §3.5, §6.1, §10 |
-| 🛒 **TO BUY** | — | **2.54 mm male header strip** (cuttable) | — | **1 strip** | hub: 9 pins (GND, 5V, STEP, TX2, BUS ×4, DIAG); remote: J2, 1 × 4 for the key motor | §5, §6.1, §10 |
-| 🛒 **TO BUY** | — | **2.54 mm female header strip** (cuttable) | — | **1 strip** | remote: 2 × (1 × 8) + 1 × (1 × 2), the key driver's socket | §6.1, §10 |
+| ✅ on hand (another order, Paul 2026-10-07) | — | 2.54 mm male header strip (cuttable) | — | **1 strip** | hub: 9 pins (GND, 5V, STEP, TX2, BUS ×4, DIAG); remote: J2, 1 × 4 for the key motor | §5, §6.1, §10 |
+| ✅ on hand (another order, Paul 2026-10-07) | — | 2.54 mm female header strip (cuttable) | — | **1 strip** | remote: 2 × (1 × 8) + 1 × (1 × 2), the key driver's socket | §6.1, §10 |
 | 🛒 **TO BUY** | — | **F–F Dupont jumpers** | 10–20 cm | **~20** | RAMPS headers ↔ hub; hub BUS ↔ X/Y/Z MS3 pins; 3 cut in half for the DIAG mod | §2, §3.3, §5, §10 |
-| 🛒 **TO BUY** | — | **DC jack → screw-terminal adapter** | female **5.5 × 2.1 mm** | **1** | PSU → hub 12V IN | §5, §10 |
+| 🛒 **TO BUY** | — | **DC jack → screw-terminal adapter** | female **5.5 × 2.1 mm** | **1** | PSU → hub 12V IN. **Why:** the PSU ends in a barrel *plug*, and the hub's 12V IN and the RAMPS '5A' input are screw terminals. This is the socket the plug goes into. The alternative is to cut the plug off and screw in the bare leads (find + with the multimeter): free, but it can't be undone. Not the Mega's own jack: that feeds only VIN, and the RAMPS motor rail would get no 12 V (D1 conducts only from that rail to VIN) | §5, §10 |
 | 🛒 **TO BUY** | — | **Hook-up wire** | **20 AWG, red + black**, ~1 m each | **1 + 1** | PSU → hub → RAMPS '5A' input | §5, §10 |
 | 🛒 **TO BUY** (if none on hand) | — | **Small zip ties** | — | **~6** | cable strain relief, within ~20 mm of each plug | §4 |
 | ✅ ordered (×100) | R1 | Resistor | 1 kΩ | 1 | hub: TX2 → UART bus. The only resistor you fit | §3.2 |

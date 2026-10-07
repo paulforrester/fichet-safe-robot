@@ -23,7 +23,7 @@ from reportlab.pdfgen import canvas
 W, H = landscape(A4)          # 841.9 x 595.3 pt
 MIN_PT = 8
 DATE = "2026-10-07"
-REV = "2"
+REV = "3"
 BOTTOM = H - 82               # content above this; legend + title block below
 
 # ---------------------------------------------------------------- fonts
@@ -1004,12 +1004,12 @@ def sheet_tables(s):
     parts = [("Hub", "F1", "PTC resettable fuse, ~1.1 A hold, ≥ 16 V", BUY),
              ("Hub", "R1", "1 kΩ: the only UART resistor (TX2 → bus)", HAVE),
              ("Hub", "J3", "Phoenix-style 5.08 mm 8-pin header + plug", HAVE),
-             ("Hub", "—", "male pins × 9: GND 5V STEP TX2 BUS×4 DIAG", BUY),
+             ("Hub", "—", "male pins × 9: GND 5V STEP TX2 BUS×4 DIAG", HAVE),
              ("Hub", "—", "12V IN / 12V OUT: 20 AWG red + black", BUY),
              ("Remote", "J1", "Phoenix-style 5.08 mm 8-pin header + plug", HAVE),
              ("Remote", "C1", "100 µF, ≥ 25 V, low-ESR electrolytic", BUY),
-             ("Remote", "J2", "1 × 4 male header (key motor)", BUY),
-             ("Remote", "—", "female headers 2 × (1 × 8) + 1 × (1 × 2)", BUY),
+             ("Remote", "J2", "1 × 4 male header (key motor)", HAVE),
+             ("Remote", "—", "female headers 2 × (1 × 8) + 1 × (1 × 2)", HAVE),
              ("Both", "—", "perfboard (kit): ~50 × 30 and ~70 × 30 mm", HAVE),
              ("PSU", "—", "DC jack 5.5 × 2.1 mm → screw terminal", BUY),
              ("Wiring", "—", "F–F jumpers, ~20 × 10–20 cm", BUY),
