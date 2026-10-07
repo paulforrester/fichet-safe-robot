@@ -280,13 +280,21 @@ bring-up stage before the next one is added:
 - **Multimeter: buy it before connecting the remote driver board**
   (`control/wiring.md` §10). Sections 2.5, 2.6 and 2.10 need it for
   polarity and continuity checks.
-- Parts: `docs/bom.md`, plus the harness parts in `control/wiring.md` §10:
-  - 2.54 mm female and male header strips;
-  - 1.1 A PTC fuse;
-  - 100 µF ≥ 25 V capacitor;
-  - 5.5 × 2.1 mm DC-jack-to-screw-terminal adapter;
+- Parts: **`docs/bom.md`, "Electronics assembly — every discrete part"**
+  lists each one, with 🛒 on the ones still to buy. In short, you only
+  fit two discrete parts that aren't ordered yet:
+  - the 1.1 A PTC fuse (hub F1);
+  - the 100 µF ≥ 25 V capacitor (C1).
+
+  The rest to buy is connectors and wiring:
+  - 2.54 mm male and female header strips;
+  - a 5.5 × 2.1 mm DC-jack-to-screw-terminal adapter;
   - 20 AWG red and black wire;
-  - F–F jumpers.
+  - ~20 F–F jumpers;
+  - zip ties.
+
+  The fuses, diode, capacitors and resistors drawn in grey on the
+  schematic are already on the RAMPS.
 
 ### 2.3 Prepare the drivers (BTT TMC2209 V1.3)
 

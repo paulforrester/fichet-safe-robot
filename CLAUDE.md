@@ -141,7 +141,11 @@ designed (`control/wiring.md`); firmware written and host-tested
   key proves unreliable), 7 mm momentary pushbuttons ×12 (start trigger).
 - Still to buy: multimeter, F–F / M–F jumpers, possibly solder — plus the
   harness parts in `control/wiring.md` §10 (header strips, 1.1 A PTC,
-  100 µF cap, 5.5 × 2.1 DC-jack adapter, 20 AWG wire).
+  100 µF cap, 5.5 × 2.1 DC-jack adapter, 20 AWG wire). Every discrete part,
+  to buy or already on a board: `docs/bom.md`, "Electronics assembly —
+  every discrete part". The only discrete parts Paul fits that aren't
+  ordered yet are the PTC and C1. The fuses, diode, capacitors and
+  resistors drawn in grey on the schematic are already on the RAMPS.
 
 ## Wiring — settled 2026-10-06 in `control/wiring.md` (read it for details and sources)
 

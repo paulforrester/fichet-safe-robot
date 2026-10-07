@@ -404,6 +404,10 @@ reportlab`), `wireviz control/harness/harness.yml` and
 
 ## 10. Shopping list (beyond `docs/bom.md`'s "still to buy")
 
+Every discrete part, with what's ordered and what's already on the RAMPS
+or the driver modules: `docs/bom.md`, "Electronics assembly — every
+discrete part" (2026-10-07).
+
 | Item | Qty | For |
 |---|---|---|
 | **Multimeter** (already on the list) — buy before connecting the remote board | 1 | check 5 V/12 V polarity at the hub and remote board before plugging the driver in; cable continuity |
