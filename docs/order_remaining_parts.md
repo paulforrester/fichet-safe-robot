@@ -19,23 +19,23 @@ price, stock and seller on each page before you order.**
 ## Recommendation
 
 - **One order that covers everything: amazon.fr.**
-  - Items 1–8 plus the budget multimeter: **€87.07**.
-  - With a Fluke 101 instead: **€142.22**.
+  - Items 1–8: **€64.84**, plus €2 delivery on the fuse.
   - Most picks are generic, unbranded parts. That's fine for this use.
 - **mouser.fr** has branded parts (Bourns, Panasonic, Würth, Samtec,
   Adafruit) and real stock counts.
   - It has no 20 AWG wire in a sensible length: the smallest spool found
     is 100 ft, at about $96 a colour. So it can't cover everything in one
     order.
-  - Free delivery starts at €75. The parts come to about $27 at mouser.com
-    prices; with the €66.39 multimeter that clears €75.
-- **Checked (Paul, 2026-10-07), so items 9, 11 and 12 aren't needed:**
+  - The parts come to about $27 at mouser.com prices. That's under the
+    €75 free-delivery threshold, so delivery would be charged (the amount
+    wasn't found).
+- **Checked (Paul, 2026-10-07), so items 9–12 aren't needed:**
   - the Phoenix pack holds **5 headers + 5 plugs**: 2 + 2 needed, 3 + 3
     spare;
   - the soldering station came with **solder and solder wick**;
-  - Paul **has flush cutters**.
+  - Paul **has flush cutters** and **a multimeter**.
 
-  **The order is items 1–8 plus a multimeter (item 10).**
+  **The order is items 1–8.**
 
 ## Table 1 — amazon.fr
 
@@ -49,16 +49,18 @@ price, stock and seller on each page before you order.**
 | 7 | 20 AWG wire, red + black, ≥ 1 m each | QUARKZMAN 20 AWG 2-core PVC, red/black, 4.5 m — [B0CW9M53BS](https://www.amazon.fr/QUARKZMAN-Parall%C3%A8le-Conducteurs-Longueur-Diam%C3%A8tre/dp/B0CW9M53BS) | 4.5 m pair | €9.49 | "only 3 left" (snippet) | true 20 AWG, tinned copper. The cores peel apart |
 | 8 | Zip ties ~100 mm | Gocableties 100 × 2.5 mm, black — [B072SLJR2T](https://www.amazon.fr/Gocableties-100-colliers-serrage-nylon-robuste/dp/B072SLJR2T) | 100 | €5.99 or €4.99 (snippets differ) | not shown | 4.5/5 |
 | 9 | **Not needed** (5 + 5 on hand) — 5.08 mm 8-pin pluggable terminal | no reliable listing — see Table 3 | — | — | — | — |
-| 10 | Multimeter (continuity beeper, DC V) | **budget:** UNI-T UT33D+ — [B08W36VF6H](https://www.amazon.fr/UNI-T-UT33D-MIE0328-Miernik-Uniwersalny/dp/B08W36VF6H) · **better:** Fluke 101 — [B00V6BBRNQ](https://www.amazon.fr/Fluke-Multim%C3%A8tre-num%C3%A9rique-poche-101/dp/B00V6BBRNQ) | 1 | UT33D+ €22.23 · Fluke 101 €77.38 (other sellers from €65.01) | UT33D+: free delivery, "Amazon's Choice" | UT33D+: 4.6/5 (144), buzzer, diode test, manual ranging. Fluke 101 has a continuity beeper and DC V (Fluke spec) |
+| 10 | **Not needed** (Paul has one) — multimeter | **budget:** UNI-T UT33D+ — [B08W36VF6H](https://www.amazon.fr/UNI-T-UT33D-MIE0328-Miernik-Uniwersalny/dp/B08W36VF6H) · **better:** Fluke 101 — [B00V6BBRNQ](https://www.amazon.fr/Fluke-Multim%C3%A8tre-num%C3%A9rique-poche-101/dp/B00V6BBRNQ) | 1 | UT33D+ €22.23 · Fluke 101 €77.38 (other sellers from €65.01) | UT33D+: free delivery, "Amazon's Choice" | UT33D+: 4.6/5 (144), buzzer, diode test, manual ranging. Fluke 101 has a continuity beeper and DC V (Fluke spec) |
 | 11 | **Not needed** (came with the station) — solder, ~0.8 mm | 63/37 rosin core 0.8 mm, 4 × 50 g — [B09L412D4X](https://www.amazon.fr/souder-colophane-bricolage-%C3%A9lectronique-paquet/dp/B09L412D4X) | 200 g | €14.99 | not shown | leaded. 4.3/5 (17 reviews only). Lead-free alternative: GTSE Sn99.3Cu0.7, 100 g, 4.5/5 (537) — [B08GGBT378](https://www.amazon.fr/GTSE-souder-colophane-soudure-%C3%A9lectrique/dp/B08GGBT378), €6.59–18.49 (snippets differ) |
 | 12 | **Not needed** (on hand) — flush cutters | Knipex 78 61 125 SB Electronic Super Knips — [B000OIB7J6](https://www.amazon.fr/Knipex-78-61-125-SB/dp/B000OIB7J6) | 1 | €25.99 | not shown | 4.7/5 (3,695). Alternative: Hakko CHP-170, €24.31 — [B00FZPDG1K](https://www.amazon.fr/Hakko-CHP-170-Pince-coupe-fil-souple/dp/B00FZPDG1K) |
 
 **Totals at the prices shown:**
 - Parts (1–8): **€64.84**, plus €2 delivery on the fuse.
-- **The order, 1–8 + UT33D+: €87.07.** With the Fluke 101 instead:
-  **€142.22**.
-- Before items 9, 11 and 12 were ruled out, the totals were €128.05 with
-  UT33D+, solder and Knipex, or €183.20 with the Fluke.
+- **That is the whole order now.** It's over the €35 free-delivery
+  threshold for the items Amazon ships itself.
+- For the record, before items 9–12 were ruled out:
+  - €87.07 with the UT33D+ (€142.22 with the Fluke);
+  - before that, €128.05 with UT33D+, solder and Knipex (€183.20 with
+    the Fluke).
 
 **Free delivery** is over €35, but only for items sold or shipped by
 Amazon ([help page](https://www.amazon.fr/gp/help/customer/display.html?nodeId=GZXW7X6AKTHNUP6H)).
@@ -78,13 +80,13 @@ each.
 | 7 | 20 AWG wire, ≥ 1 m red + black | Alpha Wire 3053 RD005 / BK005, 100 ft spools | — | ~$96 per spool (mouser.com, a 3053 variant) | 239–251 | **not sensible for 2 m** (see Table 3) |
 | 8 | Zip ties | Panduit **PLT1M-M**, 99 mm, natural — [⇄ link](https://www.mouser.fr/ProductDetail/Panduit/PLT1M-M?qs=PijdWQvv7l82QBSPSSlofg%3D%3D) | 100 | $0.064 each (mouser.com) | 709,949 | |
 | 9 | **Not needed** (5 + 5 on hand) — Phoenix 8-pin, header + plug | header MSTBA 2,5/8-G-5,08 = **1757307** — [⇄ link](https://www.mouser.fr/ProductDetail/Phoenix-Contact/1757307?qs=o3rrLWFGhRl4IvmrdyQ5FA%3D%3D); plug MSTB 2,5/8-ST-5,08 = **1757077** (no page seen) | 2 + 2 | not shown | not shown | genuine Phoenix Contact |
-| 10 | Multimeter | Extech **EX330** (Mouser 685-EX330), autoranging, 600 V DC, continuity — [⇄ link](https://www.mouser.fr/ProductDetail/Extech/EX330?qs=tv7vi16PWA4nsXR8adm%2Bmg%3D%3D) | 1 | **€66.39** ([mouser.fr listing](https://www.mouser.fr/Extech/Test-Measurement/Multimeters-Voltmeters/_/N-5gfo?P=1z13cd3)) | 11 | the only EUR price found. Alternative: Fluke 107 ESP, $160.99 |
+| 10 | **Not needed** — multimeter | Extech **EX330** (Mouser 685-EX330), autoranging, 600 V DC, continuity — [⇄ link](https://www.mouser.fr/ProductDetail/Extech/EX330?qs=tv7vi16PWA4nsXR8adm%2Bmg%3D%3D) | 1 | **€66.39** ([mouser.fr listing](https://www.mouser.fr/Extech/Test-Measurement/Multimeters-Voltmeters/_/N-5gfo?P=1z13cd3)) | 11 | the only EUR price found. Alternative: Fluke 107 ESP, $160.99 |
 | 11 | **Not needed** — solder | MG Chemicals **4900-35G**, SAC305 lead-free, 0.81 mm (Mouser 590-4900-35G) | 1 | $5.35 (old USD catalogue: may be stale) | not shown | no product page seen. Alternative: 4900-112G (¼ lb) — [⇄ link](https://www.mouser.fr/ProductDetail/MG-Chemicals/4900-112G?qs=YqNA2qefETAK87e3A6/Oig%3D%3D) |
 | 12 | **Not needed** — flush cutters | Adafruit **152** (Hakko CHP-170) — [⇄ link](https://www.mouser.fr/ProductDetail/Adafruit/152?qs=N/3wi2MvZWC96jMaJ3xvTg%3D%3D) | 1 | $7.25 (mouser.com) | 588–621 | |
 
-**Total:** about **$27** for items 1–6 and 8 at mouser.com prices. Add
-**€66.39** for the EX330, and the wire bought elsewhere. (It was about $40
-with items 11 and 12, before Paul ruled them out on 2026-10-07.)
+**Total:** about **$27** for items 1–6 and 8 at mouser.com prices, plus
+delivery (the order is under €75), plus the wire bought elsewhere. It was
+about $40 with items 11 and 12, before Paul ruled them out on 2026-10-07.
 
 **Shipping:**
 - Free on most orders **over €75**

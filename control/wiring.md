@@ -410,7 +410,7 @@ discrete part" (2026-10-07).
 
 | Item | Qty | For |
 |---|---|---|
-| **Multimeter** (already on the list) — buy before connecting the remote board | 1 | check 5 V/12 V polarity at the hub and remote board before plugging the driver in; cable continuity |
+| **Multimeter** — **on hand** (Paul, 2026-10-07). Use it before connecting the remote board | 1 | check 5 V/12 V polarity at the hub and remote board before plugging the driver in; cable continuity |
 | F–F Dupont jumpers, 10–20 cm (already on the list) | ~20 | UART taps, DIAG leads (3 get cut in half for the mod), hub ↔ RAMPS |
 | 2.54 mm female header strips (cuttable) | 1 pack | remote driver sockets (2 × 1×8, 1 × 1×2) |
 | 2.54 mm male header strips | 1 pack | hub jumper pins, remote motor header |

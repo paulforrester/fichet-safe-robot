@@ -24,10 +24,10 @@ Four orders placed 2026-09-29, checked against every line below:
 Status is marked inline in each table below: ✅ ordered, ⬜ still to buy.
 
 **Still to buy:**
-- **Multimeter** — on the prototyping-basics checklist, not in any order.
+- **Multimeter** — on the prototyping-basics checklist, not in any order. **Update 2026-10-07 (Paul): he already has one. Nothing to buy.**
 - **F–F / M–F jumper wires** — both jumper-wire items ordered are M–M only; the RAMPS DIAG-to-endstop-header wiring and other point-to-point hookups will likely need female-ended jumpers too. **Update 2026-10-07:** the harness as designed (`control/wiring.md` §10) uses **F–F only, ~20 × 10–20 cm**; M–F aren't needed for it.
 - **Solder wire** (consumable) — unconfirmed whether it's bundled with the Yofuly soldering station kit; check contents on arrival and buy separately if not included. **Update 2026-10-07 (Paul): the station came with solder and solder wick. Nothing to buy.**
-- **Harness parts (added 2026-10-06, `control/wiring.md` §10):** 2.54mm female and male header strips, a ~1.1A-hold radial PTC fuse (×2), 100µF ≥25V electrolytic (×2), a female **5.5×2.1mm** DC-jack-to-screw-terminal adapter (the PSU is a Ledmo HTY-1200500, 5.5×2.1 barrel, centre positive — Paul, 2026-10-06), ~1m each of red/black 20AWG wire, flush cutters if not already owned (**Paul has them**, 2026-10-07). Buy the multimeter before connecting the remote driver board. **Every discrete part, one line each: see the next section.**
+- **Harness parts (added 2026-10-06, `control/wiring.md` §10):** 2.54mm female and male header strips, a ~1.1A-hold radial PTC fuse (×2), 100µF ≥25V electrolytic (×2), a female **5.5×2.1mm** DC-jack-to-screw-terminal adapter (the PSU is a Ledmo HTY-1200500, 5.5×2.1 barrel, centre positive — Paul, 2026-10-06), ~1m each of red/black 20AWG wire, flush cutters if not already owned (**Paul has them**, 2026-10-07). Use the multimeter (on hand) before connecting the remote driver board. **Every discrete part, one line each: see the next section.**
 
 ## Electronics assembly — every discrete part (2026-10-07)
 
@@ -64,9 +64,8 @@ lists what neither site has. amazon.fr covers everything in one order.
 | ✅ ordered | — | Heat shrink | — | — | shield fold-back at the key end; joints | §4 |
 | ⬜ later, with the mount CAD | — | Standoffs | 4 mm | 4 | under the remote board (mount not designed yet) | §6.2 |
 
-Tools: only the **multimeter** is left to buy (before connecting the
-remote board). The solder (with wick) came with the station, and Paul has
-flush cutters for the DIAG mod (2026-10-07). The harness uses **F–F jumpers only**. The M–F ones in the
+Tools: **nothing left to buy**. Paul has a multimeter, solder (with wick)
+and flush cutters (2026-10-07). The harness uses **F–F jumpers only**. The M–F ones in the
 "Still to buy" list aren't needed for it.
 
 **B. Parts on the schematic that are already on a bought board: nothing to buy**
@@ -146,7 +145,7 @@ Called out explicitly since the goal is one order, not a string of
 - ✅ **Small perfboard or a couple of 2/3-pin screw terminal blocks** — Ordered (Order 1, RUNCCI-YUN 82pc double-sided PCB kit, €12.98; also see the Phoenix screw-terminal connectors in Order 3, which can double as terminal blocks). For the key-turner unit — it has no shield to plug into, so its driver's STEP/DIR/ENABLE/DIAG/UART/power connections from the cable need a small hand-wired board rather than a socket.
 - ⚠️ **Jumper wire assortment** (M-M, M-F, F-F) — Partially ordered: two M–M kits (Order 2, GTIWUNG 150pcs + a 560pc breadboard kit, €11.99 + €8.99), but **no M-F or F-F jumpers**. Still needed for the RAMPS DIAG-to-endstop-header wiring, the UART tap to `Serial2`, and general point-to-point connections — worth a small follow-up order.
 - ⚠️ **Soldering iron + solder** — Iron ordered (Order 2, Yofuly 75W soldering station, €49.99); solder wire itself unconfirmed — check what's in the kit on arrival. **Update 2026-10-07: solder and solder wick came with it.**
-- ⬜ **A basic multimeter** — **Not ordered.** Useful for checking continuity on the inter-unit cable and current-limit setup on the drivers.
+- ✅ **A basic multimeter** — Not ordered; **Paul already has one** (2026-10-07). Useful for checking continuity on the inter-unit cable and current-limit setup on the drivers.
 - ✅ Heat shrink tubing, small assortment — Ordered (Order 1, 800-piece assortment, €8.99).
 - ✅ USB cable for the Arduino Mega — Ordered (Order 2, GIANAC USB-C→USB-B, 2m, €5.99) — matches the genuine Mega 2560's USB-B port, assuming USB-C on the computer end.
 
@@ -171,7 +170,7 @@ was first drafted, and the AMS 2 Pro isn't a BOM item at all.
 
 Everything on this list has now been ordered across four orders placed
 2026-09-29, **except**:
-- a multimeter (not ordered anywhere)
+- ~~a multimeter (not ordered anywhere)~~ Paul already has one (2026-10-07)
 - M-F / F-F jumper wires (only M-M was ordered)
 - ~~solder wire (unconfirmed — check the soldering station kit on arrival)~~ came with the station (Paul, 2026-10-07)
 

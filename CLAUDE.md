@@ -51,8 +51,9 @@ designed (`control/wiring.md`); firmware written and host-tested
 - **Check the date** (`date`; Paul is in Europe/Paris) rather than assuming.
 - Paul is a retired engineer (ex-Apple), comfortable with Arduino,
   Raspberry Pi and 3D printing (Bambu H2D; PETG, PETG-CF, PLA). He has
-  calipers, a luggage scale, a soldering station, heat gun. **No
-  multimeter yet** (on the to-buy list). He runs every hardware test
+  calipers, a luggage scale, a soldering station (with solder and wick),
+  heat gun, flush cutters and **a multimeter** (Paul, 2026-10-07: bench
+  steps can use it). He runs every hardware test
   himself and reports results — give him short, numbered bench steps and
   say exactly what number or observation to send back.
 - Keep explanations plain and concise; lead with the conclusion.
@@ -139,8 +140,8 @@ designed (`control/wiring.md`); firmware written and host-tested
 - Double-sided perfboard kit (for the remote driver board), heat shrink.
 - **AS5600** magnetic encoders ×4 (optional, only if step counting on the
   key proves unreliable), 7 mm momentary pushbuttons ×12 (start trigger).
-- Still to buy: multimeter, F–F jumpers (on hand, Paul 2026-10-07: solder + wick, flush
-  cutters, Phoenix connectors 5 headers + 5 plugs) — plus the
+- Still to buy: F–F jumpers (on hand, Paul 2026-10-07: multimeter, solder + wick,
+  flush cutters, Phoenix connectors 5 headers + 5 plugs) — plus the
   harness parts in `control/wiring.md` §10 (header strips, 1.1 A PTC,
   100 µF cap, 5.5 × 2.1 DC-jack adapter, 20 AWG wire). Every discrete part,
   to buy or already on a board: `docs/bom.md`, "Electronics assembly —

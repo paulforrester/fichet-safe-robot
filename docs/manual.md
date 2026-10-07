@@ -277,9 +277,9 @@ bring-up stage before the next one is added:
 
 - Soldering station, solder, flush cutters, heat shrink and heat gun,
   calipers, a marker.
-- **Multimeter: buy it before connecting the remote driver board**
-  (`control/wiring.md` §10). Sections 2.5, 2.6 and 2.10 need it for
-  polarity and continuity checks.
+- **Multimeter** (you have one). Use it before connecting the remote
+  driver board (`control/wiring.md` §10): sections 2.5, 2.6 and 2.10 need
+  it for polarity and continuity checks.
 - Parts: **`docs/bom.md`, "Electronics assembly — every discrete part"**
   lists each one, with 🛒 on the ones still to buy. In short, you only
   fit two discrete parts that aren't ordered yet:
