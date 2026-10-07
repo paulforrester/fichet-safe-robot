@@ -469,13 +469,13 @@ discrete part" (2026-10-07).
 - The PTC fuses are ordered, but no amazon.fr listing arrives soon
   (the first pick: 31 Oct – 5 Nov). Paul ordered **1.6 A glass cartridge
   fuses** to sit in F1's place until then, in a holder he prints (no clips
-  ordered). **To confirm:** their size (5 × 20 mm?) and whether they're
-  fast (F) or slow-blow (T).
+  ordered): an AUKENIEN kit, **T (slow-blow), 5 × 20 mm, 250 V**, 10 of
+  each of 12 values from 0.5 to 10 A. Slow-blow is the right kind here,
+  because the power-on charging surge into C1 is brief.
 - **Why 1.6 A works:** the key branch draws less than 0.6 A (§8, item 5),
   and 1.6 A is well below the 5 A the PSU can deliver into a short. A
   short on the cable, the plug or the remote board blows the fuse instead
-  of drawing the PSU's full current. If an F fuse ever blows at power-on
-  with no fault found, use a T fuse.
+  of drawing the PSU's full current.
 - **Not resettable:** a blown fuse means a real fault. Find it with the
   multimeter before fitting a new one.
 - **What leaving F1 out would have meant:** a fault in the key branch
@@ -493,6 +493,20 @@ discrete part" (2026-10-07).
   creep under steady load, so a clamp that bears only on plastic
   loosens. Don't solder to the end caps: the heat can melt the solder
   that holds the fuse wire inside.
+- **C1 as ordered isn't sold as low ESR.** It's an Innfeeltech
+  100 µF 35 V radial, 50 pcs; the listing gives no ESR, ripple-current or
+  temperature rating. TMC2209 DS §3 recommends low-ESR electrolytics, with
+  at least 100 µF near the driver (§3.5).
+  - **Likely fine at the key's current** (0.6 A to start, ≤ 1.0 A),
+    because the V1.3 module's own 2 × 10 µF ceramics sit right at the
+    chip. This is a judgement, not a measurement: the cap's ESR is
+    unknown.
+  - **Proposed (Paul to decide):** fit **two in parallel**. That gives
+    200 µF at half the ESR of one, and there are 50 in the pack. The
+    ~70 × 30 mm remote board has room beside VM/GND (§6.1).
+  - **Bench check at stage 5:** after a few minutes of key moves at the
+    final current, touch C1. It should feel cool. If it's noticeably
+    warm, order a low-ESR part (`docs/order_remaining_parts.md`).
 
 ### 2026-10-07 — printable schematic
 

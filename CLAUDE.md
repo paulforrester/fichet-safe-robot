@@ -145,8 +145,9 @@ designed (`control/wiring.md`); firmware written and host-tested
   5.5 × 2.1 DC-jack adapter, 20 AWG wire, zip ties). On hand (Paul,
   2026-10-07): multimeter, solder + wick, flush cutters, Phoenix
   connectors (5 headers + 5 plugs), header strips. The PTC arrives late:
-  until then hub F1 is a **1.6 A glass cartridge fuse in a printed
-  holder** (`control/wiring.md` log 2026-10-07). Every discrete part:
+  until then hub F1 is a **1.6 A T (slow-blow) 5 × 20 mm glass fuse in a
+  printed holder** (`control/wiring.md` log 2026-10-07). C1 as ordered
+  (Innfeeltech 100 µF 35 V) isn't sold as low ESR; see the same log entry. Every discrete part:
   `docs/bom.md`, "Electronics assembly — every discrete part". The
   fuses, diode, capacitors and resistors drawn in grey on the schematic
   are already on the RAMPS.
