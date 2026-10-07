@@ -6,6 +6,28 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## 2026-10-07: door magnets fall out of the inner side — holes to become a snug fit
+
+**Finding (Paul):** the Wukong magnets measure **21.5 mm**, not the listed
+22 mm, so they're loose in the 22.4 mm holes. On the door that doesn't
+matter: the pull holds each magnet's retainer on its seat ring. Off the
+door, with the unit on its side, a magnet and its retainer slide out of
+the inner side of the hole.
+
+**Design flaw (mine, 2026-10-06 entry):** the retainer is screwed only to
+the magnet, never to the plate. It stops the magnet moving *toward* the
+door; nothing stops it moving the other way.
+
+**Fix:** keep the retainer for the door's pull, and make the hole grip the
+rubber so the magnet can't slide inward. How tight a printed hole comes out
+depends on the printer, so `cad/magnet_fit_test.stl` has five holes, 21.4 to
+21.8 mm, at the real depth (5 mm plate + 0.8 mm ring). Paul picks the
+smallest one a magnet presses into by thumb and that holds it upside down;
+that diameter becomes `rmag_hole_d` for both plates (dial front assembly,
+key-turner base), then re-render, re-run the checks, reprint. Height and
+thread depth still to be measured (they set the proud face and the screw
+length).
+
 ## 2026-10-07: printed holder for the interim 5 × 20 mm fuse (hub F1)
 
 Paul's spec (2026-10-07): one 5 × 20 mm glass fuse, 1.6 A T, in series in a
