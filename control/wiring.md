@@ -459,13 +459,21 @@ reportlab`), `wireviz control/harness/harness.yml` and
 
 - Added `control/harness/schematic.pdf` and its generator. Nothing in the
   wiring changed.
-- One fact checked for it in the RAMPS 1.4 KiCad netlist (Sources, item 4):
-  - the '5A' input (X4 pin 3) goes through F1 (MF-R500) to the `+12V` net;
-  - on that net sit every socket's VMOT, C3…C10 (100 µF) and D1's anode
-    (1N4004);
+- RAMPS parts it shows, checked in the RAMPS 1.4 KiCad netlist (Sources,
+  item 4):
+  - the power input terminal is **X4**. Its '5A' pair: pin 3 goes through
+    **F1 (MF-R500)** to the `+12V` net; pins 2 and 4 are GND. Its '11A' pair
+    feeds the heated-bed outputs through **F2**, and is not used here;
+  - on `+12V` sit every socket's VMOT, the 100 µF capacitors **C3, C4, C6,
+    C7, C9, C10**, and the anode of **D1 (1N4004)**;
   - D1's cathode goes to the Mega's VIN.
 
-  So the Mega's VIN is fed from the fused side. That confirms §3.5 and §8.
+  So the RAMPS F1 protects the three dial drivers and the Mega's VIN feed.
+  That confirms §3.5 and §8.
+- Not new: the schematic labels interrupt pins "(irq)". The numbers in §1
+  ("attachInterrupt no. 1", …) are Arduino interrupt numbers, not the
+  ATmega2560's INTn pin names: D2 is INT4, D3 is INT5, D18 is INT3 and D19
+  is INT2.
 
 ### 2026-10-06 (evening) — PSU plug and cable colours, from Paul
 

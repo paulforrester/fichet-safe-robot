@@ -309,13 +309,13 @@ class Sheet:
         self.line([(x - 3.5, y - 3.5), (x + 3.5, y + 3.5)], GREY, 1.2)
         self.line([(x - 3.5, y + 3.5), (x + 3.5, y - 3.5)], GREY, 1.2)
 
-    def res_h(self, x1, x2, y, net, label, above=True):
+    def res_h(self, x1, x2, y, net, label, above=True, lift=8):
         """IEC resistor on a horizontal wire (x1 < x2)."""
         xm = (x1 + x2) / 2
         self.wire([(x1, y), (xm - 12, y)], net)
         self.wire([(xm + 12, y), (x2, y)], net)
         self.rect(xm - 12, y - 4.5, 24, 9, fill="#FFFFFF", lw=1.3)
-        self.text(xm, y - 8 if above else y + 16, label, 8, True, anchor="c")
+        self.text(xm, y - lift if above else y + 16, label, 8, True, anchor="c")
 
     def res_v(self, x, y1, y2, net, label, left=True):
         """IEC resistor on a vertical wire (y1 < y2)."""
@@ -327,7 +327,7 @@ class Sheet:
 
     def ptc_h(self, x1, x2, y, label, net="12V"):
         """Resettable fuse (PTC) on a horizontal wire."""
-        self.res_h(x1, x2, y, net, label)
+        self.res_h(x1, x2, y, net, label, lift=13)
         xm = (x1 + x2) / 2
         self.line([(xm - 16, y + 8), (xm - 10, y + 8), (xm + 12, y - 8)], INK, 1.0)
 
@@ -450,7 +450,8 @@ def sheet_overview(s):
                         "5  Mega + RAMPS headers, hub board, UART bus", "6  Inter-unit cable and key turner",
                         "7  Pin map, jumpers, currents, parts"], 8)
     s.text(300, y, "Rules", 10, True)
-    s.para(300, y + 15, ["Plug or unplug anything only with 12 V off.",
+    s.para(300, y + 15, ["Make every connection with power off (USB unplugged, 12 V off).",
+                         "Never plug or unplug a motor or the cable with 12 V on.",
                          "Power up: USB first, then 12 V. Power down: 12 V first.",
                          "Never fit an MS3 jumper: on the V1.3 that pin is the UART line.",
                          "Emergency stop: pull the 12 V plug.  `!` aborts a move.",
@@ -484,8 +485,9 @@ def sheet_power(s):
     s.text(398, 165, "12V OUT −  →  RAMPS '5A' −", 8, True, anchor="c")
     # key branch: + down (hop over GND), PTC, J3-1
     s.vwire_hop(290, 136, 236, [170], "12V")
-    s.ptc_h(290, 400, 236, "F1  PTC 1.1 A hold, ≥ 16 V")
-    s.wire([(400, 236), (434, 236)], "12V")
+    s.wire([(290, 236), (300, 236)], "12V")
+    s.ptc_h(300, 420, 236, "hub F1: PTC 1.1 A hold, ≥ 16 V")
+    s.wire([(420, 236), (434, 236)], "12V")
     s.wire([(270, 170), (270, 290)], "GND")
     s.wire([(270, 254), (434, 254)], "GND")
     s.dot(270, 254, "GND")
@@ -497,18 +499,18 @@ def sheet_power(s):
     for i, t in enumerate(["+12 V", "GND", "+5 V", "shield"]):
         s.text(465, 239 + i * 18, t, 8, color=GREY)
     s.text(230, 312, "J3 → the inter-unit cable (sheet 6). Shield drain J3-8 goes to GND here only.", 8)
-    s.text(230, 323, "J3-3, 5, 6, 7 (signals): sheet 5.", 8, color=GREY)
+    s.text(230, 323, "J3-5, 6, 7 (signals): sheet 5. J3-3 is empty.", 8, color=GREY)
 
     # RAMPS
-    s.board(530, 72, 290, 262, "RAMPS 1.4 — 12 V (for reference)", "ref", "from the RAMPS 1.4 KiCad netlist (X4, F1, D1, C3…C10)")
+    s.board(530, 72, 290, 262, "RAMPS 1.4 — 12 V (for reference)", "ref", "from the RAMPS 1.4 KiCad netlist (control/wiring.md log, 2026-10-07)")
     s.wire([(546, 136), (552, 136)], "12V")
     s.wire([(546, 170), (552, 170)], "GND")
-    s.rect(552, 120, 22, 66, fill="#FFFFFF", lw=1.3)
-    s.text(563, 140, "+", 9, True, NETS["12V"][0], anchor="c")
-    s.text(563, 156, "5A", 8, True, anchor="c")
-    s.text(563, 174, "−", 9, True, anchor="c")
-    s.text(563, 198, "X4", 8, True, anchor="c")
-    s.ptc_h(574, 646, 136, "F1  MF-R500, 5 A")
+    s.rect(552, 127, 22, 54, fill="#FFFFFF", lw=1.3)
+    s.text(563, 141, "+", 9, True, NETS["12V"][0], anchor="c")
+    s.text(563, 157, "5A", 8, True, anchor="c")
+    s.text(563, 175, "−", 9, True, anchor="c")
+    s.text(563, 194, "X4", 8, True, anchor="c")
+    s.ptc_h(574, 646, 136, "RAMPS F1: MF-R500, 5 A")
     s.wire([(646, 136), (800, 136)], "12V")
     s.text(796, 131, "+12 V", 8, True, NETS["12V"][0], anchor="r")
     s.wire([(574, 170), (590, 170), (590, 214), (742, 214)], "GND")
@@ -517,17 +519,17 @@ def sheet_power(s):
         s.dot(x, 136, "12V")
         s.wire([(x, 136), (x, 152)], "12V")
         s.rect(x - 15, 152, 30, 34, fill="#FFFFFF", lw=1.1)
-        s.text(x, 166, lab, 8, True, anchor="c")
-        s.text(x, 178, "VM", 8, anchor="c")
+        s.text(x, 165, f"{lab}: VM", 8, True, anchor="c")
+        s.text(x, 180, "GND", 8, anchor="c")
         s.wire([(x, 186), (x, 214)], "GND")
         s.dot(x, 214, "GND")
     s.text(552, 236, "Driver sockets X, Y, Z: VM and GND (sheets 3, 4).", 8)
-    s.text(552, 247, "C3…C10, 100 µF, sit on this +12 V rail by the sockets.", 8)
+    s.text(552, 247, "C3, C4, C6, C7, C9, C10 (100 µF) sit on this +12 V rail.", 8)
     s.dot(800, 136, "12V")
     s.diode_v(800, 160, 268, [("D1", True), "1N4004"])
     s.wire([(800, 136), (800, 160)], "12V")
     s.text(800, 280, "→ Mega VIN", 8, True, NETS["12V"][0], anchor="r")
-    s.para(540, 296, ["'11A' input (heated bed, F2): not used.",
+    s.para(540, 296, ["'11A' input (heated bed, through RAMPS F2): not used.",
                       "Fuses: PSU 5 A max · RAMPS F1 5 A (the 3 dial drivers + Mega VIN)",
                       "· hub F1 1.1 A (the key branch only)."], 8, color=GREY)
 
@@ -658,15 +660,16 @@ def sheet_dial_c_details(s):
         s.text(bx - 6, py + 3, lnames[i], 8, anchor="r")
         s.text(bx + bw + 6, py + 3, rnames[i], 8)
     # trimmer pot next to DIAG (control/wiring.md §6.1 layout: EN IDX DIAG [pot] VM)
-    s.circle(bx + 70, by + 16, 7, stroke="#DDDDDD", fill="#B0B0B0", lw=0.8)
-    s.text(bx + 70, by + 36, "pot", 8, True, "#FFFFFF", anchor="c")
+    s.circle(bx + 72, by + 16, 7, stroke="#DDDDDD", fill="#B0B0B0", lw=0.8)
+    s.text(bx + 72, by + 36, "pot", 8, True, "#FFFFFF", anchor="c")
     # INDEX and DIAG along the top edge, 2.54 and 5.08 mm from EN
     ix, dx_ = bx + 27, bx + 45
     for px in (ix, dx_):
-        s.circle(px, by + 6, 3.6, stroke="#DDDDDD", fill="#C9A227", lw=0.8)
+        s.circle(px, by + 16, 4, stroke="#DDDDDD", fill="#C9A227", lw=0.8)
     s.text(ix - 6, by - 6, "INDEX", 8, True, anchor="r")
-    s.wire([(dx_, by + 6), (dx_, by - 30), (x0 + 280, by - 30)], "DIAG")
-    s.dot(dx_, by + 6, "DIAG")
+    s.line([(ix - 4, by - 4), (ix, by + 12)], GREY, 0.8)
+    s.wire([(dx_, by + 16), (dx_, by - 30), (x0 + 280, by - 30)], "DIAG")
+    s.dot(dx_, by + 16, "DIAG")
     s.text(dx_ + 4, by - 34, "half an F–F jumper, soldered on top", 8, True, NETS["DIAG"][0])
     s.text(x0 + 284, by - 27, "→ endstop S pin", 8, True, NETS["DIAG"][0])
     s.text(dx_ + 4, by - 9, "DIAG", 8, True)
@@ -716,8 +719,8 @@ def sheet_signals(s):
     rows = [
         (0, "D15", "S", "TIE"), (1, "GND", "−", "GND"), (2, "+5 V", "+", "5V"),
         (3, "D23", "16", "CTRL"), (4, "D17 RX2", "17", "UART"), (5, "D16 TX2", "18", "UART"),
-        (9, "D19 INT4", "S", "DIAG"),
-        (11, "D3 INT1", "S", "DIAG"), (12, "D2 INT0", "S", "DIAG"), (13, "D18 INT5", "S", "DIAG"),
+        (9, "D19 (irq)", "S", "DIAG"),
+        (11, "D3 (irq)", "S", "DIAG"), (12, "D2 (irq)", "S", "DIAG"), (13, "D18 (irq)", "S", "DIAG"),
         (15, "D14", "S", "CTRL"), (16, "GND", "−", "GND"),
         (18, "D13", None, "CTRL"),
     ]
@@ -811,7 +814,8 @@ def sheet_signals(s):
         "straight on the bus (TMC2209 datasheet Fig. 4.1). The Mega hears its own",
         "transmissions; TMCStepper skips that echo. SENDDELAY ≥ 2 on every driver.",
         "Addresses by MS1 / MS2: X 0, Y 1, Z 2, key 3. Bus at 115200 baud.",
-        "DIAG is a pulse: the firmware latches it in an interrupt (D2, D3, D18, D19).",
+        "(irq) = an interrupt pin. DIAG is a pulse: the firmware latches it with",
+        "attachInterrupt on D2, D3, D18, D19 (Arduino interrupt numbers 0, 1, 5, 4).",
         "Inputs use the Mega's internal pull-ups: an unplugged DIAG reads high =",
         "'stalled', so the firmware refuses to move (fail safe).",
         "Button S1 (Y_MIN): pauses a run; resumes or starts one when idle.",
@@ -932,10 +936,10 @@ def sheet_cable_key(s):
         "DIR → GND: direction set over UART (GCONF.shaft, read back before every move).",
         "MS1, MS2 → +5 V: UART address 3.   CLK → GND: internal clock.",
         "DIAG: its own down-pointing pin, in a 1×2 socket with INDEX: no mod needed.  TX: nothing (R10 not fitted).",
+        ("VERIFY: lay the driver on the perfboard before soldering the headers (INDEX / DIAG on the 2.54 mm grid?).", True, WARN),
         ("Before the first power-up: VREF pot to minimum (EN is tied low, so the driver", True),
         ("is on at its power-up current until the firmware sets 0.6 A RMS).", True),
-        "J1-3 and J1-8: not connected.  J2 = the same order as a RAMPS motor header;",
-        "if the motor buzzes instead of turning, swap its middle two wires.",
+        "J1-3, J1-8: not connected. J2: RAMPS motor-header order; if the motor buzzes, swap its middle two wires.",
     ], 8)
 
 
@@ -1003,6 +1007,7 @@ def sheet_tables(s):
              ("Remote", "C1", "100 µF, ≥ 25 V, low-ESR electrolytic, at the driver"),
              ("Remote", "J2", "1 × 4 male header (key motor)"),
              ("Remote", "—", "female headers: 2 × (1 × 8) + 1 × (1 × 2), for the driver"),
+             ("Both", "—", "perfboard from the kit: hub ~50 × 30 mm, remote ~70 × 30 mm"),
              ("PSU", "—", "DC jack 5.5 × 2.1 mm → screw-terminal adapter")]
     table(452, 262, ["Board", "Ref", "Part"], [52, 32, 278], parts, "Parts on the boards you build (§5, §6, §10)")
     s.text(24, 330, "Power order (§8)", 10, True)
@@ -1014,7 +1019,9 @@ def sheet_tables(s):
     s.text(24, 426, "VERIFY on the bench (control/bringup.md)", 10, True)
     s.para(24, 441, ["Which MS3 jumper pin is the signal side (stage 1, `ping`).",
                      "Which top-edge pin is DIAG (stage 3).   Phoenix plug keying.",
-                     "DC-jack adapter + / − marking (multimeter, before the first power-up).",
+                     "Remote board: INDEX / DIAG on the 2.54 mm grid (before soldering headers).",
+                     "Multimeter: DC-jack + / −; 5 V and 12 V polarity at the hub and remote board",
+                     "before plugging the driver in; cable continuity.",
                      "Sources: control/wiring.md — Marlin pins_RAMPS.h, TMC2209 datasheet rev 1.09,",
                      "BTT TMC2209 V1.3 manual + schematic, RAMPS 1.4 KiCad netlist."], 8)
 
@@ -1027,7 +1034,7 @@ SHEETS = [
      "the RAMPS or by jumper.", sheet_dials_ab),
     ("Dial driver C; DIAG-mod and UART-tap details", None, sheet_dial_c_details),
     ("Mega + RAMPS headers, hub board, UART bus", "Thin lines = RAMPS traces. Thick lines = your jumper wires "
-     "(F–F, ~10 cm) and hub-board wiring.", sheet_signals),
+     "(F–F, 10–20 cm) and hub-board wiring.", sheet_signals),
     ("Inter-unit cable and key turner", "Straight through: the same pin number at both ends. 12 V off before "
      "plugging or unplugging the cable.", sheet_cable_key),
     ("Pin map, jumpers, currents, parts", None, sheet_tables),
