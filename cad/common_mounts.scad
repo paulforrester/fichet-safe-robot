@@ -101,7 +101,7 @@ module magnet_pocket_ring(n, r, start_angle = 90) {
 // goes through it into the magnet. The ring's top sets the magnet's depth,
 // so the rubber stands rmag_proud past the door face on every magnet, and
 // the door's pull goes retainer -> ring, not into a press fit.
-rmag_d        = 22;
+rmag_d        = 22;      // listed 22; MEASURED 21.5 (Paul, 2026-10-07): rmag_hole_d to be set from cad/magnet_fit_test.stl
 rmag_h        = 6;
 rmag_proud    = 0.2;     // rubber face past the plate's door face
 rmag_hole_d   = rmag_d + 0.4;
