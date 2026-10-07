@@ -221,7 +221,7 @@ void Robot::handleLine(const char* line) {
     if (!(homed_[0] && homed_[1] && homed_[2] && keyHomed_ && nValid_)) { l.p(CP("# try needs home + learn first")); emit(l); return; }
     Combo c = {{dialPosition(0), dialPosition(1), dialPosition(2)}};
     int32_t reached; bool stalled; uint16_t sg;
-    if (!keyTry(&reached, &stalled, &sg)) return;
+    if (!driversOk() || !keyTry(&reached, &stalled, &sg)) return;
     ClassifyParams cp = {n_, keyDeciToUs(s_, s_.keyCleanTolDeci), keyDeciToUs(s_, s_.keyEarlyTolDeci), keyDeciToUs(s_, s_.keySuccessMinDeci)};
     const Outcome o = classify(reached, cp);
     logAttempt(-1, c, reached, stalled, sg, o);
@@ -394,6 +394,9 @@ void Robot::runStep() {
 
 bool Robot::attempt(int32_t index, Outcome* out) {
   const Combo c = comboAt((uint16_t)index, s_.positions);
+  // The dials that don't move in this attempt are checked here; the moving
+  // dial and the key are also checked around each of their moves (doMove).
+  if (!driversOk()) return false;
   if (!gotoCombo(c)) return false;
   int32_t reached; bool stalled; uint16_t sg;
   if (!keyTry(&reached, &stalled, &sg)) return false;
@@ -484,6 +487,11 @@ bool Robot::configureAll(bool seatCurrent) {
   const uint32_t tc = tcoolthrsFor(s_, s_.sgMinRps);
   for (uint8_t a = 0; a < AX_COUNT; ++a) {
     if (!fitted(a)) continue;
+    // configure() clears GSTAT. A driver already set up (and not released
+    // since) may have reset after its last check, and its motor may have
+    // jumped (DS §3.6.1): report that rather than wipe it. The first setup
+    // after power-up or a release clears the power-on flag, which is expected.
+    if (configured_[a] && !driverOk((Axis)a, CP("config"))) { driverFault(); return false; }
     DriverSetup ds;
     ds.runMa = (seatCurrent && a != AX_KEY) ? s_.seatMa : s_.ax[a].runMa;
     if (ds.runMa > 1200) ds.runMa = 1200;  // wiring.md §7 ceiling
@@ -494,6 +502,7 @@ bool Robot::configureAll(bool seatCurrent) {
       error(CP("CONFIG"), CP("driver settings did not read back (UART)"));
       return false;
     }
+    configured_[a] = true;
     hal_.enable((Axis)a, true);
   }
   return true;
@@ -836,13 +845,23 @@ MoveResult Robot::doMove(Axis ax, int32_t steps, float rps, bool stopOnStall, bo
   const float n = (float)iabs(steps);
   const float t = n / r.maxSps + r.maxSps / r.accelSps2;  // upper bound of the profile time
   r.timeoutMs = (uint32_t)(2000.0f * t) + 2000;
-  const MoveResult res = hal_.move(r);
+  // A driver that reset has no current setting and no StallGuard: never
+  // move on one. Checked again after the move, so a reset during it never
+  // reaches a classification (an open-loop key move reads as a success).
+  if (!driverOk(ax, CP("before"))) {
+    MoveResult none;
+    none.driverFault = true;
+    return none;
+  }
+  MoveResult res = hal_.move(r);
   if (ax < 3) absCount_[ax] += res.stepsDone;
+  if (!driverOk(ax, CP("after"))) res.driverFault = true;
   return res;
 }
 
 bool Robot::checkMove(const MoveResult& r, Axis ax, bool expectStall, bool allowStall) {
   (void)expectStall;  // callers check the "expected a stall but none" case themselves
+  if (r.driverFault) { driverFault(); return false; }  // first: a reset explains any other symptom
   if (r.aborted) { error(CP("ABORT"), CP("move aborted by operator")); return false; }
   if (r.diagHighAtStart) { error(CP("DIAG"), CP("DIAG already high before the move: lead off, or driver error")); return false; }
   if (r.dirFailed) { error(CP("DIR"), CP("key direction register did not read back (UART)")); return false; }
@@ -855,6 +874,40 @@ bool Robot::checkMove(const MoveResult& r, Axis ax, bool expectStall, bool allow
     return false;
   }
   return true;
+}
+
+bool Robot::driverOk(Axis ax, const char* when) {
+  const uint8_t g = hal_.gstat(ax);
+  if (g == 0) return true;
+  Line l;
+  l.p(CP("GSTAT,")).u(hal_.millis()).sep().c(kAxisChar[ax]).sep().x(g).sep().p(when);
+  emit(l);
+  return false;
+}
+
+bool Robot::driversOk() {
+  bool ok = true;
+  for (uint8_t a = 0; a < AX_COUNT; ++a)
+    if (fitted(a) && !driverOk((Axis)a, CP("attempt"))) ok = false;  // log every one at fault
+  if (!ok) driverFault();
+  return ok;
+}
+
+// Stop, as for any other hardware fault: a dip in a driver's supply is a
+// fault to fix, and positions since it can't be trusted. `resume` sets up
+// every driver again, re-homes, re-learns N. In a run, rewind now to the last
+// re-check (as a failed re-check does), whatever resumeFromCheckpoint says:
+// the attempt in progress, or the one before, may have run with a driver
+// that had reset (control/firmware/README.md, "Driver resets").
+void Robot::driverFault() {
+  if (state_ == ST_RUN && prog_.state == RUN_ACTIVE && prog_.nextIndex != prog_.verifiedIndex) {
+    prog_.nextIndex = prog_.verifiedIndex;
+    saveProgress();
+    Line l;
+    l.p(CP("# rewound to the last re-checked index ")).u(prog_.verifiedIndex);
+    emit(l);
+  }
+  error(CP("DRVFAULT"), CP("driver reset or fault (see the GSTAT line): power dip? Fix it and `resume`"));
 }
 
 // ---------------------------------------------------------------- helpers
@@ -895,7 +948,10 @@ void Robot::event(const char* name, int32_t detail) {
 }
 
 void Robot::releaseAll() {
-  for (uint8_t a = 0; a < AX_COUNT; ++a) hal_.enable((Axis)a, false);
+  for (uint8_t a = 0; a < AX_COUNT; ++a) {
+    hal_.enable((Axis)a, false);
+    configured_[a] = false;  // nothing relies on its setup now
+  }
   homed_[0] = homed_[1] = homed_[2] = false;
   keyHomed_ = false;
 }

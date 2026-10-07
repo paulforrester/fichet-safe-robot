@@ -1028,7 +1028,7 @@ def sheet_tables(s):
                           "(RAMPS F1, F2, D1, the six 100 µF, the 10 k pull-ups) are already on the RAMPS."], 8, color=GREY)
     s.text(24, 330, "Power order (§8)", 10, True)
     s.para(24, 345, ["1. Make every connection with power off (USB unplugged, 12 V off).",
-                     "2. Before the remote driver's first power-up: its VREF pot to minimum.",
+                     "2. Before the first power-up: every driver's VREF pot to minimum.",
                      "3. Power up: USB first, then 12 V.   4. Power down: 12 V first, then USB.",
                      "5. Never plug or unplug a motor or the cable with 12 V on.",
                      "6. Emergency stop: pull the 12 V plug."], 8)

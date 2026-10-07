@@ -14,6 +14,8 @@
 //   SUCCESS,ms,index,a,b,c,keyDeg,doorA,doorB,doorC
 //   CAL,ms,axis,baseline,sgthrs,amp,resid,clicksTrusted   (self-calibration)
 //   OFFSET,ms,dial,offsetFull,fromClicks                  (position 1 after homing)
+//   GSTAT,ms,axis,gstat,when      a driver reset or fault (GstatBits, hex); when =
+//                                 before / after (a move), attempt, config
 //   ERR,ms,code,text
 // Dial positions a,b,c are 1..20 counted from each dial's home stop.
 #pragma once
@@ -85,6 +87,9 @@ class Robot {
   MoveResult doMove(Axis ax, int32_t steps, float rps, bool stopOnStall, bool sampleSG, bool traceSG = false,
                     SgSink* sink = nullptr);
   bool checkMove(const MoveResult& r, Axis ax, bool expectStall, bool allowStall);
+  bool driverOk(Axis ax, const char* when);  // GSTAT clear? Else logs a GSTAT line
+  bool driversOk();                          // all fitted drivers; stops on a fault
+  void driverFault();                        // the stop: rewind (in a run), ERR DRVFAULT
   // helpers
   int32_t dialTarget(uint8_t d, uint8_t pos) const;
   uint8_t dialPosition(uint8_t d) const;
@@ -114,6 +119,7 @@ class Robot {
   bool homed_[3] = {false, false, false};
   int32_t dialPos_[3] = {0, 0, 0};  // logical microsteps from each stall zero
   bool keyHomed_ = false;
+  bool configured_[AX_COUNT] = {false, false, false, false};  // set up, and not released since
   int32_t keyPos_ = 0;
   bool nValid_ = false;
   int32_t n_ = 0;

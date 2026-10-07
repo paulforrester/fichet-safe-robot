@@ -28,7 +28,7 @@ both at once.)
    `control/firmware/safe_robot/safe_robot.ino`, board "Arduino Mega or Mega
    2560". Upload with only USB connected (RAMPS may be on or off the Mega).
 2. Start the logger and type `status`. You should see
-   `# Fichet safe robot 0.2 (2026-10-06) - type help` and `# state=IDLE run=0 next=0 ...`.
+   `# Fichet safe robot 0.3 (2026-10-07) - type help` and `# state=IDLE run=0 next=0 ...`.
 3. **RAMPS jumpers** (under the sockets): X none; Y **MS1** only; Z **MS2**
    only; **no MS3 jumper anywhere**.
 4. **DIAG mod** on 3 drivers (the dial ones; keep one untouched for the key
@@ -211,10 +211,22 @@ Everything on the door, both units, cable plugged. I'll have sent a
    (re-homes and re-learns), and stops.
 5. Watch for: anything sliding on the door; a dial moving while the key is
    turned (it never should); odd noises.
+6. **Power-dip check** (does the firmware notice a driver reset? See
+   `control/firmware/README.md`, "Driver resets"):
+   1. `home`. It homes the key, then each dial. Wait until nothing moves.
+   2. Switch the 12 V supply off, count to 5, and switch it back on. Leave
+      the USB connected.
+   3. Straight away, `goto 2 2 2`. Expect `GSTAT,…,A,1,before`, then
+      `ERR,…,DRVFAULT,…`. **No dial should move.** If the boot line
+      `# Fichet safe robot …` appeared when the 12 V came back, the Mega
+      restarted instead: say so.
+   4. `ping`. In each of the four `DRV` lines, the second-to-last field
+      (GSTAT) should read `1`. The paused run is untouched.
 
 **Send back**: the raw log; the time for 50 attempts; anything that moved or
-sounded wrong. Then we'll set the classification bands from the measured
-spread and start the real run with `resume`.
+sounded wrong; from step 6, the `GSTAT`, `ERR` and `DRV` lines, and whether
+anything moved after `goto`. Then we'll set the classification bands from the
+measured spread and start the real run with `resume`.
 
 ---
 
@@ -235,4 +247,5 @@ spread and start the real run with `resume`.
 | Key current (2 × minimum) | 5 |
 | Key stop angle N and its spread (classification bands) | 5, 6 |
 | Magnets holding under real loads | 5, 6 |
+| The firmware notices a driver reset (GSTAT check, v0.3) | 6 |
 | Dial torque (dial current, still 1 A) | not measured directly: if homing works at 1 A with margin, keep it; we can try 0.8 A in stage 4 |

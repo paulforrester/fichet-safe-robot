@@ -173,6 +173,19 @@ bool HwMega::configure(Axis ax, const DriverSetup& c) {
   return gOk && ((ch >> 24) & 0x0F) == mresFor(s_.microsteps);  // MRES is CHOPCONF bits 24..27
 }
 
+// GSTAT is read-and-write-1-to-clear (datasheet p. 24): reading leaves it
+// set, so a reset stays visible until configure() clears it. TMCStepper's
+// read() flags a reply that never came as a CRC error (all zeros fail its
+// crc == 0 test) and tries twice; three of those, as in setKeyShaft().
+uint8_t HwMega::gstat(Axis ax) {
+  TMC2209Stepper& d = drv_[ax];
+  for (uint8_t attempt = 0; attempt < 3; ++attempt) {
+    const uint8_t g = d.GSTAT();
+    if (!d.CRCerror) return g & (GSTAT_RESET | GSTAT_DRV_ERR | GSTAT_UV_CP);
+  }
+  return GSTAT_NO_REPLY;
+}
+
 void HwMega::enable(Axis ax, bool on) {
   if (ax == AX_KEY) {
     // EN is tied low on the remote board: switch the power stage over UART.

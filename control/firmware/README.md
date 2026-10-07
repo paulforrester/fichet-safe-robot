@@ -80,6 +80,103 @@ Every move has a step bound and a timeout. Stalls are caught on the DIAG
 interrupt. `!` on the serial line aborts the current move and switches all
 drivers off. Dials never move while the key is out of rest. A run refuses to
 start until the key has a threshold (from `calibrate`, or `CFG_SGTHRS_KEY`).
+No move starts on a driver that has reset (next section).
+
+## Driver resets (GSTAT check, v0.3, 2026-10-07)
+
+**The problem.** A TMC2209's logic runs from VS (12 V) through its own
+regulator, not from VIO (datasheet §2.2, p. 10; `control/wiring.md` §3.5). If
+VS or VIO dips, the chip resets to its power-on registers (§17, p. 74). Here
+that could be a loose contact in the hub's interim fuse holder
+(`control/wiring.md`, log 2026-10-07), a PTC trip, or a cable glitch. After a
+reset (datasheet pp. 9, 22–23, 28–29, 32):
+- `SGTHRS` and `TCOOLTHRS` are 0: no StallGuard, no DIAG pulse;
+- the current comes from the VREF pot (`I_scale_analog` = 1), with `IRUN` = 31;
+- the microsteps come from MS1/MS2: 1/8, 1/32, 1/64 and 1/16 for A, B, C and the key;
+- `CHOPCONF` = 0x10000053, so the power stage is on (TOFF = 3);
+- the motor pulls to the driver's power-on electrical position, up to
+  ±2 full steps away (§3.6.1, p. 15).
+
+Only `GSTAT.reset` (bit 0) shows that it happened. v0.2 set the drivers up
+only during the session start (and at each bench command), and read GSTAT
+only in `ping`.
+
+**The worst case in v0.2** (traced from the datasheet defaults and the
+TMCStepper 0.7.3 source; not tried on hardware): the key driver resets
+between two key moves.
+- Before each key move, `setKeyShaft()` calls `shaft()`, and TMCStepper
+  writes the whole GCONF from its own copy. That sets `I_scale_analog` back
+  to 0, so the current no longer comes from the pot: `IRUN` = 31 is ~1.8 A RMS
+  with the 0.11 Ω sense resistors. It also selects the MRES register, still at
+  its reset value of 1/256 step.
+- So the key turns under 10° instead of N + 15°, open loop, and never stalls.
+- `reached` is then the commanded angle, and `classify()` returns SUCCESS.
+  The run stops on a false success, holding the key.
+
+The simulator reproduces the false success
+(`control_unseen_key_reset_gives_a_false_success`). A dial driver that
+resets moves its dial by the wrong amount until the next re-check fails on
+homing. That costs time, but `resume` rewinds, so it doesn't give a wrong
+result.
+
+**What v0.3 does** (all in `src/core/robot.cpp`, through `Hal::gstat()`):
+- **Before and after every move**, it reads the moving driver's GSTAT
+  (`doMove`). Nothing moves on a driver that has reset. A reset during a move
+  is seen before the move's result is used: a key try is classified only
+  after its "after" check.
+- **At the start of every attempt** (and of a bench `try`), it reads all
+  fitted drivers. That covers the dials that don't move in that attempt.
+- **Before re-writing a driver's settings** while the robot still relies on
+  them, it reads that driver first, because `configure()` clears GSTAT. In
+  the session start, `calKey`, the seat and the dial calibration each set the
+  drivers up again.
+  - The first setup after power-up or a release (pause, error, `release`)
+    clears the power-on flag, which is expected (`control/bringup.md`
+    stage 1). So a 12 V cycle while paused is not an error.
+  - On the bench, a command after switching 12 V off and on without
+    `release` stops once with `DRVFAULT`, which is true: the positions are
+    gone.
+- **On a flag** (1 reset, 2 drv_err, 4 uv_cp) or **no answer** (80), it
+  logs `GSTAT,ms,axis,gstat,when` and stops with `ERR,…,DRVFAULT`. In a
+  run, it first rewinds to the last re-check, as a failed re-check does.
+
+**Why stop, instead of re-running `configure()` and re-homing.**
+- It's how every other hardware fault is handled (DRIVER, CONFIG, DIR, DIAG,
+  JAM, TIMEOUT): drivers off, an ERR line, Paul fixes the cause, `resume`.
+  Only EARLY retries, and it stops after three.
+- A reset means a supply dropped out: a contact or cable fault, which will
+  probably come back, perhaps worse. Carrying on would hide it.
+- After a reset the positions are lost, not just the settings. Steps sent
+  while the driver was down did nothing, and the motor may have jumped 2 full
+  steps. Recovering needs the key and every dial re-homed and N re-learned.
+  That is exactly the session start `resume` runs. Doing it automatically
+  would duplicate that path inside the attempt loop, for a rare fault.
+- The rewind costs at most 200 attempts (~3 min). It happens at the stop, so
+  it doesn't depend on `CFG_RESUME_FROM_CHECKPOINT`. The attempt in progress,
+  or the one before it (an idle dial is only checked at the next attempt),
+  may have run with a driver that had reset.
+
+**Cost**:
+- 10 GSTAT reads per attempt: 4, then 2 for each of the 3 moves. A
+  TMCStepper read waits 2 ms twice, so that is about 45 ms per attempt, ~5 %,
+  or ~6 min over all 8,000.
+- +0.9 KB of flash.
+
+**Limits**:
+- A reset *during* a move shows only at the move's end. Until then the move
+  runs open loop, at the VREF-pot current and other microsteps. The longest
+  such moves are the dials' homing passes: up to 1.15 dial turns towards the
+  stop. So every driver's pot now goes to minimum (`docs/manual.md` 2.3;
+  before, only the key's did). Then a driver that resets has next to no
+  torque until the check.
+- `uv_cp` isn't latched (datasheet p. 24). A short dip that switches the power
+  stage off without resetting the chip shows only if a read happens during
+  it. The step it may cost is what the re-checks are for.
+- The datasheet routes the power-on reset to DIAG too (Fig. 15.1). That isn't
+  relied on.
+
+**Bench check**: `control/bringup.md` stage 6, step 6 (12 V off and on, then
+a move must stop with `DRVFAULT`).
 
 ## Files
 
@@ -162,8 +259,15 @@ SUCCESS,ms,index,a,b,c,keyDeg,doorA,doorB,doorC
 HOME,ms,dial,pass,distFull,stalled,sgMin     LEARN,ms,try,keySteps,keyDeg,stalled,sgMin
 NSTOP,ms,keySteps,keyDeg,spreadDeg           RECHECK,ms,index,dial,discrepancyFull,nDeg,ok
 CAL,ms,axis,baseline,sgthrs,amp,resid,clicksTrusted    OFFSET,ms,dial,offsetFull,fromClicks
+GSTAT,ms,axis,gstat,when     a driver reset or fault, just before ERR DRVFAULT (see "Driver resets")
 EV,ms,name,detail    ERR,ms,code,text    DRV,...    CFG,...    SG,...    # human text
 ```
+
+`GSTAT`: `gstat` is hex: 1 = the driver reset, 2 = drv_err (overtemperature
+or short), 4 = uv_cp (12 V too low), 80 = no answer; flags add up. `when` is
+`before` or `after` (a move of that driver), `attempt` (the check of all
+drivers before each attempt), or `config` (before its settings are written
+again).
 
 `a,b,c` are positions 1–20 counted from each dial's home stop. `keyDeg` is
 measured from the key's rest stop. `class` is CLEAN / FALSESET / SUCCESS / EARLY. The raw angle is always logged, so classes can be redone afterwards:
@@ -175,9 +279,9 @@ python3 control/firmware/tools/logger.py --analyse runs/<stamp>_attempts.csv
 
 ## Verified here (cloud session, no hardware)
 
-- **Host tests**: `make -C control/firmware/test` — 45 tests, ~36,000 checks,
-  0 failures. Built with `-Wall -Wextra -Werror` and also run under
-  AddressSanitizer + UBSan. They cover:
+- **Host tests**: `make -C control/firmware/test` — 53 tests, ~36,500 checks,
+  0 failures. Built with `-Wall -Wextra -Werror` (g++ 13 and clang 18) and
+  also run under AddressSanitizer + UBSan. They cover:
   - the serpentine order: a bijection, and each step moves one dial by one
     position;
   - the ramp, classification, the EEPROM journal (rotation, torn write), TMC
@@ -191,6 +295,15 @@ python3 control/firmware/tools/logger.py --analyse runs/<stamp>_attempts.csv
     StallGuard fails safe; N is never learned on a false set; dials that turn
     clockwise without limit and stop anticlockwise (as Paul found), with the
     seat never pressing a stop; a power cut leaving the key at its ~100° stop;
+  - driver resets (v0.3): a key reset during a key try stops the run with
+    `DRVFAULT`, rewound, and no false success, and `resume` then finds the
+    real combination. A control, with the reset hidden as in v0.2, shows the
+    false success. Also covered: a key reset during a dial move stops it
+    before the key turns; an idle dial's reset is caught before the next
+    attempt moves anything; a reset before a settings rewrite is reported, not
+    wiped; a driver that stops answering mid-run stops it; a bench command
+    after an unreleased 12 V cycle reports it once; a 12 V cycle while paused
+    is not an error; one attempt costs 10 GSTAT reads;
   - calibration: thresholds from the measured load; the click centre
     recovered from a noisy ripple at any phase and any start position;
     clicks placed anywhere relative to the stop (with a control showing the
@@ -199,15 +312,15 @@ python3 control/firmware/tools/logger.py --analyse runs/<stamp>_attempts.csv
     power cycle; numbering kept stable across sessions;
   - the simulator also polices the firmware: no dial moves with the key out,
     every move bounded and with a timeout, never a move on a disabled driver,
-    never pressing into a stop with stall detection off, current never above
-    1.2 A.
+    never a move on a driver that has reset, never pressing into a stop with
+    stall detection off, current never above 1.2 A.
 - **Logger**: `python3 -m pytest control/firmware/tools` (3 tests). A
   simulated full run (`make -C control/firmware/test simlog`, 1,787 attempts)
   replays through `logger.py`, and its offline classes match the firmware's on
   every attempt.
 - **AVR build**: compiles for the ATmega2560 with avr-gcc 7.3 + Arduino AVR
   core 1.8.6 + TMCStepper 0.7.3 (Ubuntu packages; the Arduino download
-  servers are blocked here): 51.5 KB flash (19.6 %), 1.4 KB static RAM
+  servers are blocked here): 52.4 KB flash (20.0 %), 1.4 KB static RAM
   (16.6 %), no warnings from this code.
 
 **Not verified**: anything on hardware. The simulator's lock is my model of
