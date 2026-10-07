@@ -188,9 +188,12 @@ and plugging). Remote board's VREF pot at minimum. Cable plugged in. 12 V on.
    `NSTOP` line (N and the spread).
 6. Watch the key-turner housing during the learns: does it shift or rock
    on its magnets?
+7. **12 V off**, then touch C1a and C1b on the remote board. Cool,
+   lukewarm or warm? (They aren't sold as low ESR: `control/wiring.md`
+   log 2026-10-07.)
 
 **Send back**: direction; the current table from 5b.2; final `maK`; the raw
-log (CAL, LEARN, NSTOP lines); any housing movement.
+log (CAL, LEARN, NSTOP lines); any housing movement; how warm C1a/C1b felt.
 
 ---
 

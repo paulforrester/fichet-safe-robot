@@ -23,7 +23,7 @@ from reportlab.pdfgen import canvas
 W, H = landscape(A4)          # 841.9 x 595.3 pt
 MIN_PT = 8
 DATE = "2026-10-07"
-REV = "5"
+REV = "6"
 BOTTOM = H - 82               # content above this; legend + title block below
 
 # ---------------------------------------------------------------- fonts
@@ -416,7 +416,7 @@ def sheet_overview(s):
                                                       "jumpers for key STEP / DIAG, 5 V, GND",
                                                       "J3: 8-pin Phoenix header for the cable · sheets 2, 5"], "build")
     blk(640, 98, 166, 150, "Remote driver board", ["(you build)", "BTT TMC2209 V1.3, address 3",
-                                                    "EN, DIR, CLK → GND", "MS1, MS2 → +5 V", "C1 100 µF on VM",
+                                                    "EN, DIR, CLK → GND", "MS1, MS2 → +5 V", "C1a, C1b: 2 × 100 µF on VM",
                                                     "J1: 8-pin Phoenix", "sheet 6"], "build")
     blk(640, 272, 166, 64, "Key motor", ["17HE19-2004S", "on the key axis · sheet 6"])
 
@@ -915,14 +915,18 @@ def sheet_cable_key(s):
     s.hwire_hop(J["6"][0], xu, ry["6"], [xs], "UART")
     s.wire([(xu, ry["6"]), (xu, yrx), p["RX"]], "UART")
     s.wire([J["7"], (xd, ry["7"]), (xd, ydg), p["DIAG"]], "DIAG")
-    # 12 V -> VM with C1
+    # 12 V -> VM with C1a, C1b (two 100 µF in parallel)
     xv = dx + dw + 34
     yvm = p["VM"][1]
     s.wire([J["1"], (xv, ry["1"]), (xv, yvm), p["VM"]], "12V")
-    s.wire([(xv, ry["1"]), (xv + 30, ry["1"])], "12V")
+    xc1, xc2 = xv + 18, xv + 44
+    s.wire([(xv, ry["1"]), (xc2, ry["1"])], "12V")
     s.dot(xv, ry["1"], "12V")
-    s.cap_v(xv + 30, ry["1"], ry["1"] + 44, [("C1", True), "100 µF", "≥ 25 V"], side=1)
-    s.gnd(xv + 30, ry["1"] + 44)
+    s.dot(xc1, ry["1"], "12V")
+    s.cap_v(xc1, ry["1"], ry["1"] + 44, [], side=1)
+    s.cap_v(xc2, ry["1"], ry["1"] + 44, [("C1a, C1b", True), "2 × 100 µF", "≥ 25 V"], side=1)
+    s.gnd(xc1, ry["1"] + 44)
+    s.gnd(xc2, ry["1"] + 44)
     for k in ("G1", "G2"):
         s.tag(*p[k], "GND", "GND")
     s.tag(*p["VIO"], "+5 V", "5V")
@@ -1011,7 +1015,7 @@ def sheet_tables(s):
              ("Hub", "—", "male pins × 9: GND 5V STEP TX2 BUS×4 DIAG", HAVE),
              ("Hub", "—", "12V IN / 12V OUT: 20 AWG red + black", ORDERED),
              ("Remote", "J1", "Phoenix-style 5.08 mm 8-pin header + plug", HAVE),
-             ("Remote", "C1", "100 µF, ≥ 25 V, low-ESR electrolytic", ORDERED),
+             ("Remote", "C1a/b", "2 × 100 µF, ≥ 25 V electrolytic, in parallel", ORDERED),
              ("Remote", "J2", "1 × 4 male header (key motor)", HAVE),
              ("Remote", "—", "female headers 2 × (1 × 8) + 1 × (1 × 2)", HAVE),
              ("Both", "—", "perfboard (kit): ~50 × 30 and ~70 × 30 mm", HAVE),

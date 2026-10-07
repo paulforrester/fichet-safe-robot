@@ -285,7 +285,7 @@ bring-up stage before the next one is added:
   only discrete parts you fit beyond what's on the boards:
   - the 1.1 A PTC fuse (hub F1). Until it arrives, a 1.6 A glass fuse
     in a holder you print takes its place;
-  - the 100 µF ≥ 25 V capacitor (C1).
+  - two 100 µF ≥ 25 V capacitors in parallel (C1a, C1b).
 
   The rest to buy is connectors and wiring (the header strips are on hand):
   - a 5.5 × 2.1 mm DC-jack-to-screw-terminal adapter, for the PSU's
@@ -377,18 +377,20 @@ In short:
 | TX | nothing |
 | STEP | Phoenix 5 |
 | DIAG (its own down-pointing pin, in a 2-pin socket) | Phoenix 7 |
-| VM | Phoenix 1, and C1 + (100 µF) |
-| GND (both) | Phoenix 2, and C1 − |
+| VM | Phoenix 1, and the + of C1a and C1b (two 100 µF in parallel) |
+| GND (both) | Phoenix 2, and the − of C1a and C1b |
 | VIO | Phoenix 4 |
 | A2, A1, B1, B2 | 4-pin motor header, same order as a RAMPS motor header |
 
 1. **VERIFY before soldering the headers**: lay the driver on the perfboard
    and check that INDEX/DIAG fall on the 2.54 mm grid.
-2. **Before its first power-up**: turn the driver's VREF pot to minimum.
+2. Fit **C1a and C1b side by side**, right next to the driver's VM and GND
+   pins, with short leads. The stripe on each marks −: both go to GND.
+3. **Before its first power-up**: turn the driver's VREF pot to minimum.
    Its EN is tied low, so it switches on at its power-up current as soon as
    12 V arrives, until the firmware sets the real one (`control/wiring.md`
    §8).
-3. With the multimeter, check there's no short between Phoenix pins 1, 2
+4. With the multimeter, check there's no short between Phoenix pins 1, 2
    and 4 before plugging the driver in.
 
 **Where it mounts on the key turner isn't designed yet**
