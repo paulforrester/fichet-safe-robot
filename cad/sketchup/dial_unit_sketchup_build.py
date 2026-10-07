@@ -57,7 +57,7 @@ M6_CLR_R = 6.4 / 2; CSK_R = 14.0 / 2; CSK_D = (14.0 - 6.4) / 2
 BOSS_REC_R = 23.0 / 2; BOSS_REC_H = 2.5; SHAFT_HOLE_R = 7.0 / 2
 BOLT_SQ = 31.0; BOLT_R = 3.4 / 2; CB_R = 6.3 / 2; CB_D = (6.3 - 3.4) / 2   # M3 90deg countersink (2026-10-06)
 NEMA = 42.3; CAN_CLR = 1.5
-RMAG_R, RMAG_H, RMAG_HOLE_R, RMAG_RING_R, RMAG_SEAT = 11.0, 6.0, 22.4 / 2, 29.0 / 2, 6.0 - 0.2   # 22mm rubber pot magnets (2026-10-06)
+RMAG_R, RMAG_H, RMAG_HOLE_R, RMAG_RING_R, RMAG_SEAT = 21.5 / 2, 6.0, 21.7 / 2, 29.0 / 2, 6.0 - 0.2   # 22mm rubber pot magnets (2026-10-06)
 RMAG_RET_R, RMAG_RET_T, RMAG_SCREW_R = 27.0 / 2, 3.0, 4.5 / 2
 RMAG_POS_R, RMAG_ROT = 53.5, 26.75
 FRONT_R = 75.0; PTR_LEN, PTR_W = 10.0, 16.0

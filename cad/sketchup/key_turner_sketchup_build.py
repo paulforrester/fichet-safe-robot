@@ -22,7 +22,7 @@ SHAFT_TIP = GROOVE_TOP + 1.5; MOTOR_FACE = SHAFT_TIP + 24.0; HUB_Z1 = MOTOR_FACE
 BASE_T = 5.0; BASE_R = 43.0; BASE_HOLE_R = 14.0
 MP_T = 6.0; MP_Z0 = MOTOR_FACE - MP_T
 LEG_R = 6.0; LEG_POS = 36.0; LEG_ANG = [0.0, 120.0, 240.0]
-RMAG_R, RMAG_H, RMAG_HOLE_R, RMAG_RING_R, RMAG_SEAT = 11.0, 6.0, 22.4 / 2, 29.0 / 2, 6.0 - 0.2   # 22mm rubber pot magnets
+RMAG_R, RMAG_H, RMAG_HOLE_R, RMAG_RING_R, RMAG_SEAT = 21.5 / 2, 6.0, 21.7 / 2, 29.0 / 2, 6.0 - 0.2   # 22mm rubber pot magnets
 RMAG_RET_R, RMAG_RET_T, RMAG_SCREW_R = 27.0 / 2, 3.0, 4.5 / 2
 MAGS = [[31.0 * math.cos(math.radians(a)), 31.0 * math.sin(math.radians(a))] for a in (60.0, 180.0, 300.0)]
 PILOT_R = 5.4 / 2; PILOT_D = 16.0
