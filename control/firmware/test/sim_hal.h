@@ -14,9 +14,14 @@
 //    elastically up to 2 full steps of lag; pushed further into a stop it
 //    slips a pole (falls back 4 full steps = one electrical cycle), as a
 //    real stepper does at the stop when nothing stops it (e.g. the slow seat).
+//  - drivers: GSTAT.reset is set at power-on and cleared by configure(). A
+//    driver reset (its supply dropping out, injected by a test) sets it
+//    again and loses the configured StallGuard threshold, so DIAG never
+//    fires. (The real driver also loses its current setting and microstep
+//    resolution; the sim doesn't model those.)
 // It also polices the firmware: dial moves with the key out, unbounded
 // moves, moves without a timeout, pressing into a stop with stall detection
-// off.
+// off, a move on a driver whose GSTAT shows a reset.
 #pragma once
 #include <cmath>
 #include <cstdint>
@@ -52,6 +57,13 @@ struct SimHal : public core::Hal {
   bool diagStuck[4] = {false, false, false, false};
   bool configFails = false;
   int abortAtMove = -1;            // abort the Nth move (0-based)
+  // Driver reset: halfway through the next move of axis resetOnMove, driver
+  // resetAxis (-1 = that same one) resets. resetHidden: gstat() doesn't show
+  // it, which is what firmware v0.2 saw (it never read GSTAT mid-session).
+  int resetOnMove = -1, resetAxis = -1;
+  bool resetHidden = false;
+  uint8_t gstatFlags[4] = {core::GSTAT_RESET, core::GSTAT_RESET, core::GSTAT_RESET, core::GSTAT_RESET};  // power-on
+  int gstatReads = 0;
   // ---- state
   // wheel0: angle (from the stop, clockwise) while the plug is out; off: field
   // minus rotor; floor: the stop the rotor is above, in field-rotor units.
@@ -117,6 +129,12 @@ struct SimHal : public core::Hal {
   }
   // A dial wheel slips relative to its motor by k positions (unit moved).
   void slip(int d, int k) { dial[d].off += k * usPerPos; }
+  // Driver ax's supply drops out for a moment: power-on registers.
+  void driverReset(int ax) {
+    gstatFlags[ax] |= core::GSTAT_RESET;
+    sgthrs[ax] = 0;                         // SGTHRS = 0: no stall signal
+    if (ax == core::AX_KEY) enabled[ax] = true;  // CHOPCONF.TOFF back to 3; its EN is tied low
+  }
 
   // ---- Hal
   core::DriverStatus ping(core::Axis ax) override {
@@ -126,12 +144,19 @@ struct SimHal : public core::Hal {
     st.ms1 = present[ax] && (ax == core::AX_B || ax == core::AX_KEY);
     st.ms2 = present[ax] && (ax == core::AX_C || ax == core::AX_KEY);
     st.diagPin = st.diagIoin = diagStuck[ax];
+    st.gstat = present[ax] ? gstatFlags[ax] : 0;
     return st;
   }
   bool configure(core::Axis ax, const core::DriverSetup& s) override {
     if (s.runMa > 1200) violations.push_back("current above ceiling");
     sgthrs[ax] = s.sgthrs;
+    gstatFlags[ax] = 0;
     return !configFails;
+  }
+  uint8_t gstat(core::Axis ax) override {
+    ++gstatReads;
+    if (!present[ax]) return core::GSTAT_NO_REPLY;
+    return resetHidden ? (uint8_t)(gstatFlags[ax] & ~core::GSTAT_RESET) : gstatFlags[ax];
   }
   void enable(core::Axis ax, bool on) override { enabled[ax] = on; }
   uint32_t millis() override { return now; }
@@ -151,6 +176,7 @@ struct SimHal : public core::Hal {
     if (std::abs(r.steps) > (ax == 3 ? 3000 : 8000)) violations.push_back("move over its bound");
     if (!enabled[ax]) violations.push_back("move on a disabled driver");
     if (ax < 3 && std::abs(keyPhys()) > 20) violations.push_back("dial moved with the key out");
+    if ((gstatFlags[ax] & core::GSTAT_RESET) && !resetHidden) violations.push_back("move on a driver that has reset");
     if (diagStuck[ax]) { res.diagHighAtStart = true; return res; }
     if (abortAtMove >= 0 && moveCount == abortAtMove) { ++moveCount; res.aborted = true; return res; }
     ++moveCount;
@@ -164,6 +190,10 @@ struct SimHal : public core::Hal {
     uint16_t sgMin = 0xFFFF;
     res.stepsDone = r.steps;
     for (int32_t i = 0; i < n; ++i) {
+      if (ax == resetOnMove && i == n / 2) {
+        driverReset(resetAxis >= 0 ? resetAxis : ax);
+        resetOnMove = resetAxis = -1;
+      }
       bool isBlocked;
       bool unloaded = false;
       if (ax < 3) {

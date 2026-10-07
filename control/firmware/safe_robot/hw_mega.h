@@ -23,6 +23,7 @@ class HwMega : public core::Hal {
   // core::Hal
   core::DriverStatus ping(core::Axis ax) override;
   bool configure(core::Axis ax, const core::DriverSetup& s) override;
+  uint8_t gstat(core::Axis ax) override;
   void enable(core::Axis ax, bool on) override;
   core::MoveResult move(const core::MoveRequest& r) override;
   uint32_t millis() override { return ::millis(); }

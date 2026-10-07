@@ -344,7 +344,10 @@ Fix it in the cable's connector, not on the board.
 Sense resistors on the V1.3: **0.11 Ω** (BTT schematic R3/R5 "0R11"; visible as
 "R110" on the board, manual p. 6). Current set by UART with the internal
 reference (GCONF.I_scale_analog = 0), so the module's VREF pot doesn't matter
-once the firmware is running. RMS current = (CS+1)/32 × VFS/(R_SENSE + 20 mΩ)/√2,
+once the firmware is running. **Correction (2026-10-07):** it does after a
+driver reset (its supply dipping), until the firmware notices: so every
+driver's pot goes to minimum (decision log, 2026-10-07).
+RMS current = (CS+1)/32 × VFS/(R_SENSE + 20 mΩ)/√2,
 VFS = 0.325 V (vsense = 0) or 0.18 V (vsense = 1) (DS §9, p. 53). TMCStepper's
 `rms_current()` implements this and switches vsense when CS would be < 16; the
 datasheet asks for IRUN 8…31 in StealthChop (p. 42).
@@ -464,6 +467,22 @@ discrete part" (2026-10-07).
 
 ## Decision log (most recent first)
 
+### 2026-10-07 — every driver's VREF pot to minimum (firmware v0.3)
+
+- Firmware v0.3 reads each driver's GSTAT before and after every move and
+  stops on a reset (`control/firmware/README.md`, "Driver resets").
+- A reset *during* a move is seen only when the move ends. Until then, the
+  driver runs on its power-on registers. That means `I_scale_analog` = 1,
+  so the current is set by the VREF pot, with `IRUN` = 31 (DS pp. 23, 28).
+- The longest moves are the dials' homing passes, up to 1.15 dial turns
+  into the stop. A dial pressed there at an unknown pot current is the kind
+  of force the relocker research says to avoid (`control/lock_research.md`).
+- So every pot goes to minimum, not just the key's (§8). There's no
+  downside: the firmware always selects the internal reference, and it
+  holds the dial drivers disabled (EN high) from its start until it has
+  set them up.
+- **Proposed; Paul to confirm** (`docs/manual.md` 2.3, step 4).
+
 ### 2026-10-07 — interim fuse for hub F1 (Paul)
 
 - The PTC fuses are ordered, but no amazon.fr listing arrives soon
@@ -488,6 +507,10 @@ discrete part" (2026-10-07).
   it resets to its power-on registers. The firmware writes the driver's
   setup once per session and doesn't check for a reset before a key
   move, so a reset would go unnoticed (follow-up for the firmware).
+  **Update 2026-10-07: done in firmware v0.3.** It reads each driver's
+  GSTAT around every move and before every attempt, and stops with
+  `DRVFAULT` on a reset (`control/firmware/README.md`, "Driver resets").
+  Solid contacts still matter: each dropout now stops the run.
   Metal-to-metal contact on each end cap, held by spring pressure or by
   a screw threading into a metal nut, not into the plastic: PETG and PLA
   creep under steady load, so a clamp that bears only on plastic

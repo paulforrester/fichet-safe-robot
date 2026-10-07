@@ -315,6 +315,10 @@ There are five drivers: three for the dials, one for the key turner, one spare.
 2. **Heatsinks** on all drivers you'll use. At ≤ 1 A RMS no fan is needed
    (BTT: active cooling above 1.2 A).
 3. **Don't bridge R10** on any driver (`control/wiring.md` §2).
+4. **Turn the VREF pot to minimum on every driver.** The firmware sets the
+   current over UART, but a driver whose 12 V drops out for a moment comes
+   back using its pot, until the firmware notices at the end of that move
+   (`control/wiring.md` §7).
 
 ### 2.4 Mega, RAMPS and the dial drivers
 
@@ -544,7 +548,7 @@ make -C control/firmware/test
 ~/safe-robot-venv/bin/python -m pytest control/firmware/tools
 ```
 
-Expect `45 tests, 36127 checks, 0 failures` and `3 passed`. I check these
+Expect `53 tests, 36489 checks, 0 failures` and `3 passed`. I check these
 in every PR (also built with clang, which is the Mac's compiler). Running
 them yourself is only needed if you change the code.
 
@@ -568,8 +572,8 @@ them yourself is only needed if you change the code.
 
 1. Start the logger (5.3). Opening the port restarts the Mega.
 2. The first line is
-   `# Fichet safe robot 0.2 (2026-10-06) - type help`. If it says 0.1, the
-   old code is still on the Mega.
+   `# Fichet safe robot 0.3 (2026-10-07) - type help`. If it says 0.2 or
+   older, the old code is still on the Mega.
 3. Type `status`. Expect `# state=IDLE run=… next=…`.
 4. Type `cfg` to see the settings it was built with.
 
@@ -650,8 +654,8 @@ caffeinate -i ~/safe-robot-venv/bin/python control/firmware/tools/logger.py --po
   as the run goes, so a crash or Ctrl-C loses nothing already written.
 - **Commands:** type them in the logger window and press Return. `!` aborts
   at once.
-- **On screen:** progress lines (`EV`, `ERR`, `HOME`, `LEARN`, `CAL`,
-  `RECHECK`, `SUCCESS`, …), every attempt that isn't a clean fail, and
+- **On screen:** progress lines (`EV`, `ERR`, `GSTAT`, `HOME`, `LEARN`,
+  `CAL`, `RECHECK`, `SUCCESS`, …), every attempt that isn't a clean fail, and
   every 50th attempt. A success also rings the terminal bell.
 - **Opening the port restarts the Mega** (Arduino auto-reset). So start the
   logger *before* `start`, and don't quit and restart it during a run. If
@@ -775,7 +779,33 @@ the error before a bench command). If you're not sure, send me the raw log.
 | RECHECK | a re-check found a dial home or N moved | it has already rewound to the last good check. Re-seat; `resume` |
 | CFGHASH | dial position settings changed since the run started | see 4.3 |
 | NOHOME | (only if a dial's home mode is set to "no stop") | `resume force` or `reset yes` |
+| DRVFAULT | a driver reset or reported a fault. The `GSTAT` line just before says which driver and what (below) | fix the cause, then `resume`. In a run it has already rewound to the last good check |
 | ABORT | you typed `!` | `resume` when ready |
+
+**`GSTAT,<time>,<driver>,<value>,<when>`** comes just before a `DRVFAULT`.
+`<driver>` is A, B, C or K (key). The robot checks every driver before and
+after each of its moves and before each attempt, because a driver whose power
+dips comes back with no current setting and no stall detection. Without the
+check, the key could then turn without stopping, and that looks like a
+success. `<value>`:
+- `1`: the driver **reset**: its 12 V (or its 5 V) dropped out for a moment.
+  Type `ping`: the second-to-last field of each `DRV` line is that driver's
+  GSTAT, so it shows which ones reset.
+  - Only `K`: the hub fuse holder's contacts, the cable and its plugs.
+  - All four: the 12 V supply or its plug.
+  - Check those contacts with 12 V off (multimeter on continuity, while
+    you wiggle them), fix, then `resume`.
+- `2`: the driver shut itself down: **overheated or a short**. 12 V off, let
+  it cool, check the motor's wires, and send me the log before resuming.
+- `4`: its **12 V is too low** right now: the supply or its wiring.
+- `80`: **no answer**: no 12 V at that driver (for `K`: fuse blown? check it
+  with the multimeter), or its UART lead is off.
+- Flags add up: `5` = 1 + 4.
+- On the bench, if you switched the 12 V off and on yourself since the last
+  command (without `release`), a `1` is expected: run the command again.
+
+`<when>` is `before` or `after` (a move of that driver), `attempt` (the check
+before each attempt) or `config` (before its settings are written again).
 
 ### 5.10 Success
 

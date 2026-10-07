@@ -41,7 +41,17 @@ struct MoveResult {
   bool timedOut = false;
   bool diagHighAtStart = false;  // DIAG already high: wire off or driver error
   bool dirFailed = false;  // key: direction register didn't read back (UART)
+  bool driverFault = false;  // set by the core, not the Hal: GSTAT showed a fault before or after the move
   uint16_t sgMin = 0xFFFF; // lowest SG_RESULT seen at cruise speed (0xFFFF = none)
+};
+
+// GSTAT bits (TMC2209 datasheet, GSTAT, p. 24), as Hal::gstat() returns them.
+// configure() clears them; the driver sets them again.
+enum GstatBits : uint8_t {
+  GSTAT_RESET = 0x01,     // registers back at power-on values: VS (12 V) or VIO dropped out (DS §17)
+  GSTAT_DRV_ERR = 0x02,   // power stage shut down: overtemperature or short (latched)
+  GSTAT_UV_CP = 0x04,     // charge pump undervoltage now: power stage off (not latched)
+  GSTAT_NO_REPLY = 0x80,  // not a GSTAT bit: the driver didn't answer the read
 };
 
 // Per-driver settings pushed over UART before a phase of motion.
@@ -66,7 +76,13 @@ class Hal {
  public:
   virtual ~Hal() {}
   virtual DriverStatus ping(Axis ax) = 0;
-  virtual bool configure(Axis ax, const DriverSetup& s) = 0;  // true = read-back OK
+  virtual bool configure(Axis ax, const DriverSetup& s) = 0;  // true = read-back OK; clears GSTAT
+  // GSTAT of one driver (GstatBits; 0 = fine), or GSTAT_NO_REPLY. A driver
+  // whose supply dropped out comes back with its power-on registers (no
+  // current setting, no StallGuard, other microsteps) and nothing else shows
+  // it, so the core reads this around every move (control/firmware/README.md,
+  // "Driver resets").
+  virtual uint8_t gstat(Axis ax) = 0;
   virtual void enable(Axis ax, bool on) = 0;
   virtual MoveResult move(const MoveRequest& r) = 0;  // blocking, bounded
   virtual uint32_t millis() = 0;

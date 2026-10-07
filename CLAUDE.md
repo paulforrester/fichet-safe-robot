@@ -185,7 +185,7 @@ perfboard/heatsink/plug dimensions for the remote board's
 mount (CAD change for a mechanical session — needs listed in
 `control/wiring.md` §6.2); a place on the electronics deck for the hub board.
 
-## Firmware — `control/firmware/` (v0.2, 2026-10-06; read its README)
+## Firmware — `control/firmware/` (v0.3, 2026-10-07; read its README)
 
 Built and host-tested, **not yet run on hardware**. Sequence as in
 `control/sequence.md`: session start = ping/configure drivers → key home
@@ -216,6 +216,15 @@ click positions from the dials' 18° StallGuard ripple; `calibrate` does it as
 a separate step and EEPROM keeps the last result (the key needs it to home
 at the next session start).
 
+Driver resets (v0.3): a TMC2209 whose 12 V (or 5 V) dips resets to its
+power-on registers: no current setting, no StallGuard, other microsteps.
+Unseen, a key reset made an open-loop key move read as a false SUCCESS. The
+core reads GSTAT through the HAL hook `Hal::gstat()`, before and after every
+move, for all drivers before each attempt, and before re-writing a driver's
+settings. A flag logs a `GSTAT` line and stops with `ERR DRVFAULT`, rewound
+to the last re-check; `resume` recovers. Bench check: `control/bringup.md`
+stage 6, step 6.
+
 Biggest unknown (no source; `control/sequence.md` Open items): **whether a
 combination dialled with the key already in counts.** The manual dials
 before inserting the key. If it doesn't count, the key turner needs a way to
@@ -230,7 +239,8 @@ the classification bands (5–6).
 Safety rules for any motion code: start at low current and low speed;
 bound every move (never an unbounded "turn until stall"); stop on stall
 or timeout; make it easy to abort; never drive the key past what the run
-asks for. Keep the sequencing in `src/core` and add a simulated test for
+asks for; never move a driver without checking its GSTAT (it may have
+reset). Keep the sequencing in `src/core` and add a simulated test for
 any change (`make -C control/firmware/test`).
 
 ## Working in a cloud session (no hardware)

@@ -658,3 +658,211 @@ TEST(calibrate_command_stores_what_a_run_needs) {
   CHECK_EQ(r2.state(), ST_SUCCESS);
   noViolations(h);
 }
+
+// ---------------------------------------------------------------- driver resets (GSTAT)
+// A driver whose supply dips (fuse holder contact, PTC trip, cable) comes back
+// with its power-on registers: no StallGuard. The firmware must notice before
+// it trusts another move.
+namespace {
+// Which dial the attempt at index idx moves (exactly one does).
+int movingDial(int idx) {
+  const Combo a = comboAt((uint16_t)(idx - 1), 20), b = comboAt((uint16_t)idx, 20);
+  for (int d = 2; d >= 0; --d) if (a.d[d] != b.d[d]) return d;
+  return -1;
+}
+int keyMoves(const SimHal& h) {
+  int n = 0;
+  for (auto& m : h.moves) if (m.axis == AX_KEY) ++n;
+  return n;
+}
+}  // namespace
+
+TEST(key_driver_reset_during_the_key_try_is_not_a_false_success) {
+  SimHal h;
+  h.secret[0] = 1; h.secret[1] = 4; h.secret[2] = 9;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("start");
+  for (int i = 0; i < 100000 && r.progress().nextIndex < 300; ++i) r.tick();
+  CHECK_EQ(r.progress().verifiedIndex, 200);
+  // What the check costs: one attempt reads GSTAT 10 times (all 4 drivers,
+  // then before and after the dial move, the key try and the retract).
+  const int reads = h.gstatReads;
+  r.tick();
+  CHECK_EQ(h.gstatReads - reads, 10);
+  // The key driver's 12 V drops out for a moment halfway through the next key try.
+  h.resetOnMove = AX_KEY;
+  runUntilIdle(r);
+  CHECK_EQ(r.state(), ST_ERROR);
+  CHECK(!h.has("SUCCESS,"));
+  for (auto& l : h.lines) if (l.rfind("ATT,", 0) == 0) CHECK(field(l, 10) != "SUCCESS");
+  CHECK(h.last("GSTAT,").find(",K,1,after") != std::string::npos);
+  CHECK(h.last("ERR,").find(",DRVFAULT,") != std::string::npos);
+  CHECK_EQ(r.progress().state, RUN_ACTIVE);
+  CHECK_EQ(r.progress().nextIndex, 200);  // rewound to the last re-check
+  for (int a = 0; a < 4; ++a) CHECK(!h.enabled[a]);
+  noViolations(h);
+  // Paul fixes the contact and resumes: the run finds the real combination.
+  h.lines.clear();
+  r.handleLine("resume");
+  runUntilIdle(r);
+  CHECK_EQ(r.state(), ST_SUCCESS);
+  CHECK_EQ(r.progress().successIndex, secretIndex(h));
+  CHECK(!attIndices(h).empty() && attIndices(h).front() == 200);
+  noViolations(h);
+}
+
+TEST(control_unseen_key_reset_gives_a_false_success) {
+  // The failure the check exists for, reproduced: the same reset, but GSTAT
+  // not looked at (firmware v0.2). The key turns open-loop to N + 15 deg
+  // with no stall, and the run stops on a SUCCESS that isn't one.
+  SimHal h;
+  h.secret[0] = 1; h.secret[1] = 4; h.secret[2] = 9;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("start");
+  for (int i = 0; i < 100000 && r.progress().nextIndex < 300; ++i) r.tick();
+  h.resetHidden = true;
+  h.resetOnMove = AX_KEY;
+  runUntilIdle(r);
+  CHECK_EQ(r.state(), ST_SUCCESS);
+  CHECK(r.progress().successIndex != secretIndex(h));
+  CHECK(r.progress().successIndex < 310);
+  CHECK(h.keyPhys() <= h.keyN);  // the key never got past its stop: the lock didn't open
+}
+
+TEST(key_driver_reset_during_a_dial_move_stops_before_the_key_turns) {
+  SimHal h;
+  h.secret[0] = 1; h.secret[1] = 4; h.secret[2] = 9;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("start");
+  for (int i = 0; i < 100000 && r.progress().nextIndex < 300; ++i) r.tick();
+  h.resetOnMove = movingDial(r.progress().nextIndex);
+  h.resetAxis = AX_KEY;
+  const int keyBefore = keyMoves(h);
+  runUntilIdle(r);
+  CHECK_EQ(r.state(), ST_ERROR);
+  CHECK_EQ(keyMoves(h), keyBefore);  // the key never moved on the reset driver
+  CHECK(h.last("GSTAT,").find(",K,1,before") != std::string::npos);
+  CHECK(h.last("ERR,").find(",DRVFAULT,") != std::string::npos);
+  CHECK_EQ(r.progress().nextIndex, 200);
+  noViolations(h);
+}
+
+TEST(idle_dial_driver_reset_is_caught_before_the_next_attempt_moves) {
+  // Dial A moves only every 400 attempts: a reset while it sits still is
+  // caught by the all-driver check at the start of the next attempt.
+  SimHal h;
+  h.secret[0] = 1; h.secret[1] = 4; h.secret[2] = 9;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("start");
+  for (int i = 0; i < 100000 && r.progress().nextIndex < 450; ++i) r.tick();
+  h.driverReset(AX_A);
+  const size_t movesBefore = h.moves.size();
+  runUntilIdle(r);
+  CHECK_EQ(r.state(), ST_ERROR);
+  CHECK_EQ(h.moves.size(), movesBefore);  // nothing moved after the reset
+  CHECK(h.last("GSTAT,").find(",A,1,attempt") != std::string::npos);
+  CHECK(h.last("ERR,").find(",DRVFAULT,") != std::string::npos);
+  CHECK_EQ(r.progress().nextIndex, 400);
+  noViolations(h);
+  r.handleLine("resume");
+  runUntilIdle(r);
+  CHECK_EQ(r.state(), ST_SUCCESS);
+  CHECK_EQ(r.progress().successIndex, secretIndex(h));
+  noViolations(h);
+}
+
+TEST(driver_that_stops_answering_mid_run_stops_it) {
+  // The key branch's fuse blows: its driver goes silent.
+  SimHal h;
+  h.secret[0] = 0; h.secret[1] = 9; h.secret[2] = 9;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("start");
+  for (int i = 0; i < 100000 && r.progress().nextIndex < 50; ++i) r.tick();
+  h.present[AX_KEY] = false;
+  runUntilIdle(r);
+  CHECK_EQ(r.state(), ST_ERROR);
+  CHECK(h.last("GSTAT,").find(",K,80,attempt") != std::string::npos);
+  CHECK(h.last("ERR,").find(",DRVFAULT,") != std::string::npos);
+  CHECK_EQ(r.progress().nextIndex, 0);
+  noViolations(h);
+}
+
+TEST(reset_before_a_settings_rewrite_is_reported_not_wiped) {
+  // configure() clears GSTAT. Dial A, set up at the session's first step,
+  // resets during dial B's seat turn; the seat's closing settings rewrite
+  // must report it rather than clear it (A's click phase from its count
+  // could be up to 2 full steps out after a reset).
+  SimHal h;
+  h.secret[0] = 0; h.secret[1] = 1; h.secret[2] = 2;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  h.resetOnMove = AX_B;
+  h.resetAxis = AX_A;
+  r.handleLine("start");
+  runUntilIdle(r);
+  CHECK_EQ(r.state(), ST_ERROR);
+  CHECK(h.last("GSTAT,").find(",A,1,config") != std::string::npos);
+  CHECK(h.last("ERR,").find(",DRVFAULT,") != std::string::npos);
+  CHECK(!h.has("ATT,"));
+  noViolations(h);
+  r.handleLine("resume");
+  runUntilIdle(r);
+  CHECK_EQ(r.state(), ST_SUCCESS);
+  CHECK_EQ(r.progress().successIndex, secretIndex(h));
+  noViolations(h);
+}
+
+TEST(bench_command_after_a_12v_cycle_reports_it_once) {
+  // The drivers were set up and not released, so a reset is news: report it,
+  // forget the positions, and set up afresh on the next command.
+  SimHal h;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("home");
+  CHECK_EQ(h.count("HOME,"), 6);
+  for (int a = 0; a < 4; ++a) h.driverReset(a);  // 12 V off and on, no `release`
+  const size_t moves = h.moves.size();
+  r.handleLine("jog A 20");
+  CHECK(h.last("GSTAT,").find(",A,1,config") != std::string::npos);
+  CHECK(h.last("ERR,").find(",DRVFAULT,") != std::string::npos);
+  CHECK_EQ(h.moves.size(), moves);
+  r.handleLine("goto 2 2 2");
+  CHECK(h.last("# goto a b c").size() > 0);  // positions forgotten: home first
+  r.handleLine("jog A 20");
+  CHECK(h.last("# moved").find("moved 20 full steps") != std::string::npos);
+  noViolations(h);
+}
+
+TEST(a_12v_cycle_while_paused_is_not_an_error) {
+  // Pausing releases the drivers: nothing relies on their setup, so the
+  // resume's session start just sets them up again.
+  SimHal h;
+  h.secret[0] = 0; h.secret[1] = 3; h.secret[2] = 3;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("start");
+  for (int i = 0; i < 100000 && r.progress().nextIndex < 30; ++i) r.tick();
+  r.requestPause();
+  runUntilIdle(r);
+  CHECK_EQ(r.state(), ST_PAUSED);
+  for (int a = 0; a < 4; ++a) h.driverReset(a);
+  r.handleLine("resume");
+  runUntilIdle(r);
+  CHECK_EQ(r.state(), ST_SUCCESS);
+  CHECK_EQ(h.count("ERR,"), 0);
+  CHECK_EQ(h.count("GSTAT,"), 0);
+  noViolations(h);
+}
