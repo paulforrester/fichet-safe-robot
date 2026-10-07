@@ -40,6 +40,10 @@ yourself are in table A. **🛒 = still to buy.**
 Status: 🛒 **TO BUY** · ✅ ordered or on hand · ⚪ already on a board you
 bought (nothing to buy).
 
+**Where to buy the 🛒 items:** `docs/order_remaining_parts.md` (2026-10-07)
+has specific picks for amazon.fr and mouser.fr, with prices and stock, and
+lists what neither site has. amazon.fr covers everything in one order.
+
 **A. Parts you buy and fit** (the hub board, the remote driver board, the wiring)
 
 | Status | Ref | Part | Spec | Qty (+ spare) | Where it goes | Source |
