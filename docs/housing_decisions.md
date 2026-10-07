@@ -32,8 +32,13 @@ holes in the dial plate, three in the key-turner base. Volume up by 0.84 and
 `dial_layout_check.py` ALL PASS (unchanged margins: the ring is the same);
 `dial_interference_check.py` and `key_turner_check.py` NO INTERFERENCE.
 
-**Still not measured:** magnet height (6 mm assumed; sets the 0.2 mm proud
-face) and thread depth (sets the screw length).
+**Magnet height (Paul, same day): 6.0–6.1 mm**, most of the spread in the
+rubber; the threaded back is **flush** (no boss). So the rubber stands
+**0.2–0.3 mm proud** of the door face, inside the 0.1–0.5 mm the design
+allows: no CAD change (`rmag_h` stays 6). A flush back means the retainer
+sits flat on the magnet's steel.
+
+**Still not measured:** thread depth (sets the M4 screw length).
 
 **Wrap strips** (`magnet_wrap_strips.stl`, Paul's idea): flat PLA strips,
 69 × 5 mm, 1, 2 or 3 layers (0.2/0.4/0.6 mm), to wrap round a magnet in the

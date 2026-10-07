@@ -159,7 +159,9 @@ plate has 6, the key-turner base 3.
 - **Diameter D.** Measured 21.5 mm (Paul, 2026-10-07). The holes are now
   **21.7 mm**, chosen from the fit-test strip (snug at 21.8, worked in at
   21.7): the rubber grips, so the magnet can't slide out of the inner side.
-- **Height H, including any boss on the back.** The magnet's back must be
+- **Height H: measured 6.0–6.1 mm, back flush, no boss** (Paul,
+  2026-10-07). The rubber stands 0.2–0.3 mm proud: fine. For reference, the
+  rule: the magnet's back must be
   level with the ring top (5.8 mm above the door face), so the rubber stands
   H − 5.8 proud. 5.9–6.3 mm is fine (0.1–0.5 proud). Under 5.9 the rubber
   would sit flush or below the plate; over 6.3 the dial plugs sit too
