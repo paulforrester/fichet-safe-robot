@@ -6,6 +6,40 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## 2026-10-07 (later): magnet holes now 21.7 mm, from the fit test
+
+**Fit test (Paul, `cad/magnet_fit_test.stl`):** the 21.5 mm magnets fit
+snugly in the **21.8** hole and can be worked into the **21.7** hole. Paul's
+call: 21.7, so the rubber grips and the magnet can't slide out of the inner
+side. **Split sleeves** (`magnet_split_sleeves.stl`): only the two thickest
+(0.55, 0.60 mm) printed; the thinner walls didn't come out. Not pursued:
+the plates are reprinted instead.
+
+**Change:** `common_mounts.scad` `rmag_d` = 21.5 (measured), `rmag_hole_d` =
+21.7 (from the test, no longer derived from `rmag_d`). Same seat ring (OD
+29), same retainer (it now bears on the ring from 21.7 to 27 mm). Both
+SketchUp build scripts updated to match.
+
+**Fitting changes with a snug hole:** the magnet no longer drops onto its
+retainer, so its depth is set by how far it's pressed in. The manual (§1.3a)
+now presses each magnet in from the door side with the plate's inner face on
+the table: the table stops the magnet's back level with the ring top.
+
+**Checked:** re-rendered `dial_front_assembly.stl`, `key_turner_base.stl`
+and the two whole-unit STLs, all watertight. Sliced at 2.5 mm: six 21.70 mm
+holes in the dial plate, three in the key-turner base. Volume up by 0.84 and
+0.42 cm³, exactly the plastic the smaller holes add.
+`dial_layout_check.py` ALL PASS (unchanged margins: the ring is the same);
+`dial_interference_check.py` and `key_turner_check.py` NO INTERFERENCE.
+
+**Still not measured:** magnet height (6 mm assumed; sets the 0.2 mm proud
+face) and thread depth (sets the screw length).
+
+**Wrap strips** (`magnet_wrap_strips.stl`, Paul's idea): flat PLA strips,
+69 × 5 mm, 1, 2 or 3 layers (0.2/0.4/0.6 mm), to wrap round a magnet in the
+*old* 22.4 mm holes. The gap there is 0.45 mm a side, so the 2-layer strip
+is the nominal match. A fallback for the plates already printed.
+
 ## 2026-10-07: door magnets fall out of the inner side — holes to become a snug fit
 
 **Finding (Paul):** the Wukong magnets measure **21.5 mm**, not the listed
@@ -73,6 +107,8 @@ without tools or with a screwdriver; live parts covered; labelled
 - **Size:** 54.5 × 18.8 × 12.2mm (28.7 wide over the tabs). That's longer
   than the ~50 × 30mm hub board, so mount it **beside** the hub board (four
   tabs, M3 or 3mm zip ties) or inline in the wire, not on the board.
+
+**Printed (Paul, 2026-10-07): "came out beautifully."**
 
 **Checked:** `cad/tools/fuse_holder_check.py` — body, lid, fuse, both
 contacts, both screw stacks and the spring, pairwise with manifold3d with the

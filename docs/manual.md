@@ -109,7 +109,8 @@ where the table says so.
 - the Mega base coupon (2026-10-04: 3 of 4 screws go in; 3 are enough).
 
 **Needs a reprint for the magnets:** the dial front assembly and the
-key-turner base (both changed 2026-10-06), plus the retainers.
+key-turner base (holes changed to 21.7 mm on 2026-10-07), plus the
+retainers if you haven't printed them yet.
 
 ### 1.2 Hardware
 
@@ -154,9 +155,9 @@ screw → retainer → ring (`common_mounts.scad`, `rmag_*`). The dial front
 plate has 6, the key-turner base 3.
 
 **Measure first** (one magnet, calipers):
-- **Diameter D.** Measured 21.5 mm (Paul, 2026-10-07). The hole size will
-  come from the fit-test strip (`cad/magnet_fit_test.stl`): the rubber must
-  grip.
+- **Diameter D.** Measured 21.5 mm (Paul, 2026-10-07). The holes are now
+  **21.7 mm**, chosen from the fit-test strip (snug at 21.8, worked in at
+  21.7): the rubber grips, so the magnet can't slide out of the inner side.
 - **Height H, including any boss on the back.** The magnet's back must be
   level with the ring top (5.8 mm above the door face), so the rubber stands
   H − 5.8 proud. 5.9–6.3 mm is fine (0.1–0.5 proud). Under 5.9 the rubber
@@ -172,32 +173,35 @@ plate has 6, the key-turner base 3.
 - Work on a wooden or plastic table, no steel within ~20 cm. Keep the
   magnets apart: they snap together hard and pinch fingers.
 - Look at every seat ring top. It sets the depth, so it must be flat:
-  trim any string or blob with a blade. Check each magnet presses into its
-  hole with your thumb and stays put upside down.
+  trim any string or blob with a blade. Trim any elephant's foot inside the
+  hole at the door face too: the magnet has to go in from that side.
 - Check the retainers: the screw should pass through the 4.5 mm hole freely.
 
-**Steps (per plate):**
-1. Lay the plate **door face down** on the table.
-2. Drop a magnet into a hole, **rubber face down** (onto the table), threaded
-   back up.
-3. Lay a retainer on top, centred on the thread. It rests on the magnet's
-   back (0.2 mm above the ring for now; that's expected).
-4. Start the M4 screw by hand, then snug it with a screwdriver until the
-   retainer can't turn. **Snug, not tight**: the retainer is PETG and
-   the thread is in the magnet. No thread-locker (some attack plastic).
-5. Repeat for every hole.
+**Steps (per plate).** The hole grips the magnet, so its depth is set by
+how far you press it in. The table sets it for you:
+1. Lay the plate **inner face down** on the table, so the seat-ring tops sit
+   flat on it.
+2. From the door side, press a magnet into a hole, **threaded back first**,
+   until its back stops on the table. Its back is now level with the ring
+   top, and the rubber stands just proud of the door face. Press straight;
+   a thumb is usually enough. If it's very stiff, press with a flat block of
+   wood over the rubber.
+3. Repeat for every hole, then turn the plate over (inner face up).
+4. Lay a retainer on each ring, centred on the thread. It rests on the ring
+   and on the magnet's back together.
+5. Start the M4 screw by hand, then snug it with a screwdriver until the
+   retainer can't turn. **Snug, not tight**: the retainer is PETG and the
+   thread is in the magnet. No thread-locker (some attack plastic).
 6. **Check:**
-   - Lift the plate: each magnet drops 0.2 mm until its retainer lands on
-     the ring. Turn the plate over: every rubber face stands just proud.
+   - Every retainer sits flat on its ring, no gap.
    - Put the plate door face down on the table and slide a sheet of
      printer paper under its edge between two magnets: it should go under
      (the plate rests on the magnets, not on its face). Do it all round.
-   - Push a magnet in from the door side: it must stay put. **Correction
-     (2026-10-07):** this used to say a magnet moving inward was fine. It
-     isn't: the real magnets are 21.5 mm, loose in the 22.4 mm holes, and
-     off the door a magnet and its retainer fall out of the inner side
-     (Paul). The holes are being resized to grip the rubber, from the
-     fit-test strip `cad/magnet_fit_test.stl` (PR #23).
+   - Turn the plate on its side and shake it gently: nothing moves.
+     **Correction (2026-10-07):** an earlier version said a magnet moving
+     inward was fine. It wasn't: in the old 22.4 mm holes the 21.5 mm
+     magnets and their retainers fell out of the inner side when the unit
+     was off the door (Paul). That's why the holes are now 21.7 mm.
 7. **Order:** on the dial unit, fit the magnets before anything else (they're
    under the sled). On the key turner, before the motor plate goes on.
 
