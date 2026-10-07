@@ -139,7 +139,8 @@ designed (`control/wiring.md`); firmware written and host-tested
 - Double-sided perfboard kit (for the remote driver board), heat shrink.
 - **AS5600** magnetic encoders ×4 (optional, only if step counting on the
   key proves unreliable), 7 mm momentary pushbuttons ×12 (start trigger).
-- Still to buy: multimeter, F–F / M–F jumpers, possibly solder — plus the
+- Still to buy: multimeter, F–F jumpers (on hand, Paul 2026-10-07: solder + wick, flush
+  cutters, Phoenix connectors 5 headers + 5 plugs) — plus the
   harness parts in `control/wiring.md` §10 (header strips, 1.1 A PTC,
   100 µF cap, 5.5 × 2.1 DC-jack adapter, 20 AWG wire). Every discrete part,
   to buy or already on a board: `docs/bom.md`, "Electronics assembly —

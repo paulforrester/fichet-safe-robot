@@ -418,8 +418,8 @@ discrete part" (2026-10-07).
 | Electrolytic capacitor 100 µF, ≥ 25 V (35 V fine), low ESR | 2 (1 spare) | remote driver VM |
 | Female DC barrel jack **5.5 × 2.1 mm** → screw terminal adapter (fits the Ledmo HTY-1200500 plug, centre positive) | 1 | PSU → hub without cutting the plug. Check its + / − marking against the multimeter before first use |
 | 20 AWG wire, red + black, ~1 m each | 1 | PSU → hub → RAMPS 12 V |
-| Solder (already on the list if the station had none) | — | |
-| Flush cutters (if not already in the workshop) | 1 | DIAG pin mod |
+| Solder — **on hand**: came with the station, with wick (Paul, 2026-10-07) | — | |
+| Flush cutters — **on hand** (Paul, 2026-10-07) | 1 | DIAG pin mod |
 
 ## 11. Things to verify on the bench (steps in `control/bringup.md`)
 
