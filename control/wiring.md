@@ -386,13 +386,20 @@ GCONF.en_spreadCycle) — StallGuard4 only works in StealthChop (DS §11).
 
 ## 9. Diagrams
 
+- **`control/harness/schematic.pdf`: the full wiring schematic**, 7 A4
+  landscape sheets in colour, for printing. No text is below 8 pt. It covers
+  the overview, power, dial drivers A–C, the DIAG-mod and UART-tap details,
+  the Mega/RAMPS headers with the hub board, the cable with the key turner,
+  and the tables. It is drawn from this file by `control/harness/schematic.py`
+  (reportlab). **Regenerate it after any change here.**
 - `control/harness/harness.yml` → `harness.svg` / `harness.png` (WireViz
   0.4.1): the inter-unit cable and both connector ends, plus the jumper
   connections from RAMPS to the hub.
 - `control/harness/overview.dot` → `overview.svg` (Graphviz): block diagram
   of everything in this file.
 
-Regenerate: `wireviz control/harness/harness.yml` and
+Regenerate: `python3 control/harness/schematic.py` (needs `pip install
+reportlab`), `wireviz control/harness/harness.yml` and
 `dot -Tsvg control/harness/overview.dot -o control/harness/overview.svg`.
 
 ## 10. Shopping list (beyond `docs/bom.md`'s "still to buy")
@@ -447,6 +454,18 @@ Regenerate: `wireviz control/harness/harness.yml` and
    2026-10-03). The step angle is still not confirmed against its data sheet.
 
 ## Decision log (most recent first)
+
+### 2026-10-07 — printable schematic
+
+- Added `control/harness/schematic.pdf` and its generator. Nothing in the
+  wiring changed.
+- One fact checked for it in the RAMPS 1.4 KiCad netlist (Sources, item 4):
+  - the '5A' input (X4 pin 3) goes through F1 (MF-R500) to the `+12V` net;
+  - on that net sit every socket's VMOT, C3…C10 (100 µF) and D1's anode
+    (1N4004);
+  - D1's cathode goes to the Mega's VIN.
+
+  So the Mega's VIN is fed from the fused side. That confirms §3.5 and §8.
 
 ### 2026-10-06 (evening) — PSU plug and cable colours, from Paul
 

@@ -60,7 +60,7 @@ assembly, building and uploading the firmware, operating and monitoring).
   reference photos (`docs/photos/`).
 - `control/` — control architecture and operating sequence
   (`sequence.md`), the wiring harness (`wiring.md`, diagrams in
-  `control/harness/`), the firmware (`control/firmware/`), the bench
+  `control/harness/`, including the printable `schematic.pdf`), the firmware (`control/firmware/`), the bench
   bring-up plan (`bringup.md`) and the lock research (`lock_research.md`).
 
 ## Terminology
