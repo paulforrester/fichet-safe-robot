@@ -254,9 +254,10 @@ From the notes at the end of `cad/key_turner_housing.scad`:
 
 ## 2. Electrical assembly
 
-The full design, with sources, is `control/wiring.md`. Diagrams:
-`control/harness/overview.svg` (block diagram) and
-`control/harness/harness.png` (cable and connector ends).
+The full design, with sources, is `control/wiring.md`. **Print
+`control/harness/schematic.pdf`**: the full schematic on 7 A4 sheets,
+in colour. Other diagrams: `control/harness/overview.svg` (block diagram)
+and `control/harness/harness.png` (cable and connector ends).
 
 ### 2.1 Build it in bring-up order
 
