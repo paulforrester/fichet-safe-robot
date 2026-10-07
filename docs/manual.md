@@ -442,9 +442,10 @@ on its leads is fine for the bench.
 - If a motor **buzzes or jitters instead of turning**: 12 V off, then swap
   the two middle wires in its connector. Some 17HE19-2004S motors have them
   swapped (`docs/bom.md`).
-- Motor currents are set by the firmware over UART, so the drivers' VREF
-  pots don't matter once it runs (`control/wiring.md` §7). Dials run at
-  1.0 A RMS; the key starts at 0.6 A, and stage 5 sets its final value.
+- Motor currents are set by the firmware over UART. The drivers' VREF pots
+  matter only if a driver resets (2.3, step 4), so keep them all at minimum
+  (`control/wiring.md` §7). Dials run at 1.0 A RMS; the key starts at
+  0.6 A, and stage 5 sets its final value.
 
 ### 2.10 Inter-unit cable
 

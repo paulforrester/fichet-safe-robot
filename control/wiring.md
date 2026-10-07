@@ -367,9 +367,11 @@ GCONF.en_spreadCycle) — StallGuard4 only works in StealthChop (DS §11).
 ## 8. Power-up and power-down order, fusing
 
 1. **All connections with power off** (USB unplugged, 12 V off).
-2. **First power-up of the remote driver**: turn its VREF pot to minimum
-   first. Its EN is tied low, so it is enabled as soon as 12 V arrives, at its
-   power-on current, until the firmware sets the real one (DS p. 52 warning).
+2. **Before the first power-up, turn every driver's VREF pot to minimum**
+   (decision log, 2026-10-07: a driver that resets runs on its pot until the
+   firmware notices). It matters most for the remote driver: its EN is tied
+   low, so it is enabled as soon as 12 V arrives, at its power-on current,
+   until the firmware sets the real one (DS p. 52 warning).
    Expect the key to twitch by up to ±2 full steps (±3.6°) when the motor is
    first energised (DS p. 15: the motor pulls into the driver's step position
    at power-up).
@@ -481,7 +483,8 @@ discrete part" (2026-10-07).
   downside: the firmware always selects the internal reference, and it
   holds the dial drivers disabled (EN high) from its start until it has
   set them up.
-- **Proposed; Paul to confirm** (`docs/manual.md` 2.3, step 4).
+- **Paul agreed (2026-10-07).** `docs/manual.md` 2.3, step 4; §8, step 2;
+  schematic sheet 7.
 
 ### 2026-10-07 — interim fuse for hub F1 (Paul)
 
