@@ -322,6 +322,9 @@ There are five drivers: three for the dials, one for the key turner, one spare.
 
 ### 2.4 Mega, RAMPS and the dial drivers
 
+*One-sheet summary of everything on the RAMPS and hub: `control/harness/ramps_and_hub.md`. Hub placement drawing: `control/harness/hub_board.svg`.*
+
+
 1. **RAMPS jumpers**, under the X, Y and Z sockets. They set each driver's
    UART address (TMC2209 datasheet §3.4):
 
@@ -344,7 +347,8 @@ There are five drivers: three for the dials, one for the key turner, one spare.
 
 A small perfboard, about 50 × 30 mm, next to the Mega. It's where the 12 V
 supply splits, it holds the one UART resistor, and it carries the cable's
-8-pin Phoenix header (`control/wiring.md` §5). The layout is free; keep R1
+8-pin Phoenix header (`control/wiring.md` §5). **Part placement:
+`control/harness/hub_board.svg`.** The layout is free; keep R1
 right at the TX2 pin.
 
 | Hub point | Connects to |
