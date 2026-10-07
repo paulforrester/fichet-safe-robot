@@ -6,6 +6,70 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## 2026-10-07: printed holder for the interim 5 × 20 mm fuse (hub F1)
+
+Paul's spec (2026-10-07): one 5 × 20 mm glass fuse, 1.6 A T, in series in a
+12 V line under 0.6 A, 20 AWG wire each end; metal-to-metal contact on each
+end cap with a force that doesn't depend on the plastic holding its shape
+(PETG creeps); no screw point on the glass, no solder on the caps; swap
+without tools or with a screwdriver; live parts covered; labelled
+"1.6 A T"; perfboard or inline mount; PETG or PLA. Why it's needed:
+`control/wiring.md`, log 2026-10-07.
+
+**Design** (`cad/fuse_holder.scad`, print `cad/print_fuse_holder.scad` →
+`cad/fuse_holder.stl`):
+- **End A, fixed:** an M3 heat-set insert through a 4mm wall, its front face
+  flush with the fuse cradle; the fuse cap bears on the brass. Its rear end
+  stands 1mm proud into the clamp pocket, so the wire clamp is
+  head → washer → wire → brass, with no plastic in the clamp.
+- **End B, sprung:** a second insert, *not* heat-set, slides loose as a brass
+  piston; its front face bears on the B cap and the B wire is clamped to its
+  rear face the same way. One QUARKZMAN 0.5 × 7 × 20 spring (a spare from
+  the dial-unit pack) pushes on that washer: 16.5mm long with the fuse out,
+  **13mm working (7mm compressed, ≈1.8–2.8 N at the BOM's estimated
+  0.25–0.4 N/mm)**, 11mm when the fuse is pushed back to lift it out. The
+  spring carries no current (the wire is clamped to the piston), and
+  7mm of spring travel makes plastic creep irrelevant to the force.
+- **Swap:** slide the lid out by its end flap, push the fuse 2mm toward the
+  spring, lift it out; reverse to fit. No tools.
+- **Covered:** the lid slides in grooves and stops on end wall B; its flap
+  covers the hex-key hole at end A (the A screw head behind it is live).
+  Wires leave through notches at each end. Label "1.6 A T" engraved in the
+  lid.
+- **Prints with no supports or bridges:** every channel is open to the top
+  and closed by the lid. Body base-down, lid label-down.
+- **Size:** 54.5 × 18.8 × 12.2mm (28.7 wide over the tabs). That's longer
+  than the ~50 × 30mm hub board, so mount it **beside** the hub board (four
+  tabs, M3 or 3mm zip ties) or inline in the wire, not on the board.
+
+**Checked:** `cad/tools/fuse_holder_check.py` — body, lid, fuse, both
+contacts, both screw stacks and the spring, pairwise with manifold3d with the
+fuse in, pushed back 2mm, and out: no overlaps; fuse touching both contact
+faces when in; body and lid watertight. Asserts in the SCAD: the M3x6 can't
+poke out of the insert's front face (it stops 0.5mm short), engages ≥ 3.5mm,
+and the spring stays clear of solid when loading.
+
+**Not verified — measure before printing:** insert OD and length (BOM: "4.2mm
+OD, ~5mm"; if shorter than 5mm, the M3x6 would reach the fuse — change
+`ins_l`); M3 washer size (7 × 0.5 assumed); the spring's coil count (solid
+length must stay under 11mm). The heat-set hole is 4.0mm; open it up if the
+insert won't go in cleanly.
+
+**Assembly:**
+1. Heat-set one insert into wall A from the clamp pocket side, until its
+   front face is flush with the cradle face.
+2. Strip ~10mm of the A wire, lay it in the end-A notch, wrap it clockwise
+   round an M3x6 under an M3 washer, thread it into the insert's rear end
+   with your fingers, then tighten with a 2.5mm hex key through the end hole.
+3. Piston: wrap the B wire the same way under a washer on the second insert's
+   rear end (M3x6); tighten in your fingers/with pliers on the insert.
+4. Drop the spring into the spring channel, the piston in front of it, and
+   lay the B wire in its side slot and groove to the end-B notch.
+5. Push the piston back, lower the fuse into the cradle, let it go. Slide the
+   lid in from end A until it stops.
+6. Before powering: continuity end to end through the fuse with the
+   multimeter, and tug each wire.
+
 ## 2026-10-06 (evening): assembly order written up in `docs/manual.md` §1.4–1.6
 
 The print notes at the end of `cad/dial_unit_housing.scad` point to "the

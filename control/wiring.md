@@ -264,7 +264,7 @@ add it to the mechanical to-do with the remote board mount.**
 |---|---|---|
 | 12V IN +/− | PSU (Ledmo HTY-1200500, 5.5 × 2.1 mm barrel, **centre +**) via a DC-jack-to-screw-terminal adapter | 20 AWG pair |
 | 12V OUT +/− | RAMPS power terminal, the pair marked **5A** (+ and − per silkscreen) | 20 AWG pair |
-| F1 PTC 1.1 A hold | 12V IN+ → F1 → Phoenix pin 1 | on board. **For now: a 1.6 A glass cartridge fuse in a printed holder** (log 2026-10-07) |
+| F1 PTC 1.1 A hold | 12V IN+ → F1 → Phoenix pin 1 | on board. **For now: a 1.6 A glass cartridge fuse in a printed holder** (log 2026-10-07; holder `cad/fuse_holder.scad`, mounts beside the board — it's 54.5mm long) |
 | R1 1 kΩ | TX2 pin → R1 → BUS | on board (one of the 100 ordered) |
 | TX2 pin | AUX-4 pin 18 (D16) | F–F jumper |
 | BUS pins ×4 | RX2: AUX-4 pin 17 (D17); X, Y, Z MS3 jumper pins | F–F jumpers; Phoenix pin 6 on board |
