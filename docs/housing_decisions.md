@@ -28,6 +28,16 @@ key-turner base), then re-render, re-run the checks, reprint. Height and
 thread depth still to be measured (they set the proud face and the screw
 length).
 
+**Retrofit for the plates already printed (Paul's idea, same day):** a thin
+split sleeve in each 22.4 mm hole (`cad/magnet_split_sleeves.stl`, walls
+0.40/0.45/0.50/0.55/0.60 mm, identified by 1–5 nicks). Relaxed OD 22.0 so it
+drops in; the magnet opens the slit until the sleeve meets the hole wall,
+then squeezes the rubber. Grip needs 21.5 + 2 × wall > the printed hole
+(true 22.4 → wall over 0.45). Full hole length, no flange: a flange on the
+ring top would lift the retainer and pull the magnet face back into the
+plate. If it works, the sleeve can become a split skirt on a reprinted
+retainer.
+
 ## 2026-10-07: printed holder for the interim 5 × 20 mm fuse (hub F1)
 
 Paul's spec (2026-10-07): one 5 × 20 mm glass fuse, 1.6 A T, in series in a
