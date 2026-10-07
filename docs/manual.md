@@ -108,9 +108,10 @@ where the table says so.
   stop);
 - the Mega base coupon (2026-10-04: 3 of 4 screws go in; 3 are enough).
 
-**Needs a reprint for the magnets:** the dial front assembly and the
-key-turner base (holes changed to 21.7 mm on 2026-10-07), plus the
-retainers if you haven't printed them yet.
+**Magnet holes:** the dial front assembly and key-turner base you already
+printed (22.4 mm holes) stay in use, with a 2-layer wrap strip on each
+magnet (§1.3a). The current STLs have 21.7 mm holes, for any future reprint
+(no strips needed then). Print the retainers if you haven't yet.
 
 ### 1.2 Hardware
 
@@ -176,6 +177,18 @@ plate has 6, the key-turner base 3.
   trim any string or blob with a blade. Trim any elephant's foot inside the
   hole at the door face too: the magnet has to go in from that side.
 - Check the retainers: the screw should pass through the 4.5 mm hole freely.
+
+**Which plates you have:**
+- **Plates printed before 2026-10-07 (22.4 mm holes; the ones in use):**
+  wrap each magnet's side once with a **2-layer wrap strip**
+  (`cad/magnet_wrap_strips.stl`, 69 × 5 mm × 0.4 mm, PLA; Paul: "the
+  2-layer version is perfect"). Wrap it round the middle of the magnet's
+  side, ends overlapping, then follow the steps below. The strip goes into
+  the hole with the magnet.
+- **Plates reprinted from the current STLs (21.7 mm holes):** no strip.
+  The hole grips the rubber directly.
+
+Nine strips cover both units (6 + 3); print a couple of spares.
 
 **Steps (per plate).** The hole grips the magnet, so its depth is set by
 how far you press it in. The table sets it for you:

@@ -40,6 +40,13 @@ face) and thread depth (sets the screw length).
 *old* 22.4 mm holes. The gap there is 0.45 mm a side, so the 2-layer strip
 is the nominal match. A fallback for the plates already printed.
 
+**Result (Paul, same evening): the strips work, and the 2-layer (0.4 mm)
+one is "perfect".** Paul is printing a full set and **keeping the plates he
+already printed (22.4 mm holes)**, to save the plastic. So the build as it
+stands is **22.4 mm holes + a 2-layer wrap strip on each magnet**. The
+21.7 mm holes stay in the CAD as the design for any future reprint, which
+then needs no strips.
+
 ## 2026-10-07: door magnets fall out of the inner side — holes to become a snug fit
 
 **Finding (Paul):** the Wukong magnets measure **21.5 mm**, not the listed
