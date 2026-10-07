@@ -147,7 +147,8 @@ designed (`control/wiring.md`); firmware written and host-tested
   connectors (5 headers + 5 plugs), header strips. The PTC arrives late:
   until then hub F1 is a **1.6 A T (slow-blow) 5 × 20 mm glass fuse in a
   printed holder** (`control/wiring.md` log 2026-10-07). C1 as ordered
-  (Innfeeltech 100 µF 35 V) isn't sold as low ESR; see the same log entry. Every discrete part:
+  (Innfeeltech 100 µF 35 V) isn't sold as low ESR, so two go in parallel
+  (C1a, C1b; Paul, 2026-10-07); see the same log entry. Every discrete part:
   `docs/bom.md`, "Electronics assembly — every discrete part". The
   fuses, diode, capacitors and resistors drawn in grey on the schematic
   are already on the RAMPS.
@@ -172,7 +173,7 @@ designed (`control/wiring.md`); firmware written and host-tested
   Mega), STEP yellow, UART green, DIAG white. Remote EN and DIR tied to GND; firmware disables it with
   CHOPCONF.TOFF = 0 and sets direction with GCONF.shaft (read back before
   each move). Remote 12 V through a 1.1 A PTC (for now a 1.6 A glass fuse) on a small hub board at the
-  dial end; 100 µF at the remote driver.
+  dial end; 2 × 100 µF in parallel (C1a, C1b) at the remote driver.
 - Currents: dials 1.0 A RMS (hold 0.5 A); key 0.6 A to start, then 2 × the
   measured minimum. Power: USB first, then 12 V; 12 V off first; never
   (un)plug a motor or the cable with 12 V on.

@@ -206,7 +206,8 @@ address doesn't answer or reports the wrong MS1/MS2.
   theirs through RAMPS's own 5 A polyfuse (KiCad: input terminal pin 3 → F1
   MF-R500 → `+12V` → all socket VMOT pins).
 - **Bulk capacitor**: 100 µF (≥ 25 V, low-ESR electrolytic) across VM–GND right
-  at the remote driver. DS §3 (p. 11): "A minimum capacity of 100µF near the
+  at the remote driver. **Fitted as two 100 µF in parallel, C1a and C1b**
+  (Paul, 2026-10-07: the ones ordered aren't sold as low ESR; see the log). DS §3 (p. 11): "A minimum capacity of 100µF near the
   driver is recommended" and "keep power slopes below 1V/µs". RAMPS has the
   same 100 µF beside each socket (KiCad C3/C4/C6/C7/C9/C10). The V1.3 itself
   only has 2 × 10 µF ceramic (BTT schematic C1/C2).
@@ -226,8 +227,8 @@ numbers at both ends** (straight through).
 
 | Pin | Signal | Dial end (hub board) | Key-turner end (remote board) | Conductor colour |
 |---|---|---|---|---|
-| 1 | +12 V (after 1.1 A PTC) | PTC output | driver VM + 100 µF (+) | **red** |
-| 2 | GND (motor return + logic) | hub GND | driver GND (both pins), 100 µF (−) | **black** |
+| 1 | +12 V (after 1.1 A PTC) | PTC output | driver VM + C1a/C1b (+) | **red** |
+| 2 | GND (motor return + logic) | hub GND | driver GND (both pins), C1a/C1b (−) | **black** |
 | 3 | — empty (keeps 12 V/GND away from 5 V logic) | — | — | — |
 | 4 | +5 V (VIO) | RAMPS 5 V (Y_MAX +) | driver VIO, MS1, MS2 | **orange** |
 | 5 | KEY_STEP | Mega D23 | driver STEP | **yellow** |
@@ -307,13 +308,13 @@ the board shows the driver's top side (pot and heatsink), so this is BTT's own
 | DIR | GND | direction via GCONF.shaft (3.1) |
 | DIAG socket (c2 r0) | Phoenix 7 | the V1.3's down-pointing DIAG pin plugs straight in; no mod |
 | INDEX socket (c1 r0) | nothing | only there so the 2-pin block seats |
-| VM | Phoenix 1, C1 + | |
-| GND (both) | Phoenix 2, C1 − | |
+| VM | Phoenix 1, C1a +, C1b + | two 100 µF in parallel, side by side, short leads |
+| GND (both) | Phoenix 2, C1a −, C1b − | |
 | VIO | Phoenix 4 | |
 | A2, A1, B1, B2 | 4-pin male header, pins 1–4 | same order as a RAMPS motor header (RAMPS socket order 2B, 2A, 1A, 1B are the same positions), so the motor cable plugs in the same way as on RAMPS |
 
 Parts: 2 × 1×8 and 1 × 1×2 female headers (2.54 mm), 1 × 1×4 male header, the
-8-pin Phoenix header, C1 100 µF ≥ 25 V. The INDEX/DIAG pins are on the same
+8-pin Phoenix header, C1a + C1b (2 × 100 µF ≥ 25 V, in parallel). The INDEX/DIAG pins are on the same
 2.54 mm grid as EN (BTT size drawing: 2.54 and 5.08 mm from EN along the top
 edge) — **VERIFY** on the real board by laying the driver on the perfboard
 before soldering the headers.
@@ -420,7 +421,7 @@ discrete part" (2026-10-07).
 | 2.54 mm female header strips (cuttable) — **on hand** (Paul, 2026-10-07) | 1 pack | remote driver sockets (2 × 1×8, 1 × 1×2) |
 | 2.54 mm male header strips — **on hand** (Paul, 2026-10-07) | 1 pack | hub jumper pins, remote motor header |
 | Radial PTC resettable fuse, ~1.1 A hold, rated ≥ 16 V (e.g. Bourns MF-R110 class) — **ordered** 2026-10-07; a 1.6 A glass fuse stands in until it arrives | 2 (1 spare) | remote 12 V branch |
-| Electrolytic capacitor 100 µF, ≥ 25 V (35 V fine), low ESR — **ordered** 2026-10-07 | 2 (1 spare) | remote driver VM |
+| Electrolytic capacitor 100 µF, ≥ 25 V (35 V fine), low ESR — **ordered** 2026-10-07 (pack of 50) | 2 fitted, in parallel | remote driver VM |
 | Female DC barrel jack **5.5 × 2.1 mm** → screw terminal adapter (fits the Ledmo HTY-1200500 plug, centre positive) — **ordered** 2026-10-07 | 1 | PSU → hub without cutting the plug. Check its + / − marking against the multimeter before first use |
 | 20 AWG wire, red + black, ~1 m each — **ordered** 2026-10-07 | 1 | PSU → hub → RAMPS 12 V |
 | Solder — **on hand**: came with the station, with wick (Paul, 2026-10-07) | — | |
@@ -471,7 +472,7 @@ discrete part" (2026-10-07).
   fuses** to sit in F1's place until then, in a holder he prints (no clips
   ordered): an AUKENIEN kit, **T (slow-blow), 5 × 20 mm, 250 V**, 10 of
   each of 12 values from 0.5 to 10 A. Slow-blow is the right kind here,
-  because the power-on charging surge into C1 is brief.
+  because the power-on charging surge into C1a/C1b is brief.
 - **Why 1.6 A works:** the key branch draws less than 0.6 A (§8, item 5),
   and 1.6 A is well below the 5 A the PSU can deliver into a short. A
   short on the cable, the plug or the remote board blows the fuse instead
@@ -493,7 +494,7 @@ discrete part" (2026-10-07).
   creep under steady load, so a clamp that bears only on plastic
   loosens. Don't solder to the end caps: the heat can melt the solder
   that holds the fuse wire inside.
-- **C1 as ordered isn't sold as low ESR.** It's an Innfeeltech
+- **C1 as ordered isn't sold as low ESR** (now C1a + C1b, below). It's an Innfeeltech
   100 µF 35 V radial, 50 pcs; the listing gives no ESR, ripple-current or
   temperature rating. TMC2209 DS §3 recommends low-ESR electrolytics, with
   at least 100 µF near the driver (§3.5).
@@ -501,11 +502,11 @@ discrete part" (2026-10-07).
     because the V1.3 module's own 2 × 10 µF ceramics sit right at the
     chip. This is a judgement, not a measurement: the cap's ESR is
     unknown.
-  - **Proposed (Paul to decide):** fit **two in parallel**. That gives
-    200 µF at half the ESR of one, and there are 50 in the pack. The
-    ~70 × 30 mm remote board has room beside VM/GND (§6.1).
+  - **Decided (Paul, 2026-10-07): two in parallel**, C1a and C1b. That
+    gives 200 µF at half the ESR of one, and there are 50 in the pack.
+    The ~70 × 30 mm remote board has room beside VM/GND (§6.1).
   - **Bench check at stage 5:** after a few minutes of key moves at the
-    final current, touch C1. It should feel cool. If it's noticeably
+    final current, touch C1a and C1b. They should feel cool. If it's noticeably
     warm, order a low-ESR part (`docs/order_remaining_parts.md`).
 
 ### 2026-10-07 — printable schematic
