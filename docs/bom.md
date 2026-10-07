@@ -24,10 +24,66 @@ Four orders placed 2026-09-29, checked against every line below:
 Status is marked inline in each table below: ✅ ordered, ⬜ still to buy.
 
 **Still to buy:**
-- **Multimeter** — on the prototyping-basics checklist, not in any order.
-- **F–F / M–F jumper wires** — both jumper-wire items ordered are M–M only; the RAMPS DIAG-to-endstop-header wiring and other point-to-point hookups will likely need female-ended jumpers too.
-- **Solder wire** (consumable) — unconfirmed whether it's bundled with the Yofuly soldering station kit; check contents on arrival and buy separately if not included.
-- **Harness parts (added 2026-10-06, `control/wiring.md` §10):** 2.54mm female and male header strips, a ~1.1A-hold radial PTC fuse (×2), 100µF ≥25V electrolytic (×2), a female **5.5×2.1mm** DC-jack-to-screw-terminal adapter (the PSU is a Ledmo HTY-1200500, 5.5×2.1 barrel, centre positive — Paul, 2026-10-06), ~1m each of red/black 20AWG wire, flush cutters if not already owned. Buy the multimeter before connecting the remote driver board.
+- **Multimeter** — on the prototyping-basics checklist, not in any order. **Update 2026-10-07 (Paul): he already has one. Nothing to buy.**
+- **F–F / M–F jumper wires** — both jumper-wire items ordered are M–M only; the RAMPS DIAG-to-endstop-header wiring and other point-to-point hookups will likely need female-ended jumpers too. **Update 2026-10-07:** the harness as designed (`control/wiring.md` §10) uses **F–F only, ~20 × 10–20 cm**; M–F aren't needed for it. **Ordered 2026-10-07** (amazon.fr, Paul).
+- **Solder wire** (consumable) — unconfirmed whether it's bundled with the Yofuly soldering station kit; check contents on arrival and buy separately if not included. **Update 2026-10-07 (Paul): the station came with solder and solder wick. Nothing to buy.**
+- **Harness parts (added 2026-10-06, `control/wiring.md` §10):** 2.54mm female and male header strips (**on hand** from another order, Paul 2026-10-07), a ~1.1A-hold radial PTC fuse (×2), 100µF ≥25V electrolytic (×2), a female **5.5×2.1mm** DC-jack-to-screw-terminal adapter (the PSU is a Ledmo HTY-1200500, 5.5×2.1 barrel, centre positive — Paul, 2026-10-06), ~1m each of red/black 20AWG wire, flush cutters if not already owned (**Paul has them**, 2026-10-07). Use the multimeter (on hand) before connecting the remote driver board. **Ordered from amazon.fr, 2026-10-07 (Paul)**: PTC fuses, capacitors, F–F jumpers, DC-jack adapter, wire, zip ties. None of the PTC listings arrives soon, so hub F1 is a **1.6 A glass cartridge fuse in a printed holder** until it does (`control/wiring.md` log 2026-10-07). **Every discrete part, one line each: see the next section.**
+
+## Electronics assembly — every discrete part (2026-10-07)
+
+**Why this section:** Paul noticed fuses, capacitors, resistors and diodes
+on the schematic (`control/harness/schematic.pdf`) that weren't in the
+early BOM. **Most of them are already soldered on the RAMPS or the driver
+modules** (table B): nothing to buy. The parts you buy and solder
+yourself are in table A. **🛒 = still to buy.**
+
+Status: 🛒 **TO BUY** · ✅ ordered or on hand · ⚪ already on a board you
+bought (nothing to buy).
+
+**Where to buy the 🛒 items:** `docs/order_remaining_parts.md` (2026-10-07)
+has specific picks for amazon.fr and mouser.fr, with prices and stock, and
+lists what neither site has. amazon.fr covers everything in one order.
+**Ordered 2026-10-07** (amazon.fr, Paul): every item that was 🛒 below.
+
+**A. Parts you buy and fit** (the hub board, the remote driver board, the wiring)
+
+| Status | Ref | Part | Spec | Qty (+ spare) | Where it goes | Source |
+|---|---|---|---|---|---|---|
+| ✅ ordered (amazon.fr, 2026-10-07); arrives late | **hub F1** | **Resettable fuse (PTC), radial** | **~1.1 A hold, ≥ 16 V** (Bourns MF-R110 class) | **1 (+1)** | hub board: 12 V to the key-turner branch only | `control/wiring.md` §3.5, §5, §10 |
+| ✅ ordered (Paul, 2026-10-07): AUKENIEN 120-pc slow-blow kit, **T, 5 × 20 mm, 250 V**, 12 values 0.5–10 A × 10 each (1.6 A among them), €15.99, Prime next day | **hub F1, for now** | **Glass cartridge fuse** | **1.6 A T (slow-blow), 5 × 20 mm** | 1 (+ 9 spare) | in F1's place until the PTC arrives. No clips or holder ordered: Paul prints a holder | `control/wiring.md` log 2026-10-07 |
+| ✅ ordered (amazon.fr, 2026-10-07): Innfeeltech 100 µF 35 V radial, 50 pcs, €7.49, delivery Friday 9 Oct. **Not sold as low ESR** (the listing doesn't say) | **C1** | **Electrolytic capacitor** | **100 µF, ≥ 25 V** (35 V fine), low ESR | **1 (+1)** | remote board: across VM–GND, right at the key driver. The one ordered isn't sold as low ESR: see `control/wiring.md` log 2026-10-07 | §3.5, §6.1, §10 |
+| ✅ on hand (another order, Paul 2026-10-07) | — | 2.54 mm male header strip (cuttable) | — | **1 strip** | hub: 9 pins (GND, 5V, STEP, TX2, BUS ×4, DIAG); remote: J2, 1 × 4 for the key motor | §5, §6.1, §10 |
+| ✅ on hand (another order, Paul 2026-10-07) | — | 2.54 mm female header strip (cuttable) | — | **1 strip** | remote: 2 × (1 × 8) + 1 × (1 × 2), the key driver's socket | §6.1, §10 |
+| ✅ ordered (amazon.fr, 2026-10-07) | — | **F–F Dupont jumpers** | 10–20 cm | **~20** | RAMPS headers ↔ hub; hub BUS ↔ X/Y/Z MS3 pins; 3 cut in half for the DIAG mod | §2, §3.3, §5, §10 |
+| ✅ ordered (amazon.fr, 2026-10-07) | — | **DC jack → screw-terminal adapter** | female **5.5 × 2.1 mm** | **1** | PSU → hub 12V IN. **Why:** the PSU ends in a barrel *plug*, and the hub's 12V IN and the RAMPS '5A' input are screw terminals. This is the socket the plug goes into. The alternative is to cut the plug off and screw in the bare leads (find + with the multimeter): free, but it can't be undone. Not the Mega's own jack: that feeds only VIN, and the RAMPS motor rail would get no 12 V (D1 conducts only from that rail to VIN) | §5, §10 |
+| ✅ ordered (amazon.fr, 2026-10-07) | — | **Hook-up wire** | **20 AWG, red + black**, ~1 m each | **1 + 1** | PSU → hub → RAMPS '5A' input | §5, §10 |
+| ✅ ordered (amazon.fr, 2026-10-07) | — | **Small zip ties** | — | **~6** | cable strain relief, within ~20 mm of each plug | §4 |
+| ✅ ordered (×100) | R1 | Resistor | 1 kΩ | 1 | hub: TX2 → UART bus. The only resistor you fit | §3.2 |
+| ✅ ordered (×12) | S1 | Momentary push button | 7 mm | 1 | start / stop, on the RAMPS Y_MIN S and − pins | §1 |
+| ✅ on hand: **5 headers + 5 plugs** (Paul, 2026-10-07) | J3, J1 | Phoenix-style pluggable screw terminal | 5.08 mm, 8-pin, header + plug | 2 headers + 2 plugs (3 + 3 spare) | J3 on the hub, J1 on the remote board | §4 |
+| ✅ ordered | — | Shielded cable | QUARKZMAN 22 AWG, 6 cores | ~300 mm | dial unit ↔ key turner | §4 |
+| ✅ on hand | — | Perfboard (from the kit) | — | 2 pieces | hub ~50 × 30 mm; remote ~70 × 30 mm | §5, §6.2 |
+| ✅ ordered | — | Heat shrink | — | — | shield fold-back at the key end; joints | §4 |
+| ⬜ later, with the mount CAD | — | Standoffs | 4 mm | 4 | under the remote board (mount not designed yet) | §6.2 |
+
+Tools: **nothing left to buy**. Paul has a multimeter, solder (with wick)
+and flush cutters (2026-10-07). The harness uses **F–F jumpers only**. The M–F ones in the
+"Still to buy" list aren't needed for it.
+
+**B. Parts on the schematic that are already on a bought board: nothing to buy**
+
+| Status | Ref | Part | Where | Source |
+|---|---|---|---|---|
+| ⚪ on the RAMPS | F1 (RAMPS) | MF-R500 resettable fuse, 5 A | '5A' input → +12 V rail (3 dial drivers, Mega VIN) | RAMPS 1.4 KiCad netlist (`control/wiring.md` log 2026-10-07) |
+| ⚪ on the RAMPS | F2 | MF-R1100 resettable fuse (11 A) | '11A' heated-bed input: not used | same |
+| ⚪ on the RAMPS | D1 | 1N4004 diode | +12 V rail → Mega VIN | same |
+| ⚪ on the RAMPS | C3, C4, C6, C7, C9, C10 | 100 µF electrolytics | +12 V rail, by the driver sockets | same |
+| ⚪ on the RAMPS | R18, R19, R20 (R16, R17) | 10 kΩ pull-ups | EN of sockets X, Y, Z (E0, E1) to 5 V | same |
+| ⚪ on each TMC2209 V1.3 | module's R3, R5 · R4 · C1, C2 · R10 | 0.11 Ω sense resistors · 20 kΩ CLK pull-down · 2 × 10 µF · R10 **not fitted** | the driver module itself | BTT V1.3 schematic (`control/wiring.md` §2, §3.5, §7) |
+| ⚪ on the Mega | — | LED 'L' (D13), 5 V regulator, USB interface | the Mega itself | Arduino Mega 2560 R3 |
+
+The 10 kΩ, the diode and the fuses drawn in grey on schematic sheets 2–4
+are these parts: shown so the circuit can be followed, not to be bought.
 
 **Substitution to be aware of:** the JST-XH 8-pin connector pair specified below was replaced with a Phoenix-style 5.08mm screw-terminal 8-pin connector (Order 3). Still detachable and keyed for the same purpose (unplugging the key-turner unit), just a different connector family than originally planned — flagging in case it wasn't deliberate, otherwise no action needed.
 
@@ -90,8 +146,8 @@ Called out explicitly since the goal is one order, not a string of
 
 - ✅ **Small perfboard or a couple of 2/3-pin screw terminal blocks** — Ordered (Order 1, RUNCCI-YUN 82pc double-sided PCB kit, €12.98; also see the Phoenix screw-terminal connectors in Order 3, which can double as terminal blocks). For the key-turner unit — it has no shield to plug into, so its driver's STEP/DIR/ENABLE/DIAG/UART/power connections from the cable need a small hand-wired board rather than a socket.
 - ⚠️ **Jumper wire assortment** (M-M, M-F, F-F) — Partially ordered: two M–M kits (Order 2, GTIWUNG 150pcs + a 560pc breadboard kit, €11.99 + €8.99), but **no M-F or F-F jumpers**. Still needed for the RAMPS DIAG-to-endstop-header wiring, the UART tap to `Serial2`, and general point-to-point connections — worth a small follow-up order.
-- ⚠️ **Soldering iron + solder** — Iron ordered (Order 2, Yofuly 75W soldering station, €49.99); solder wire itself unconfirmed — check what's in the kit on arrival.
-- ⬜ **A basic multimeter** — **Not ordered.** Useful for checking continuity on the inter-unit cable and current-limit setup on the drivers.
+- ⚠️ **Soldering iron + solder** — Iron ordered (Order 2, Yofuly 75W soldering station, €49.99); solder wire itself unconfirmed — check what's in the kit on arrival. **Update 2026-10-07: solder and solder wick came with it.**
+- ✅ **A basic multimeter** — Not ordered; **Paul already has one** (2026-10-07). Useful for checking continuity on the inter-unit cable and current-limit setup on the drivers.
 - ✅ Heat shrink tubing, small assortment — Ordered (Order 1, 800-piece assortment, €8.99).
 - ✅ USB cable for the Arduino Mega — Ordered (Order 2, GIANAC USB-C→USB-B, 2m, €5.99) — matches the genuine Mega 2560's USB-B port, assuming USB-C on the computer end.
 
@@ -116,9 +172,9 @@ was first drafted, and the AMS 2 Pro isn't a BOM item at all.
 
 Everything on this list has now been ordered across four orders placed
 2026-09-29, **except**:
-- a multimeter (not ordered anywhere)
+- ~~a multimeter (not ordered anywhere)~~ Paul already has one (2026-10-07)
 - M-F / F-F jumper wires (only M-M was ordered)
-- solder wire (unconfirmed — check the soldering station kit on arrival)
+- ~~solder wire (unconfirmed — check the soldering station kit on arrival)~~ came with the station (Paul, 2026-10-07)
 
 The JST-XH connector was substituted with a Phoenix screw-terminal
 connector (see Order status above) — not a gap, just a part swap worth

@@ -1,7 +1,7 @@
 # CLAUDE.md — Fichet-Bauche safe combination robot
 
 Context for any Claude session working in this repo. Read this first, then
-the doc that matches your task (table below). Last updated 2026-10-06.
+the doc that matches your task (table below). Last updated 2026-10-07.
 
 ## What this is
 
@@ -51,8 +51,9 @@ designed (`control/wiring.md`); firmware written and host-tested
 - **Check the date** (`date`; Paul is in Europe/Paris) rather than assuming.
 - Paul is a retired engineer (ex-Apple), comfortable with Arduino,
   Raspberry Pi and 3D printing (Bambu H2D; PETG, PETG-CF, PLA). He has
-  calipers, a luggage scale, a soldering station, heat gun. **No
-  multimeter yet** (on the to-buy list). He runs every hardware test
+  calipers, a luggage scale, a soldering station (with solder and wick),
+  heat gun, flush cutters and **a multimeter** (Paul, 2026-10-07: bench
+  steps can use it). He runs every hardware test
   himself and reports results — give him short, numbered bench steps and
   say exactly what number or observation to send back.
 - Keep explanations plain and concise; lead with the conclusion.
@@ -139,9 +140,17 @@ designed (`control/wiring.md`); firmware written and host-tested
 - Double-sided perfboard kit (for the remote driver board), heat shrink.
 - **AS5600** magnetic encoders ×4 (optional, only if step counting on the
   key proves unreliable), 7 mm momentary pushbuttons ×12 (start trigger).
-- Still to buy: multimeter, F–F / M–F jumpers, possibly solder — plus the
-  harness parts in `control/wiring.md` §10 (header strips, 1.1 A PTC,
-  100 µF cap, 5.5 × 2.1 DC-jack adapter, 20 AWG wire).
+- Nothing left to buy. Ordered from amazon.fr 2026-10-07: the harness
+  parts in `control/wiring.md` §10 (1.1 A PTC, 100 µF cap, F–F jumpers,
+  5.5 × 2.1 DC-jack adapter, 20 AWG wire, zip ties). On hand (Paul,
+  2026-10-07): multimeter, solder + wick, flush cutters, Phoenix
+  connectors (5 headers + 5 plugs), header strips. The PTC arrives late:
+  until then hub F1 is a **1.6 A T (slow-blow) 5 × 20 mm glass fuse in a
+  printed holder** (`control/wiring.md` log 2026-10-07). C1 as ordered
+  (Innfeeltech 100 µF 35 V) isn't sold as low ESR; see the same log entry. Every discrete part:
+  `docs/bom.md`, "Electronics assembly — every discrete part". The
+  fuses, diode, capacitors and resistors drawn in grey on the schematic
+  are already on the RAMPS.
 
 ## Wiring — settled 2026-10-06 in `control/wiring.md` (read it for details and sources)
 
@@ -162,7 +171,7 @@ designed (`control/wiring.md`); firmware written and host-tested
 - Cable (6 cores + shield): 12 V red, GND black, 5 V orange (VIO, from the
   Mega), STEP yellow, UART green, DIAG white. Remote EN and DIR tied to GND; firmware disables it with
   CHOPCONF.TOFF = 0 and sets direction with GCONF.shaft (read back before
-  each move). Remote 12 V through a 1.1 A PTC on a small hub board at the
+  each move). Remote 12 V through a 1.1 A PTC (for now a 1.6 A glass fuse) on a small hub board at the
   dial end; 100 µF at the remote driver.
 - Currents: dials 1.0 A RMS (hold 0.5 A); key 0.6 A to start, then 2 × the
   measured minimum. Power: USB first, then 12 V; 12 V off first; never

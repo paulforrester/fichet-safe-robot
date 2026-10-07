@@ -277,16 +277,25 @@ bring-up stage before the next one is added:
 
 - Soldering station, solder, flush cutters, heat shrink and heat gun,
   calipers, a marker.
-- **Multimeter: buy it before connecting the remote driver board**
-  (`control/wiring.md` §10). Sections 2.5, 2.6 and 2.10 need it for
-  polarity and continuity checks.
-- Parts: `docs/bom.md`, plus the harness parts in `control/wiring.md` §10:
-  - 2.54 mm female and male header strips;
-  - 1.1 A PTC fuse;
-  - 100 µF ≥ 25 V capacitor;
-  - 5.5 × 2.1 mm DC-jack-to-screw-terminal adapter;
+- **Multimeter** (you have one). Use it before connecting the remote
+  driver board (`control/wiring.md` §10): sections 2.5, 2.6 and 2.10 need
+  it for polarity and continuity checks.
+- Parts: **`docs/bom.md`, "Electronics assembly — every discrete part"**
+  lists each one. Everything is now on hand or ordered (2026-10-07). The
+  only discrete parts you fit beyond what's on the boards:
+  - the 1.1 A PTC fuse (hub F1). Until it arrives, a 1.6 A glass fuse
+    in a holder you print takes its place;
+  - the 100 µF ≥ 25 V capacitor (C1).
+
+  The rest to buy is connectors and wiring (the header strips are on hand):
+  - a 5.5 × 2.1 mm DC-jack-to-screw-terminal adapter, for the PSU's
+    plug to go into;
   - 20 AWG red and black wire;
-  - F–F jumpers.
+  - ~20 F–F jumpers;
+  - zip ties.
+
+  The fuses, diode, capacitors and resistors drawn in grey on the
+  schematic are already on the RAMPS.
 
 ### 2.3 Prepare the drivers (BTT TMC2209 V1.3)
 
@@ -338,7 +347,7 @@ right at the TX2 pin.
 |---|---|
 | 12V IN + / − | PSU, through the 5.5 × 2.1 DC-jack adapter (centre +), 20 AWG |
 | 12V OUT + / − | RAMPS power terminal, the pair marked **5A**, 20 AWG |
-| F1 (1.1 A PTC) | 12V IN + → F1 → Phoenix pin 1 |
+| F1 (1.1 A PTC; for now a 1.6 A glass fuse in a printed holder) | 12V IN + → F1 → Phoenix pin 1 |
 | R1 (1 kΩ) | TX2 pin → R1 → BUS |
 | TX2 pin | AUX-4 pin 18 (D16) |
 | BUS pins × 4 | RX2 = AUX-4 pin 17 (D17); the X, Y and Z **MS3 jumper pins** (see 2.8); Phoenix pin 6 |
@@ -386,6 +395,15 @@ In short:
 PSU (Ledmo HTY-1200500, 12 V 5 A, 5.5 × 2.1 mm barrel, centre +) → DC-jack
 adapter → hub 12V IN → hub 12V OUT → RAMPS **5A** terminal. Use 20 AWG red
 for + and black for −.
+
+**Leave the Mega's own barrel jack empty.**
+- It feeds only the Mega (its VIN).
+- The motor drivers get 12 V only through the RAMPS "5A" terminal.
+- The RAMPS diode D1 passes power from that terminal to the Mega's VIN,
+  never back (RAMPS KiCad netlist: VIN connects only to D1's cathode).
+
+So a PSU in the Mega's jack would run the Mega but not the drivers: `ping`
+would report every driver missing.
 
 **Check the adapter's + / − marking with the multimeter** before the first
 power-up (`control/wiring.md` §10).

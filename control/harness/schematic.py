@@ -23,7 +23,7 @@ from reportlab.pdfgen import canvas
 W, H = landscape(A4)          # 841.9 x 595.3 pt
 MIN_PT = 8
 DATE = "2026-10-07"
-REV = "1"
+REV = "5"
 BOTTOM = H - 82               # content above this; legend + title block below
 
 # ---------------------------------------------------------------- fonts
@@ -213,7 +213,7 @@ class Sheet:
             y += 13
         cx = x0
         for key, name in [("module", "bought module"), ("build", "board you build"),
-                          ("ref", "inside RAMPS / Mega (for reference)")]:
+                          ("ref", "already on the RAMPS / Mega: nothing to buy")]:
             self.rect(cx, y - 8, 18, 9, stroke=GREY, fill=FILL[key], lw=0.6)
             self.text(cx + 22, y, name, 8)
             cx += 22 + self.tw(name) + 14
@@ -469,6 +469,10 @@ def sheet_power(s):
     s.para(142, 130, [("DC jack", True), "5.5 × 2.1 →", "screw terminal", ("VERIFY + / −", True, WARN)], 8)
     s.wire([(118, 136), (136, 136)], "12V")
     s.wire([(118, 170), (136, 170)], "GND")
+    s.para(24, 210, [("Not the Mega's own barrel", True, WARN), ("jack: that feeds only the", True, WARN),
+                     ("Mega (VIN). The drivers get", True, WARN), ("12 V only through the", True, WARN),
+                     ("RAMPS '5A' input; D1 passes", True, WARN), ("power from there to the", True, WARN),
+                     ("Mega, never back.", True, WARN)], 8)
 
     # hub board, power part
     s.board(222, 72, 286, 262, "Hub board (you build) — power", "build", "12V IN, 12V OUT: 20 AWG red + black pairs")
@@ -502,7 +506,7 @@ def sheet_power(s):
     s.text(230, 323, "J3-5, 6, 7 (signals): sheet 5. J3-3 is empty.", 8, color=GREY)
 
     # RAMPS
-    s.board(530, 72, 290, 262, "RAMPS 1.4 — 12 V (for reference)", "ref", "from the RAMPS 1.4 KiCad netlist (control/wiring.md log, 2026-10-07)")
+    s.board(530, 72, 290, 262, "RAMPS 1.4 — 12 V (already on the board)", "ref", "from the RAMPS 1.4 KiCad netlist (control/wiring.md log, 2026-10-07)")
     s.wire([(546, 136), (552, 136)], "12V")
     s.wire([(546, 170), (552, 170)], "GND")
     s.rect(552, 127, 22, 54, fill="#FFFFFF", lw=1.3)
@@ -574,7 +578,7 @@ def driver_column(s, x0, sock, dial, addr, ms1, ms2, step, dirn, en, diag_hdr, d
     s.wire([(x, y), (x0 + 50, y)], "CTRL")
     s.text(x0, y + 3, f"{en}", 8, True, ctrl)
     s.dot(x0 + 112, y, "CTRL")
-    s.res_v(x0 + 112, y - 34, y, "5V", "10 k (RAMPS)")
+    s.res_v(x0 + 112, y - 34, y, "5V", "10 k (on RAMPS)")
     s.flag(x0 + 112, y - 34, "+5 V", "5V")
     # MS1 / MS2 jumpers
     for key, fitted in (("MS1", ms1), ("MS2", ms2)):
@@ -960,7 +964,8 @@ def sheet_tables(s):
                 s.rect(x, y, sum(widths), rh, stroke="#F3F6FA", fill="#F3F6FA", lw=0.1)
             cx = x
             for v, wdt in zip(r, widths):
-                s.text(cx + 4, y + rh - 4, v, 8)
+                v = (v,) if isinstance(v, str) else v
+                s.text(cx + 4, y + rh - 4, v[0], 8, v[1] if len(v) > 1 else False, v[2] if len(v) > 2 else INK)
                 cx += wdt
             y += rh
         s.rect(x, y - rh * (len(rows) + 1), sum(widths), rh * (len(rows) + 1), stroke=GREY, lw=0.6)
@@ -998,18 +1003,25 @@ def sheet_tables(s):
            ("Key", "0.6 A RMS", "0.3 A", "then 2 × the measured minimum, ≤ 1.0 A"),
            ("Firmware ceiling", "1.2 A", "—", "BTT: active cooling above 1.2 A")]
     table(452, 180, ["Driver", "Run", "Hold", "Why"], [78, 58, 38, 178], cur, "Motor currents, set over UART (§7)")
-    parts = [("Hub", "F1", "resettable fuse (PTC), ~1.1 A hold, ≥ 16 V (Bourns MF-R110 class)"),
-             ("Hub", "R1", "1 kΩ: the only UART resistor (TX2 → bus)"),
-             ("Hub", "J3", "Phoenix-style 5.08 mm 8-pin header + plug"),
-             ("Hub", "—", "2.54 mm male pins: GND, 5V, STEP, TX2, BUS × 4, DIAG"),
-             ("Hub", "—", "12V IN and 12V OUT pairs: 20 AWG red + black"),
-             ("Remote", "J1", "Phoenix-style 5.08 mm 8-pin header + plug"),
-             ("Remote", "C1", "100 µF, ≥ 25 V, low-ESR electrolytic, at the driver"),
-             ("Remote", "J2", "1 × 4 male header (key motor)"),
-             ("Remote", "—", "female headers: 2 × (1 × 8) + 1 × (1 × 2), for the driver"),
-             ("Both", "—", "perfboard from the kit: hub ~50 × 30 mm, remote ~70 × 30 mm"),
-             ("PSU", "—", "DC jack 5.5 × 2.1 mm → screw-terminal adapter")]
-    table(452, 262, ["Board", "Ref", "Part"], [52, 32, 278], parts, "Parts on the boards you build (§5, §6, §10)")
+    HAVE = ("have", False, GREY)
+    ORDERED = ("ordered", False, INK)
+    parts = [("Hub", "F1", "PTC fuse ~1.1 A hold, ≥ 16 V (for now: 1.6 A glass fuse)", ORDERED),
+             ("Hub", "R1", "1 kΩ: the only UART resistor (TX2 → bus)", HAVE),
+             ("Hub", "J3", "Phoenix-style 5.08 mm 8-pin header + plug", HAVE),
+             ("Hub", "—", "male pins × 9: GND 5V STEP TX2 BUS×4 DIAG", HAVE),
+             ("Hub", "—", "12V IN / 12V OUT: 20 AWG red + black", ORDERED),
+             ("Remote", "J1", "Phoenix-style 5.08 mm 8-pin header + plug", HAVE),
+             ("Remote", "C1", "100 µF, ≥ 25 V, low-ESR electrolytic", ORDERED),
+             ("Remote", "J2", "1 × 4 male header (key motor)", HAVE),
+             ("Remote", "—", "female headers 2 × (1 × 8) + 1 × (1 × 2)", HAVE),
+             ("Both", "—", "perfboard (kit): ~50 × 30 and ~70 × 30 mm", HAVE),
+             ("PSU", "—", "DC jack 5.5 × 2.1 mm → screw terminal", ORDERED),
+             ("Wiring", "—", "F–F jumpers, ~20 × 10–20 cm", ORDERED),
+             ("RAMPS", "S1", "7 mm push button (start / stop)", HAVE)]
+    yp = table(452, 262, ["Board", "Ref", "Part", "Status"], [48, 28, 252, 42], parts,
+               "Parts you fit (§5, §6, §10) · full list: docs/bom.md")
+    s.para(452, yp + 13, ["Fuses, diode, capacitors and resistors drawn in grey on sheets 2–4",
+                          "(RAMPS F1, F2, D1, the six 100 µF, the 10 k pull-ups) are already on the RAMPS."], 8, color=GREY)
     s.text(24, 330, "Power order (§8)", 10, True)
     s.para(24, 345, ["1. Make every connection with power off (USB unplugged, 12 V off).",
                      "2. Before the remote driver's first power-up: its VREF pot to minimum.",
