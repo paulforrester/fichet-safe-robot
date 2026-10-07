@@ -23,7 +23,7 @@ from reportlab.pdfgen import canvas
 W, H = landscape(A4)          # 841.9 x 595.3 pt
 MIN_PT = 8
 DATE = "2026-10-07"
-REV = "4"
+REV = "5"
 BOTTOM = H - 82               # content above this; legend + title block below
 
 # ---------------------------------------------------------------- fonts
@@ -1003,20 +1003,20 @@ def sheet_tables(s):
            ("Key", "0.6 A RMS", "0.3 A", "then 2 × the measured minimum, ≤ 1.0 A"),
            ("Firmware ceiling", "1.2 A", "—", "BTT: active cooling above 1.2 A")]
     table(452, 180, ["Driver", "Run", "Hold", "Why"], [78, 58, 38, 178], cur, "Motor currents, set over UART (§7)")
-    BUY = ("BUY", True, WARN)
     HAVE = ("have", False, GREY)
-    parts = [("Hub", "F1", "PTC resettable fuse, ~1.1 A hold, ≥ 16 V", BUY),
+    ORDERED = ("ordered", False, INK)
+    parts = [("Hub", "F1", "PTC fuse ~1.1 A hold, ≥ 16 V (for now: 1.6 A glass fuse)", ORDERED),
              ("Hub", "R1", "1 kΩ: the only UART resistor (TX2 → bus)", HAVE),
              ("Hub", "J3", "Phoenix-style 5.08 mm 8-pin header + plug", HAVE),
              ("Hub", "—", "male pins × 9: GND 5V STEP TX2 BUS×4 DIAG", HAVE),
-             ("Hub", "—", "12V IN / 12V OUT: 20 AWG red + black", BUY),
+             ("Hub", "—", "12V IN / 12V OUT: 20 AWG red + black", ORDERED),
              ("Remote", "J1", "Phoenix-style 5.08 mm 8-pin header + plug", HAVE),
-             ("Remote", "C1", "100 µF, ≥ 25 V, low-ESR electrolytic", BUY),
+             ("Remote", "C1", "100 µF, ≥ 25 V, low-ESR electrolytic", ORDERED),
              ("Remote", "J2", "1 × 4 male header (key motor)", HAVE),
              ("Remote", "—", "female headers 2 × (1 × 8) + 1 × (1 × 2)", HAVE),
              ("Both", "—", "perfboard (kit): ~50 × 30 and ~70 × 30 mm", HAVE),
-             ("PSU", "—", "DC jack 5.5 × 2.1 mm → screw terminal", BUY),
-             ("Wiring", "—", "F–F jumpers, ~20 × 10–20 cm", BUY),
+             ("PSU", "—", "DC jack 5.5 × 2.1 mm → screw terminal", ORDERED),
+             ("Wiring", "—", "F–F jumpers, ~20 × 10–20 cm", ORDERED),
              ("RAMPS", "S1", "7 mm push button (start / stop)", HAVE)]
     yp = table(452, 262, ["Board", "Ref", "Part", "Status"], [48, 28, 252, 42], parts,
                "Parts you fit (§5, §6, §10) · full list: docs/bom.md")

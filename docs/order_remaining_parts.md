@@ -4,6 +4,12 @@ This covers everything still marked 🛒 in `docs/bom.md` ("Electronics
 assembly — every discrete part", table A), plus the three tools on its
 "Still to buy" list (multimeter, solder, flush cutters).
 
+**Status (2026-10-07): ordered.** Paul placed the amazon.fr order: items
+1, 2 and 5–8 of Table 1. Which fuse and capacitor listings he chose (the
+first picks or the alternates below) isn't recorded yet. No PTC listing
+arrives soon, so a 1.6 A glass cartridge fuse stands in for hub F1 until
+one does (`control/wiring.md`, log 2026-10-07).
+
 **How the prices were found:** both sites block page views from the cloud
 session, so every price and stock figure below comes from **web-search
 snapshots**, not from the live pages. Treat them as a guide, and **check

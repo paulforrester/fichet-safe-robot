@@ -263,7 +263,7 @@ add it to the mechanical to-do with the remote board mount.**
 |---|---|---|
 | 12V IN +/− | PSU (Ledmo HTY-1200500, 5.5 × 2.1 mm barrel, **centre +**) via a DC-jack-to-screw-terminal adapter | 20 AWG pair |
 | 12V OUT +/− | RAMPS power terminal, the pair marked **5A** (+ and − per silkscreen) | 20 AWG pair |
-| F1 PTC 1.1 A hold | 12V IN+ → F1 → Phoenix pin 1 | on board |
+| F1 PTC 1.1 A hold | 12V IN+ → F1 → Phoenix pin 1 | on board. **For now: a 1.6 A glass cartridge fuse in a printed holder** (log 2026-10-07) |
 | R1 1 kΩ | TX2 pin → R1 → BUS | on board (one of the 100 ordered) |
 | TX2 pin | AUX-4 pin 18 (D16) | F–F jumper |
 | BUS pins ×4 | RX2: AUX-4 pin 17 (D17); X, Y, Z MS3 jumper pins | F–F jumpers; Phoenix pin 6 on board |
@@ -383,6 +383,8 @@ GCONF.en_spreadCycle) — StallGuard4 only works in StealthChop (DS §11).
    drivers. 1.1 A PTC on the hub feeds the remote branch. The key motor's
    supply current is below its 0.6 A coil current (chopper), so 1.1 A doesn't
    nuisance-trip, and a short on the cable or remote board trips it.
+   Until the PTC arrives, a 1.6 A glass fuse takes its place (log
+   2026-10-07).
 6. **Emergency stop**: pull the 12 V plug. The button (Y_MIN) pauses a run;
    `!` on the serial line aborts the current move and switches all drivers
    off.
@@ -414,13 +416,13 @@ discrete part" (2026-10-07).
 | Item | Qty | For |
 |---|---|---|
 | **Multimeter** — **on hand** (Paul, 2026-10-07). Use it before connecting the remote board | 1 | check 5 V/12 V polarity at the hub and remote board before plugging the driver in; cable continuity |
-| F–F Dupont jumpers, 10–20 cm (already on the list) | ~20 | UART taps, DIAG leads (3 get cut in half for the mod), hub ↔ RAMPS |
+| F–F Dupont jumpers, 10–20 cm — **ordered** 2026-10-07 | ~20 | UART taps, DIAG leads (3 get cut in half for the mod), hub ↔ RAMPS |
 | 2.54 mm female header strips (cuttable) — **on hand** (Paul, 2026-10-07) | 1 pack | remote driver sockets (2 × 1×8, 1 × 1×2) |
 | 2.54 mm male header strips — **on hand** (Paul, 2026-10-07) | 1 pack | hub jumper pins, remote motor header |
-| Radial PTC resettable fuse, ~1.1 A hold, rated ≥ 16 V (e.g. Bourns MF-R110 class) | 2 (1 spare) | remote 12 V branch |
-| Electrolytic capacitor 100 µF, ≥ 25 V (35 V fine), low ESR | 2 (1 spare) | remote driver VM |
-| Female DC barrel jack **5.5 × 2.1 mm** → screw terminal adapter (fits the Ledmo HTY-1200500 plug, centre positive) | 1 | PSU → hub without cutting the plug. Check its + / − marking against the multimeter before first use |
-| 20 AWG wire, red + black, ~1 m each | 1 | PSU → hub → RAMPS 12 V |
+| Radial PTC resettable fuse, ~1.1 A hold, rated ≥ 16 V (e.g. Bourns MF-R110 class) — **ordered** 2026-10-07; a 1.6 A glass fuse stands in until it arrives | 2 (1 spare) | remote 12 V branch |
+| Electrolytic capacitor 100 µF, ≥ 25 V (35 V fine), low ESR — **ordered** 2026-10-07 | 2 (1 spare) | remote driver VM |
+| Female DC barrel jack **5.5 × 2.1 mm** → screw terminal adapter (fits the Ledmo HTY-1200500 plug, centre positive) — **ordered** 2026-10-07 | 1 | PSU → hub without cutting the plug. Check its + / − marking against the multimeter before first use |
+| 20 AWG wire, red + black, ~1 m each — **ordered** 2026-10-07 | 1 | PSU → hub → RAMPS 12 V |
 | Solder — **on hand**: came with the station, with wick (Paul, 2026-10-07) | — | |
 | Flush cutters — **on hand** (Paul, 2026-10-07) | 1 | DIAG pin mod |
 
@@ -461,6 +463,36 @@ discrete part" (2026-10-07).
    2026-10-03). The step angle is still not confirmed against its data sheet.
 
 ## Decision log (most recent first)
+
+### 2026-10-07 — interim fuse for hub F1 (Paul)
+
+- The PTC fuses are ordered, but no amazon.fr listing arrives soon
+  (the first pick: 31 Oct – 5 Nov). Paul ordered **1.6 A glass cartridge
+  fuses** to sit in F1's place until then, in a holder he prints (no clips
+  ordered). **To confirm:** their size (5 × 20 mm?) and whether they're
+  fast (F) or slow-blow (T).
+- **Why 1.6 A works:** the key branch draws less than 0.6 A (§8, item 5),
+  and 1.6 A is well below the 5 A the PSU can deliver into a short. A
+  short on the cable, the plug or the remote board blows the fuse instead
+  of drawing the PSU's full current. If an F fuse ever blows at power-on
+  with no fault found, use a T fuse.
+- **Not resettable:** a blown fuse means a real fault. Find it with the
+  multimeter before fitting a new one.
+- **What leaving F1 out would have meant:** a fault in the key branch
+  gets the PSU's full current until the plug is pulled. That's the same
+  protection the dial drivers already have: the RAMPS polyfuse holds 5 A,
+  so on a 5 A supply it's effectively the supply's own limit. Whether
+  the Ledmo shuts down on a short is not known (no data sheet).
+- **The holder's contacts must be solid.** A contact that drops out for a
+  moment cuts the key driver's VS, and its logic runs from VS (§3.5), so
+  it resets to its power-on registers. The firmware writes the driver's
+  setup once per session and doesn't check for a reset before a key
+  move, so a reset would go unnoticed (follow-up for the firmware).
+  Metal-to-metal contact on each end cap, held by spring pressure or by
+  a screw threading into a metal nut, not into the plastic: PETG and PLA
+  creep under steady load, so a clamp that bears only on plastic
+  loosens. Don't solder to the end caps: the heat can melt the solder
+  that holds the fuse wire inside.
 
 ### 2026-10-07 — printable schematic
 

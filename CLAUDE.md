@@ -1,7 +1,7 @@
 # CLAUDE.md — Fichet-Bauche safe combination robot
 
 Context for any Claude session working in this repo. Read this first, then
-the doc that matches your task (table below). Last updated 2026-10-06.
+the doc that matches your task (table below). Last updated 2026-10-07.
 
 ## What this is
 
@@ -140,14 +140,16 @@ designed (`control/wiring.md`); firmware written and host-tested
 - Double-sided perfboard kit (for the remote driver board), heat shrink.
 - **AS5600** magnetic encoders ×4 (optional, only if step counting on the
   key proves unreliable), 7 mm momentary pushbuttons ×12 (start trigger).
-- Still to buy: F–F jumpers (on hand, Paul 2026-10-07: multimeter, solder + wick,
-  flush cutters, Phoenix connectors 5 headers + 5 plugs, header strips) — plus the
-  harness parts in `control/wiring.md` §10 (1.1 A PTC,
-  100 µF cap, 5.5 × 2.1 DC-jack adapter, 20 AWG wire). Every discrete part,
-  to buy or already on a board: `docs/bom.md`, "Electronics assembly —
-  every discrete part". The only discrete parts Paul fits that aren't
-  ordered yet are the PTC and C1. The fuses, diode, capacitors and
-  resistors drawn in grey on the schematic are already on the RAMPS.
+- Nothing left to buy. Ordered from amazon.fr 2026-10-07: the harness
+  parts in `control/wiring.md` §10 (1.1 A PTC, 100 µF cap, F–F jumpers,
+  5.5 × 2.1 DC-jack adapter, 20 AWG wire, zip ties). On hand (Paul,
+  2026-10-07): multimeter, solder + wick, flush cutters, Phoenix
+  connectors (5 headers + 5 plugs), header strips. The PTC arrives late:
+  until then hub F1 is a **1.6 A glass cartridge fuse in a printed
+  holder** (`control/wiring.md` log 2026-10-07). Every discrete part:
+  `docs/bom.md`, "Electronics assembly — every discrete part". The
+  fuses, diode, capacitors and resistors drawn in grey on the schematic
+  are already on the RAMPS.
 
 ## Wiring — settled 2026-10-06 in `control/wiring.md` (read it for details and sources)
 
@@ -168,7 +170,7 @@ designed (`control/wiring.md`); firmware written and host-tested
 - Cable (6 cores + shield): 12 V red, GND black, 5 V orange (VIO, from the
   Mega), STEP yellow, UART green, DIAG white. Remote EN and DIR tied to GND; firmware disables it with
   CHOPCONF.TOFF = 0 and sets direction with GCONF.shaft (read back before
-  each move). Remote 12 V through a 1.1 A PTC on a small hub board at the
+  each move). Remote 12 V through a 1.1 A PTC (for now a 1.6 A glass fuse) on a small hub board at the
   dial end; 100 µF at the remote driver.
 - Currents: dials 1.0 A RMS (hold 0.5 A); key 0.6 A to start, then 2 × the
   measured minimum. Power: USB first, then 12 V; 12 V off first; never
