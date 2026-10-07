@@ -122,7 +122,7 @@ key-turner base (both changed 2026-10-06), plus the retainers.
 | M3 × 6–8, self-tapping into PETG (Mega base plate to deck) | 4 (3 go in) | — | on hand |
 | M3 × 3 or × 4 **grub** screws (pinion / hub), optional | 3 | 1 | optional. **Never a cap screw**: its head would hit the gear |
 | 22 mm rubber pot magnets, M4 back (Wukong) | 6 | 3 | ordered |
-| M4 screws for the magnets | 6 | 3 | the ones in the magnet pack, if any. Otherwise flat or pan head, length = 3 mm (retainer) + the magnet's thread depth. Measure it; the screw must not bottom out |
+| M4 screws for the magnets | 6 | 3 | the ones in the magnet pack, if any. Otherwise **pan, button or socket head — not countersunk** (the retainer is flat). Length: see §1.3a. Any head up to 9 mm across and 6 mm tall clears the other parts on both units (CAD check, 2026-10-07) |
 | Motors 17HE19-2004S | 3 | 1 | on hand (+1 spare) |
 
 ### 1.3 Checks before the big parts
@@ -142,6 +142,75 @@ key-turner base (both changed 2026-10-06), plus the retainers.
    driver, and check the leg doesn't crack. The legs have ~3.3 mm of wall
    around the 5.4 mm pilot (`docs/bom.md`).
 
+### 1.3a Fitting the door magnets (both units)
+
+How it works: each magnet sits in a **through hole** in the plate. On the
+plate's inner face a raised **seat ring** (29 mm across) stands around each
+hole. A flat printed **retainer disc** (27 mm, 3 mm thick) lies on the ring,
+and an M4 screw through the retainer into the magnet's threaded back holds
+the magnet up against it. The ring's top sets the depth, so the rubber ends
+up 0.2 mm proud of the door face. On the door, the pull goes magnet →
+screw → retainer → ring (`common_mounts.scad`, `rmag_*`). The dial front
+plate has 6, the key-turner base 3.
+
+**Measure first** (one magnet, calipers):
+- **Diameter D.** The hole is 22.4 mm. Over 22.3 it won't drop in; tell me.
+- **Height H, including any boss on the back.** The magnet's back must be
+  level with the ring top (5.8 mm above the door face), so the rubber stands
+  H − 5.8 proud. 5.9–6.3 mm is fine (0.1–0.5 proud). Under 5.9 the rubber
+  would sit flush or below the plate; over 6.3 the dial plugs sit too
+  shallow in the stars. Either way, tell me before fitting: it's one number
+  in the CAD and a reprint.
+- **Thread depth T** (depth rod into the threaded hole).
+- **Screw length** = 3 (retainer) + T − 0.5, rounded **down** to a length
+  you have. It must not bottom in the hole, or it stops before it clamps.
+  Example: T = 4 → 6.5 → use M4 × 6.
+
+**Before you start:**
+- Work on a wooden or plastic table, no steel within ~20 cm. Keep the
+  magnets apart: they snap together hard and pinch fingers.
+- Look at every seat ring top. It sets the depth, so it must be flat:
+  trim any string or blob with a blade. Check each magnet drops into its
+  hole without forcing.
+- Check the retainers: the screw should pass through the 4.5 mm hole freely.
+
+**Steps (per plate):**
+1. Lay the plate **door face down** on the table.
+2. Drop a magnet into a hole, **rubber face down** (onto the table), threaded
+   back up.
+3. Lay a retainer on top, centred on the thread. It rests on the magnet's
+   back (0.2 mm above the ring for now; that's expected).
+4. Start the M4 screw by hand, then snug it with a screwdriver until the
+   retainer can't turn. **Snug, not tight**: the retainer is PETG and
+   the thread is in the magnet. No thread-locker (some attack plastic).
+5. Repeat for every hole.
+6. **Check:**
+   - Lift the plate: each magnet drops 0.2 mm until its retainer lands on
+     the ring. Turn the plate over: every rubber face stands just proud.
+   - Put the plate door face down on the table and slide a sheet of
+     printer paper under its edge between two magnets: it should go under
+     (the plate rests on the magnets, not on its face). Do it all round.
+   - Push a magnet in from the door side: it can move in, lifting its
+     retainer off the ring. That's fine: the door pulls it the other way,
+     onto the ring. It must **not** come out through the door side.
+7. **Order:** on the dial unit, fit the magnets before anything else (they're
+   under the sled). On the key turner, before the motor plate goes on.
+
+**Pull test (once, before the robot runs; §1.3 item 1):**
+1. One magnet with its screw part-way in. Tie a loop of string round the
+   screw under its head.
+2. Stick the magnet flat on the door where the units go.
+3. Hook the luggage scale in the loop and pull **along** the door face
+   (sideways, not away from it), slowly, until it slides. Note the peak.
+4. Three times, plus once pulling straight down. Send me all four readings.
+   The units need ~0.8 kg sideways per magnet (1.5 kg dial unit on 6, with
+   ~3× margin, `docs/housing_decisions.md` 2026-10-06). Below that, more
+   magnets or a floor leg.
+
+**Taking a unit off the door:** pull it straight off, peeling from one edge
+if the magnets hold hard. Don't slide it: the dial plugs are in the stars
+(§4, shutting down).
+
 ### 1.4 Dial unit
 
 **ASSUMPTION: the order below is derived from the CAD.** The repo has no
@@ -153,11 +222,8 @@ written assembly order for the dial unit (the pointer to one in
 
 Tell me if a different order works better, and I'll record it.
 
-1. **Magnets.** Put each magnet in its through hole in the front plate,
-   rubber face toward the door. Lay a retainer disc on the seat ring, then
-   drive an M4 screw through the retainer into the magnet's back. The ring
-   sets the depth: the rubber ends up 0.2 mm proud of the door face. The
-   door's pull goes magnet → screw → retainer → ring.
+1. **Magnets.** Six, as in §1.3a: plate door face down, magnet rubber face
+   down into each hole, retainer on top, M4 snug. Check with the paper test.
 2. **Bearings.** Press two 608s into each boss from the back (the boss top).
    A 2 mm lip on the door side stops the outer ring. It's a light press fit
    (22.15 mm pocket).
@@ -202,8 +268,8 @@ Tell me if a different order works better, and I'll record it.
 
 From the notes at the end of `cad/key_turner_housing.scad`:
 
-1. **Magnets.** Three, in the base, the same way as on the dial unit
-   (retainer + M4).
+1. **Magnets.** Three, in the base, as in §1.3a (before the motor plate
+   goes on).
 2. **Motor onto the motor plate.** Four M3 × 10 countersunk from the plate's
    inner face.
 3. **Hub onto the shaft.** Its D-bore sits entirely on the shaft's flat.
