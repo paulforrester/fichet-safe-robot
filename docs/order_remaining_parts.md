@@ -19,7 +19,12 @@ price, stock and seller on each page before you order.**
 ## Recommendation
 
 - **One order that covers everything: amazon.fr.**
-  - Items 1, 2 and 5–8: **€53.13**, plus €2 delivery on the fuse.
+  - Items 1, 2 and 5–8: **€53.13**, plus €7 delivery on the fuse.
+    (Correction, 2026-10-07: the search snippet said €2; Paul's basket
+    shows €7.)
+  - Items 1 and 2 ship slowly from their sellers. Alternates are under
+    "If the fuse or capacitor ships too slowly" below. Neither part is
+    needed before bring-up stage 5.
   - Most picks are generic, unbranded parts. That's fine for this use.
 - **mouser.fr** has branded parts (Bourns, Panasonic, Würth, Samtec,
   Adafruit) and real stock counts.
@@ -52,8 +57,8 @@ price, stock and seller on each page before you order.**
 
 | # | Need | Pick (ASIN) | Pack | Price shown | Availability shown | Fit notes |
 |---|---|---|---|---|---|---|
-| 1 | PTC fuse, radial, 1.1 A hold, ≥ 16 V ×2 | 30V 1.1A resettable fuse, radial "Polyswitch" — [B0848QX3FS](https://www.amazon.fr/fusible-r%C3%A9armable-plomb-radial-Polyswitch/dp/B0848QX3FS) | 20 | €10.21 (+ €2 delivery in snippet) | not shown; third-party seller | radial, 30 V, 1.1 A: meets spec. Generic, no reviews |
-| 2 | 100 µF ≥ 25 V low-ESR electrolytic ×2 | Elna RJH 35 V 100 µF, 8 × 12 mm — [B07H9BKFGF](https://www.amazon.fr/Condensateur-%C3%A9lectrolytique-Electrolytic-Capacitor-Elna/dp/B07H9BKFGF) | 20 | €9.46 | not shown | RJH is a low-impedance series. 3.5 mm lead pitch: bend the leads to fit the perfboard. Alternative: sourcing map low-ESR 35 V, 6.3 × 7 mm, 50 pcs, €9.99 — [B07LDZ5HF8](https://www.amazon.fr/sourcing-map-Radial-Faible-Resist/dp/B07LDZ5HF8) |
+| 1 | PTC fuse, radial, 1.1 A hold, ≥ 16 V ×2 | 30V 1.1A resettable fuse, radial "Polyswitch" — [B0848QX3FS](https://www.amazon.fr/fusible-r%C3%A9armable-plomb-radial-Polyswitch/dp/B0848QX3FS) | 20 | €10.21 + €7 delivery (Paul's basket, 2026-10-07; the snippet said €2) | **31 Oct – 5 Nov** (Paul's basket, 2026-10-07); third-party seller (LingTongTrade) | radial, 30 V, 1.1 A: meets spec. Generic, no reviews |
+| 2 | 100 µF ≥ 25 V low-ESR electrolytic ×2 | Elna RJH 35 V 100 µF, 8 × 12 mm — [B07H9BKFGF](https://www.amazon.fr/Condensateur-%C3%A9lectrolytique-Electrolytic-Capacitor-Elna/dp/B07H9BKFGF) | 20 | €9.46 | in stock, free delivery **14–16 Oct** (Paul's basket, 2026-10-07); sold by IT-Tronics GmbH | RJH is a low-impedance series. 3.5 mm lead pitch: bend the leads to fit the perfboard. Alternative: sourcing map low-ESR 35 V, 6.3 × 7 mm, 50 pcs, €9.99 — [B07LDZ5HF8](https://www.amazon.fr/sourcing-map-Radial-Faible-Resist/dp/B07LDZ5HF8) |
 | 3+4 | **Not needed** (from another order) — header strips | IZOKEE male + female 40-pin kit — [B07DBY753C](https://www.amazon.fr/IZOKEE-Connecteur-Femelle-Broches-Prototype/dp/B07DBY753C) | 15 + 15 strips | €11.71 | not shown | 4.6/5 (683). Female strips don't snap: cut them with the flush cutters (you lose one pin per cut). One strip gives 2 × 8 + 1 × 2 |
 | 5 | F–F jumpers 10–20 cm, ~20 | ELEGOO 120 Dupont wires, 20 cm (40 F–F) — [B01JD5WCG2](https://www.amazon.fr/Elegoo-Multicolore-M%C3%A2le-Femelle-M%C3%A2le-M%C3%A2le-Femelle-Femelle/dp/B01JD5WCG2) | 120 | €8.99 | not shown | 4.7/5 (2,811) |
 | 6 | DC jack, female 5.5 × 2.1 mm → screw terminal | LitaElek 5.5 × 2.1 adapters — [B019HAC6V4](https://www.amazon.fr/LitaElek-Femelle-Adaptateur-Connecteur-dispositifs/dp/B019HAC6V4) | 5 female + 5 male | €8.99 | not shown | 4.5/5 (1,235), 3 A. Check + / − with the multimeter before first use |
@@ -65,7 +70,8 @@ price, stock and seller on each page before you order.**
 | 12 | **Not needed** (on hand) — flush cutters | Knipex 78 61 125 SB Electronic Super Knips — [B000OIB7J6](https://www.amazon.fr/Knipex-78-61-125-SB/dp/B000OIB7J6) | 1 | €25.99 | not shown | 4.7/5 (3,695). Alternative: Hakko CHP-170, €24.31 — [B00FZPDG1K](https://www.amazon.fr/Hakko-CHP-170-Pince-coupe-fil-souple/dp/B00FZPDG1K) |
 
 **Totals at the prices shown:**
-- **The order (1, 2, 5–8): €53.13**, plus €2 delivery on the fuse.
+- **The order (1, 2, 5–8): €53.13**, plus €7 delivery on the fuse (the
+  snippet said €2; corrected 2026-10-07).
   Without the DC-jack adapter it's €44.14. Either is over the €35
   free-delivery threshold for the items Amazon ships itself.
 - For the record:
@@ -79,6 +85,49 @@ price, stock and seller on each page before you order.**
 Amazon ([help page](https://www.amazon.fr/gp/help/customer/display.html?nodeId=GZXW7X6AKTHNUP6H)).
 Some picks look like third-party sellers, so check "Expédié par Amazon" on
 each.
+
+### If the fuse or capacitor ships too slowly (2026-10-07)
+
+Paul's basket showed the fuse (item 1) arriving 31 Oct – 5 Nov and the
+capacitor (item 2) 14–16 Oct, both from third-party sellers.
+
+**Neither part holds up bring-up stages 0–4.**
+- F1 feeds only the cable's 12 V to the key turner: hub 12V IN + → F1 →
+  Phoenix pin 1 (`control/wiring.md` §5).
+- C1 sits on the remote (key) driver board.
+- Stages 0–4 use the dial drivers only; stage 4b says "the key turner is
+  not needed yet". Leave F1's place on the hub empty until then, so the
+  cable carries no 12 V.
+- Both parts are first needed at **stage 5 (key turner)**.
+
+So the slow listings may be fine. If you'd rather have them sooner, these
+also meet the spec. **Delivery dates weren't visible from here**, so pick
+whichever shows "Expédié par Amazon" or the earliest date in your basket.
+
+**PTC fuse.** On a multi-value listing, select the **1.1 A** variant. The
+part code ends in **110**, as in RUEF110 or JK30-110, meaning 1.10 A hold.
+It needs 2 radial leads and a rating of ≥ 16 V. All the 30 V and 72 V
+packs below have margin.
+
+| Pick (ASIN) | Pack | Notes |
+|---|---|---|
+| JK30 30 V PPTC, radial ("DIP") — [B0D56N2RWZ](https://www.amazon.fr/Fusible-r%C3%A9initialisable-polym%C3%A8re-PPTC-pi%C3%A8ces/dp/B0D56N2RWZ) | 10 | **select 1.1 A** (the link may open on 0.5 A) |
+| COJIC JK30 30 V PPTC, radial — [B0CPVKHC3L](https://www.amazon.fr/COJIC-PI%C3%88CES-fusible-r%C3%A9initialisable-polym%C3%A8re/dp/B0CPVKHC3L) | 10 | **select 1.1 A** |
+| MYRRHE 30 V, RUEF110 option — [B0CPVDXLJQ](https://www.amazon.fr/MYRRHE-fusibles-r%C3%A9armables-enfichables-r%C3%A9armable/dp/B0CPVDXLJQ) | 10 | **select RUEF110 1.1 A** |
+| FESTAS 30 V 1.1 A — [B0D4HMVP13](https://www.amazon.fr/Fusibles-r%C3%A9initialisables-thermistance-polym%C3%A8re-auto-r%C3%A9cup%C3%A9ration/dp/B0D4HMVP13) | 10 or 40 | **select 1.1 A** |
+| RXEF 72 V assortment, 10 values × 5 pcs, includes 1.1 A — [B0C5SMK827](https://www.amazon.fr/Valeurs-Pi%C3%A8ces-fusible-auto-r%C3%A9armable-s%C3%A9rie/dp/B0C5SMK827) | 50 | no variant to pick; spare values for later |
+| RGEF110, 16 V, 1.1 A — [B0DPC8W6GK](https://www.amazon.fr/Fusible-r%C3%A9initialisable-pi%C3%A8ces-RGEF110-fusible/dp/B0DPC8W6GK) | 50 | meets ≥ 16 V with no margin; prefer a 30 V one |
+
+**Capacitor.** Keep it **low ESR**. The TMC2209 datasheet (§3) recommends
+low-ESR electrolytics for VS filtering, with at least 100 µF near the
+driver. Plain "100 µF 35 V" packs (no low-ESR claim) are a last resort.
+
+| Pick (ASIN) | Pack | Notes |
+|---|---|---|
+| sourcing map low-ESR 100 µF 35 V, 105 °C, 6.3 × 7 mm — [B07LDZ5HF8](https://www.amazon.fr/sourcing-map-Radial-Faible-Resist/dp/B07LDZ5HF8) | 50 | ~€9.99 (snippet). **First choice.** A 6.3 mm can normally has 2.5 mm lead spacing, which fits the perfboard without bending |
+| "faible ESR / haute fréquence" 100 µF 35 V, 6 × 12 mm — [B0CS34JZG2](https://www.amazon.fr/condensateur-%C3%A9lectrolytique-Industrial-Electrical-capacitors/dp/B0CS34JZG2) | 20 | unbranded; low ESR is the seller's claim |
+
+Whichever you get, check the polarity when you fit it: the stripe marks −.
 
 ## Table 2 — mouser.fr
 
