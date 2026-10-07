@@ -154,7 +154,9 @@ screw → retainer → ring (`common_mounts.scad`, `rmag_*`). The dial front
 plate has 6, the key-turner base 3.
 
 **Measure first** (one magnet, calipers):
-- **Diameter D.** The hole is 22.4 mm. Over 22.3 it won't drop in; tell me.
+- **Diameter D.** Measured 21.5 mm (Paul, 2026-10-07). The hole size will
+  come from the fit-test strip (`cad/magnet_fit_test.stl`): the rubber must
+  grip.
 - **Height H, including any boss on the back.** The magnet's back must be
   level with the ring top (5.8 mm above the door face), so the rubber stands
   H − 5.8 proud. 5.9–6.3 mm is fine (0.1–0.5 proud). Under 5.9 the rubber
@@ -170,8 +172,8 @@ plate has 6, the key-turner base 3.
 - Work on a wooden or plastic table, no steel within ~20 cm. Keep the
   magnets apart: they snap together hard and pinch fingers.
 - Look at every seat ring top. It sets the depth, so it must be flat:
-  trim any string or blob with a blade. Check each magnet drops into its
-  hole without forcing.
+  trim any string or blob with a blade. Check each magnet presses into its
+  hole with your thumb and stays put upside down.
 - Check the retainers: the screw should pass through the 4.5 mm hole freely.
 
 **Steps (per plate):**
@@ -190,9 +192,12 @@ plate has 6, the key-turner base 3.
    - Put the plate door face down on the table and slide a sheet of
      printer paper under its edge between two magnets: it should go under
      (the plate rests on the magnets, not on its face). Do it all round.
-   - Push a magnet in from the door side: it can move in, lifting its
-     retainer off the ring. That's fine: the door pulls it the other way,
-     onto the ring. It must **not** come out through the door side.
+   - Push a magnet in from the door side: it must stay put. **Correction
+     (2026-10-07):** this used to say a magnet moving inward was fine. It
+     isn't: the real magnets are 21.5 mm, loose in the 22.4 mm holes, and
+     off the door a magnet and its retainer fall out of the inner side
+     (Paul). The holes are being resized to grip the rubber, from the
+     fit-test strip `cad/magnet_fit_test.stl` (PR #23).
 7. **Order:** on the dial unit, fit the magnets before anything else (they're
    under the sled). On the key turner, before the motor plate goes on.
 
