@@ -1,10 +1,10 @@
 # Fichet safe robot — build and operating manual
 
-> **Revision 2026-10-08.1** · key driver on the RAMPS E0 socket · log: `docs/revisions.md`
+> **Revision 2026-10-08.2** · key driver on the RAMPS E0 socket; UART pigtail replaces the hub board · log: `docs/revisions.md`
 
-For Paul. Covers the robot as of **revision 2026-10-08.1**: dial unit v2, key
-turner v1, wiring with all four drivers on the RAMPS (`control/wiring.md`),
-firmware **0.4**.
+For Paul. Covers the robot as of **revision 2026-10-08.2**: dial unit v2, key
+turner v1, wiring with all four drivers on the RAMPS and the UART pigtail
+(`control/wiring.md`), firmware **0.4** (unchanged by 2026-10-08.2).
 
 **Status:** nothing has run on hardware yet. The first time through, follow
 the bench bring-up (`control/bringup.md`) instead of section 5. It builds
@@ -287,9 +287,9 @@ Tell me if a different order works better, and I'll record it.
     pilot holes ("Jack/USB end faces up-right" in `dial_unit_housing.scad`).
     **VERIFY** that you can reach the USB and RAMPS connectors there; that
     hasn't been checked.
-11. **Not designed yet:** where the hub board (2.5) and the start button go
-    on the deck. Fix them temporarily (double-sided tape) until the CAD has
-    a place (1.7).
+11. **Not designed yet:** where the start button goes on the deck. Fix it
+    temporarily (double-sided tape) until the CAD has a place (1.7). The
+    UART pigtail's splice (2.5) just zip-ties to the deck.
 
 ### 1.5 Key turner
 
@@ -338,9 +338,9 @@ From the notes at the end of `cad/key_turner_housing.scad`:
 
 - Magnet pull test (1.3), and whether the magnets alone hold the units.
 - Reprint the dial front assembly and key-turner base with magnet holes.
-- CAD: a place on the deck for the hub board and the button. (Revision
-  2026-10-08.1 removed the remote-driver-board mount: the key driver is on
-  the RAMPS now.)
+- CAD: a place on the deck for the button, and a zip-tie point for the
+  UART pigtail's splice. (Revision 2026-10-08.1 removed the remote-board
+  mount; 2026-10-08.2 removed the hub board, so it needs no mount either.)
 - Access to the Mega's connectors at its position on the deck.
 - Only if the first full run fails: a key turner that pulls the key out and
   pushes it back in at every attempt (`control/sequence.md`, Open items).
@@ -351,16 +351,20 @@ From the notes at the end of `cad/key_turner_housing.scad`:
 
 The full design, with sources, is `control/wiring.md`. **Print
 `control/harness/schematic.pdf`** (the full schematic in colour) and keep
-`control/harness/ramps_and_hub.md` (one bench sheet of everything on the
-RAMPS and the hub) beside you. Other drawings: `control/harness/overview.svg`
-(block diagram), `control/harness/hub_board.svg` (hub placement) and
-`control/harness/harness.png` (the jumpers and the key motor cable).
+`control/harness/ramps_and_uart.md` (one bench sheet of everything on the
+RAMPS, and the UART pigtail) beside you. Other drawings:
+`control/harness/overview.svg` (block diagram),
+`control/harness/uart_pigtail.svg` (the pigtail) and
+`control/harness/harness.png` (the pigtail leads and the key motor cable).
 
 **Revision 2026-10-08.1 (2026-10-08):** all four drivers now sit in RAMPS
 sockets — the key in **E0**, beside the three dials. There is no remote
 driver board and no inter-unit signal cable; the only wire between the units
-is the key motor's own cable, into the E0 motor header. The hub board is now
-just the UART junction. See `docs/revisions.md`.
+is the key motor's own cable, into the E0 motor header.
+
+**Revision 2026-10-08.2 (2026-10-08):** the hub board is replaced by the
+**UART pigtail**: six leads, R1 in line in the TX2 lead, one solder splice
+(2.5). See `docs/revisions.md`.
 
 ### 2.1 Build it in bring-up order
 
@@ -370,7 +374,7 @@ bring-up stage before the next one is added:
 | Build | Then test with |
 |---|---|
 | 2.3 Drivers: DIAG mod (all four), heatsinks, jumpers. Flash the firmware (section 4) | `control/bringup.md` stage 0 |
-| 2.4 Mega + RAMPS + the four drivers; 2.5 hub board; 2.6 power; 2.7 jumpers | stage 1 (one driver, then all four) |
+| 2.4 Mega + RAMPS + the four drivers; 2.5 UART pigtail; 2.6 power; 2.7 jumpers | stage 1 (one driver, then all four) |
 | 2.8 one motor on the bench | stages 2 and 3 |
 | Dial unit assembled (section 1) with its three motors | stage 4 |
 | Key motor cable to E0, key turner (section 1) | stage 5 |
@@ -381,11 +385,13 @@ bring-up stage before the next one is added:
 - Soldering station, solder, flush cutters, heat shrink and heat gun,
   calipers, a marker.
 - **Multimeter** (you have one). Use it to check the DC-jack adapter's
-  polarity before the first power-up.
+  polarity before the first power-up, and the UART pigtail (2.5).
+- Masking tape, for the pigtail's lead labels.
 - Parts: **`docs/bom.md`, "Electronics assembly — every discrete part"**
   lists each one. What you fit beyond what's already on the boards is small
-  (revision 2026-10-08.1):
-  - **R1, 1 kΩ** on the hub (the only UART resistor);
+  (revision 2026-10-08.2):
+  - **R1, 1 kΩ**, in line in the UART pigtail's TX2 lead (the only UART
+    resistor), and heat shrink;
   - the **DC-jack-to-screw-terminal adapter** (5.5 × 2.1 mm) and **20 AWG**
     red + black wire, PSU → RAMPS "5A" terminal;
   - about **20 F–F jumpers** and the 7 mm **start/stop button**.
@@ -394,7 +400,8 @@ bring-up stage before the next one is added:
   are already on the RAMPS. **No longer used** (bought earlier; keep as
   spares): the 1.1 A PTC and the fuse kit + printed holder, the two 100 µF
   capacitors, the 6-conductor cable and the Phoenix connectors, the female
-  header strips.
+  header strips; and (2026-10-08.2) the hub's perfboard and male header
+  pins.
 
 ### 2.3 Prepare the drivers (BTT TMC2209 V1.3)
 
@@ -420,8 +427,8 @@ Four drivers are used (three dials + the key), plus one spare.
 
 ### 2.4 Mega, RAMPS and the four drivers
 
-*One-sheet summary of everything on the RAMPS and hub:
-`control/harness/ramps_and_hub.md`.*
+*One-sheet summary of everything on the RAMPS, and the pigtail:
+`control/harness/ramps_and_uart.md`.*
 
 1. **RAMPS jumpers**, under the X, Y, Z and E0 sockets. They set each
    driver's UART address:
@@ -441,28 +448,42 @@ Four drivers are used (three dials + the key), plus one spare.
 4. **Mount the Mega**: four M3 × 6–8 screws through the Mega's own plastic
    base into the electronics deck (three are enough).
 
-### 2.5 Hub board — the UART junction
+### 2.5 UART pigtail (replaces the hub board, revision 2026-10-08.2)
 
-A small perfboard next to the Mega. Revision 2026-10-08.1: it holds only the
-UART resistor and the bus node — no 12 V, no fuse, no Phoenix header.
-Placement: `control/harness/hub_board.svg` (the fuse and 12 V parts shown
-there are gone).
+Six leads, each ending in a female Dupont, joined in one solder splice. R1
+sits in line in the TX2 lead. No 12 V, 5 V or GND on it. Drawing:
+`control/harness/uart_pigtail.svg`; reference `control/wiring.md` §5.
 
-| Hub point | Connects to |
-|---|---|
-| R1 (1 kΩ) | TX2 pin → R1 → BUS node |
-| TX2 pin | AUX-4 pin 18 (D16) |
-| BUS node | RX2 = AUX-4 pin 17 (D17); and the X, Y, Z and **E0** MS3 jumper pins (see 2.7) |
+1. **Test-fit, then measure**, with the drivers in. First push one F–F
+   jumper's female end onto the X socket's MS3 jumper pin under the seated,
+   heatsinked driver. **VERIFY:** it fits (nobody has checked this yet; if
+   it doesn't, stop and tell me). Then measure AUX-4 to each socket's MS3
+   jumper pin (X, Y, Z, E0) and pick a splice point near the middle of the
+   RAMPS.
+2. **Make six leads**: cut one end off each of six F–F jumpers (halves will
+   do if long enough). Cut each to its measured length + a few cm.
+3. **TX2 lead:** solder **R1 (1 kΩ)** in line, ~3 cm from the female end.
+   Heat shrink over it.
+4. **Splice:** R1's far lead + RX2 + A + B + C + KEY in one joint. Heat
+   shrink over it, then a larger piece over the bundle.
+5. **Label** each female end with tape: TX2, RX2, A, B, C, KEY.
+6. **Check (multimeter on Ω), pigtail loose:**
+   - TX2 → RX2: about **1 kΩ**
+   - TX2 → A, B, C, KEY: about **1 kΩ** each
+   - RX2 → A, B, C, KEY: about **0 Ω** each
 
-Use 2.54 mm male header pins for the jumper ends; keep R1 right at the TX2
-pin. Where it mounts on the deck isn't designed yet (mechanical to-do).
+   Then tug each lead at the splice.
+7. Fit the leads in 2.7; zip-tie the splice to the deck.
+
+**Send back:** whether the test-fit in step 1 worked, and the readings from
+step 6.
 
 ### 2.6 Power wiring
 
 PSU (Ledmo HTY-1200500, 12 V 5 A, 5.5 × 2.1 mm barrel, centre +) → DC-jack
 adapter → **RAMPS "5A" terminal**, 20 AWG red for + and black for −. That's
-all: the RAMPS's own 5 A fuse feeds all four drivers (revision 2026-10-08.1;
-no hub 12 V branch any more).
+all: the RAMPS's own 5 A fuse feeds all four drivers. Nothing else takes
+12 V. Leave the **11A** terminal (heated bed) empty.
 
 **Leave the Mega's own barrel jack empty.** It feeds only the Mega (VIN);
 the drivers get 12 V only through the "5A" terminal, and diode D1 passes
@@ -473,8 +494,9 @@ Mega but leave every driver missing on `ping`.
 
 ### 2.7 Signal jumpers on the RAMPS
 
-Use F–F jumpers about 10 cm long. The endstop headers are **S** (signal),
-**−** (GND) and **+** (5 V).
+DIAG leads and the button: F–F jumpers about 10 cm long. Pigtail leads: as
+built in 2.5. The endstop headers are **S** (signal), **−** (GND) and **+**
+(5 V).
 
 | From | To |
 |---|---|
@@ -482,8 +504,8 @@ Use F–F jumpers about 10 cm long. The endstop headers are **S** (signal),
 | Dial B driver DIAG lead | **X_MAX S** (D2) |
 | Dial C driver DIAG lead | **Z_MIN S** (D18) |
 | **Key** driver DIAG lead (E0) | **Z_MAX S** (D19) |
-| X, Y, Z, **E0** MS3 jumper pins, signal side | hub BUS node |
-| AUX-4 pin 18 / 17 (D16 / D17) | hub TX2 / BUS node |
+| Pigtail leads **A, B, C, KEY** | X, Y, Z, **E0** MS3 jumper pins, signal side |
+| Pigtail leads **TX2 / RX2** | AUX-4 pin 18 / 17 (D16 / D17) |
 | Start/stop button (7 mm) | **Y_MIN S** and **Y_MIN −** (D14) |
 
 **VERIFY:** which MS3 pin is the signal side on your Fasizi board. If `ping`
@@ -829,15 +851,18 @@ success. `<value>`:
 - `1`: the driver **reset**: its 12 V (or its 5 V) dropped out for a moment.
   Type `ping`: the second-to-last field of each `DRV` line is that driver's
   GSTAT, so it shows which ones reset.
-  - Only `K`: the hub fuse holder's contacts, the cable and its plugs.
-  - All four: the 12 V supply or its plug.
+  - Only one driver: that driver's seating in its socket (push it down
+    with 12 V off).
+  - All four: the 12 V supply, its plug, or the RAMPS "5A" terminal screws.
   - Check those contacts with 12 V off (multimeter on continuity, while
     you wiggle them), fix, then `resume`.
 - `2`: the driver shut itself down: **overheated or a short**. 12 V off, let
   it cool, check the motor's wires, and send me the log before resuming.
 - `4`: its **12 V is too low** right now: the supply or its wiring.
-- `80`: **no answer**: no 12 V at that driver (for `K`: fuse blown? check it
-  with the multimeter), or its UART lead is off.
+- `80`: **no answer**: no 12 V at that driver, or its UART pigtail lead is
+  off its MS3 pin. All four at once: the RAMPS 5 A fuse or the supply, or the
+  pigtail's TX2 / RX2 leads, R1 or the splice (redo the 2.5 multimeter
+  check).
 - Flags add up: `5` = 1 + 4.
 - On the bench, if you switched the 12 V off and on yourself since the last
   command (without `release`), a `1` is expected: run the command again.

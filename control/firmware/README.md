@@ -1,6 +1,6 @@
 # Firmware — Fichet safe robot (Mega 2560 + RAMPS 1.4 + 4 × TMC2209)
 
-> **Revision 2026-10-08.1** · key driver on the RAMPS E0 socket; firmware v0.4 · log: `../../docs/revisions.md`
+> **Revision 2026-10-08.2** · key driver on the RAMPS E0 socket; firmware v0.4 (unchanged by 2026-10-08.2) · log: `../../docs/revisions.md`
 
 Implements the sequence in `control/sequence.md` on the pin map in
 `control/wiring.md`. Bring it up on the bench with `control/bringup.md`.

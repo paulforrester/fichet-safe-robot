@@ -9,7 +9,7 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 554)">
 <title>overview</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-554 1202.98,-554 1202.98,4 -4,4"/>
-<text text-anchor="middle" x="599.49" y="-537.2" font-family="Helvetica,sans-Serif" font-size="11.00">Fichet safe robot — wiring overview (control/wiring.md, revision 2026&#45;10&#45;08.1)</text>
+<text text-anchor="middle" x="599.49" y="-537.2" font-family="Helvetica,sans-Serif" font-size="11.00">Fichet safe robot — wiring overview (control/wiring.md, revision 2026&#45;10&#45;08.2)</text>
 <g id="clust1" class="cluster">
 <title>cluster_dial</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="264,-109 264,-522 1174.71,-522 1174.71,-109 264,-109"/>
@@ -64,14 +64,14 @@
 <polygon fill="black" stroke="black" points="269.52,-281.76 279.82,-279.25 270.21,-274.79 269.52,-281.76"/>
 <text text-anchor="middle" x="183" y="-278.8" font-family="Helvetica,sans-Serif" font-size="9.00">USB</text>
 </g>
-<!-- hub -->
+<!-- uart -->
 <g id="node3" class="node">
-<title>hub</title>
-<path fill="none" stroke="black" d="M432,-169C432,-169 307,-169 307,-169 301,-169 295,-163 295,-157 295,-157 295,-129 295,-129 295,-123 301,-117 307,-117 307,-117 432,-117 432,-117 438,-117 444,-123 444,-129 444,-129 444,-157 444,-157 444,-163 438,-169 432,-169"/>
-<text text-anchor="middle" x="369.5" y="-157" font-family="Helvetica,sans-Serif" font-size="10.00">Hub board</text>
-<text text-anchor="middle" x="369.5" y="-146" font-family="Helvetica,sans-Serif" font-size="10.00">the UART junction only:</text>
-<text text-anchor="middle" x="369.5" y="-135" font-family="Helvetica,sans-Serif" font-size="10.00">1 kΩ TX2 → UART bus,</text>
-<text text-anchor="middle" x="369.5" y="-124" font-family="Helvetica,sans-Serif" font-size="10.00">RX2 + all 4 PDN on the bus</text>
+<title>uart</title>
+<path fill="none" stroke="black" d="M438,-169C438,-169 301,-169 301,-169 295,-169 289,-163 289,-157 289,-157 289,-129 289,-129 289,-123 295,-117 301,-117 301,-117 438,-117 438,-117 444,-117 450,-123 450,-129 450,-129 450,-157 450,-157 450,-163 444,-169 438,-169"/>
+<text text-anchor="middle" x="369.5" y="-157" font-family="Helvetica,sans-Serif" font-size="10.00">UART pigtail</text>
+<text text-anchor="middle" x="369.5" y="-146" font-family="Helvetica,sans-Serif" font-size="10.00">6 leads, one splice:</text>
+<text text-anchor="middle" x="369.5" y="-135" font-family="Helvetica,sans-Serif" font-size="10.00">1 kΩ in the TX2 lead,</text>
+<text text-anchor="middle" x="369.5" y="-124" font-family="Helvetica,sans-Serif" font-size="10.00">RX2 + all 4 PDN on the splice</text>
 </g>
 <!-- x -->
 <g id="node5" class="node">
@@ -82,11 +82,11 @@
 <text text-anchor="middle" x="719.5" y="-280" font-family="Helvetica,sans-Serif" font-size="10.00">STEP 54 DIR 55 EN 38</text>
 <text text-anchor="middle" x="719.5" y="-269" font-family="Helvetica,sans-Serif" font-size="10.00">DIAG → X_MIN D3</text>
 </g>
-<!-- hub&#45;&gt;x -->
+<!-- uart&#45;&gt;x -->
 <g id="edge11" class="edge">
-<title>hub&#45;&gt;x</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M454.05,-161.4C513.74,-174.84 584.46,-191.46 590,-196 610.45,-212.77 595.55,-232.08 615,-250 622,-256.45 630.19,-261.83 638.83,-266.31"/>
-<polygon fill="black" stroke="black" points="454.72,-157.96 444.19,-159.19 453.18,-164.8 454.72,-157.96"/>
+<title>uart&#45;&gt;x</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M460.24,-162.8C518.53,-175.97 584.65,-191.61 590,-196 610.45,-212.77 595.55,-232.08 615,-250 622,-256.45 630.19,-261.83 638.83,-266.31"/>
+<polygon fill="black" stroke="black" points="460.75,-159.32 450.22,-160.54 459.21,-166.15 460.75,-159.32"/>
 <polygon fill="black" stroke="black" points="637.45,-269.52 647.98,-270.66 640.45,-263.2 637.45,-269.52"/>
 <text text-anchor="middle" x="537" y="-198.8" font-family="Helvetica,sans-Serif" font-size="9.00">UART (MS3 jumper pin)</text>
 </g>
@@ -99,11 +99,11 @@
 <text text-anchor="middle" x="719.5" y="-357" font-family="Helvetica,sans-Serif" font-size="10.00">STEP 60 DIR 61 EN 56</text>
 <text text-anchor="middle" x="719.5" y="-346" font-family="Helvetica,sans-Serif" font-size="10.00">DIAG → X_MAX D2</text>
 </g>
-<!-- hub&#45;&gt;y -->
+<!-- uart&#45;&gt;y -->
 <g id="edge12" class="edge">
-<title>hub&#45;&gt;y</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M453.26,-169.05C455.23,-170.31 457.15,-171.62 459,-173 474.35,-184.4 467.43,-198.46 484,-208 504.51,-219.8 572.21,-202.4 590,-218 627.38,-250.76 582.15,-289.71 615,-327 617.7,-330.06 620.67,-332.88 623.84,-335.47"/>
-<polygon fill="black" stroke="black" points="454.71,-165.85 444.3,-163.9 451.22,-171.92 454.71,-165.85"/>
+<title>uart&#45;&gt;y</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M458.74,-172.81C458.83,-172.87 458.91,-172.94 459,-173 474.35,-184.4 467.43,-198.46 484,-208 504.51,-219.8 572.21,-202.4 590,-218 627.38,-250.76 582.15,-289.71 615,-327 617.7,-330.06 620.67,-332.88 623.84,-335.47"/>
+<polygon fill="black" stroke="black" points="460.67,-169.89 450.4,-167.29 456.81,-175.73 460.67,-169.89"/>
 <polygon fill="black" stroke="black" points="621.96,-338.43 632.11,-341.45 626.06,-332.76 621.96,-338.43"/>
 </g>
 <!-- z -->
@@ -115,11 +115,11 @@
 <text text-anchor="middle" x="719.5" y="-434" font-family="Helvetica,sans-Serif" font-size="10.00">STEP 46 DIR 48 EN 62</text>
 <text text-anchor="middle" x="719.5" y="-423" font-family="Helvetica,sans-Serif" font-size="10.00">DIAG → Z_MIN D18</text>
 </g>
-<!-- hub&#45;&gt;z -->
+<!-- uart&#45;&gt;z -->
 <g id="edge13" class="edge">
-<title>hub&#45;&gt;z</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M452.81,-168.4C454.95,-169.85 457.02,-171.38 459,-173 476.11,-186.99 471.21,-197.97 484,-216 525.95,-275.14 552.73,-277.81 590,-340 605.7,-366.19 593.19,-382.63 615,-404 617.69,-406.63 620.57,-409.09 623.61,-411.37"/>
-<polygon fill="black" stroke="black" points="454.59,-165.39 444.23,-163.2 450.96,-171.37 454.59,-165.39"/>
+<title>uart&#45;&gt;z</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M458.48,-172.58C458.65,-172.72 458.83,-172.86 459,-173 476.11,-186.99 471.21,-197.97 484,-216 525.95,-275.14 552.73,-277.81 590,-340 605.7,-366.19 593.19,-382.63 615,-404 617.69,-406.63 620.57,-409.09 623.61,-411.37"/>
+<polygon fill="black" stroke="black" points="460.4,-169.65 450.23,-166.71 456.35,-175.36 460.4,-169.65"/>
 <polygon fill="black" stroke="black" points="621.73,-414.32 631.97,-417.03 625.65,-408.53 621.73,-414.32"/>
 </g>
 <!-- e0 -->
@@ -131,16 +131,16 @@
 <text text-anchor="middle" x="719.5" y="-203" font-family="Helvetica,sans-Serif" font-size="10.00">STEP 26 DIR 28 EN 24</text>
 <text text-anchor="middle" x="719.5" y="-192" font-family="Helvetica,sans-Serif" font-size="10.00">DIAG → Z_MAX D19</text>
 </g>
-<!-- hub&#45;&gt;e0 -->
+<!-- uart&#45;&gt;e0 -->
 <g id="edge14" class="edge">
-<title>hub&#45;&gt;e0</title>
-<path fill="none" stroke="black" stroke-dasharray="5,2" d="M454.12,-147.18C495.39,-150.4 545.7,-156.07 590,-166 607.81,-169.99 626.56,-175.67 644.07,-181.65"/>
-<polygon fill="black" stroke="black" points="454.34,-143.69 444.11,-146.43 453.82,-150.67 454.34,-143.69"/>
+<title>uart&#45;&gt;e0</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M460.23,-147.67C500.29,-150.96 547.86,-156.55 590,-166 607.81,-169.99 626.56,-175.67 644.07,-181.65"/>
+<polygon fill="black" stroke="black" points="460.46,-144.18 450.21,-146.88 459.91,-151.15 460.46,-144.18"/>
 <polygon fill="black" stroke="black" points="643.06,-185.01 653.65,-185 645.37,-178.4 643.06,-185.01"/>
 </g>
-<!-- mega&#45;&gt;hub -->
+<!-- mega&#45;&gt;uart -->
 <g id="edge15" class="edge">
-<title>mega&#45;&gt;hub</title>
+<title>mega&#45;&gt;uart</title>
 <path fill="none" stroke="black" d="M369.5,-256.97C369.5,-234.23 369.5,-203.27 369.5,-179.36"/>
 <polygon fill="black" stroke="black" points="366,-257.1 369.5,-267.1 373,-257.1 366,-257.1"/>
 <polygon fill="black" stroke="black" points="373,-179.26 369.5,-169.26 366,-179.26 373,-179.26"/>

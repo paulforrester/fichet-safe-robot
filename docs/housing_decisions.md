@@ -1,6 +1,6 @@
 # Housing — design decision log
 
-> **Revision 2026-10-08.1** · project revision baseline (mechanical log; not affected by the E0 wiring change) · log: `./revisions.md`
+> **Revision 2026-10-08.2** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
 
 
 Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,

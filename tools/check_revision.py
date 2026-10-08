@@ -15,7 +15,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REV = open(os.path.join(ROOT, 'REVISION')).read().strip()
 SKIP_DIRS = {'.git', 'node_modules', '__pycache__', '.pytest_cache', 'runs'}
 DRAWINGS = ['control/harness/schematic.pdf', 'control/harness/harness.svg',
-            'control/harness/overview.svg', 'control/harness/hub_board.svg']
+            'control/harness/overview.svg', 'control/harness/uart_pigtail.svg']
 
 
 def main():

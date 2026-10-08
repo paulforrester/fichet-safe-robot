@@ -1,6 +1,6 @@
 # Bench bring-up plan
 
-> **Revision 2026-10-08.1** · key driver on the RAMPS E0 socket · log: `docs/revisions.md`
+> **Revision 2026-10-08.2** · key driver on the RAMPS E0 socket; UART pigtail · log: `docs/revisions.md`
 
 Seven short stages, in order. Each ends with **"Send back"**: the numbers or
 log lines I need to fill in `control/firmware/safe_robot/config.h`.
@@ -48,9 +48,12 @@ DIAG label, how the pins looked).
 
 ## Stage 1 — One driver talking over UART (no motor)
 
-Setup: Mega + RAMPS, **one** driver in the **X** socket, no motor. Hub board
-wired: TX2 (AUX-4 pin 18) → 1 kΩ → bus; RX2 (AUX-4 pin 17) → bus; bus → the X
-socket's **MS3 jumper pin on the side nearer the driver's EN/STEP/DIR row**.
+Setup: Mega + RAMPS, **one** driver in the **X** socket, no motor. UART
+pigtail (manual §2.5, already checked with the multimeter): lead **TX2** on
+AUX-4 pin 18, **RX2** on AUX-4 pin 17, **A** on the X socket's **MS3 jumper
+pin on the side nearer the driver's EN/STEP/DIR row**. Leads B, C and KEY
+hang free for now (their female ends are insulated; keep them off the
+board).
 X's DIAG lead → X_MIN **S** pin. 12 V into RAMPS's **5A** input.
 
 1. USB on, logger running. Then 12 V on.
@@ -59,12 +62,13 @@ X's DIAG lead → X_MIN **S** pin. 12 V into RAMPS's **5A** input.
    version 21, MS1 = 0, MS2 = 0, DIAG pin low, DIAG register low. The last two
    fields are status (GSTAT reads 1 right after power-up: that's the
    driver's "I was reset" flag, normal).
-4. If it says `DRV,A,0,0,...`: 12 V off. Move the bus lead to the *other* pin
-   of the MS3 jumper pair, then try again. Still 0: check TX2/RX2 aren't
-   swapped and the 1 kΩ is on TX2.
+4. If it says `DRV,A,0,0,...`: 12 V off. Move lead A to the *other* pin
+   of the MS3 jumper pair, then try again. Still 0: check the TX2 and RX2
+   leads aren't swapped on AUX-4 (TX2 is the lead with R1).
 5. 12 V off. Add the Y, Z and **E0 (key)** drivers — with their jumpers and
-   DIAG leads: Y → X_MAX S, Z → Z_MIN S, **E0 → Z_MAX S** — and their MS3
-   pins on the bus. 12 V on. `set axes 15`, `ping`.
+   DIAG leads: Y → X_MAX S, Z → Z_MIN S, **E0 → Z_MAX S** — and pigtail
+   leads B, C and KEY on their MS3 pins (same side as A). 12 V on.
+   `set axes 15`, `ping`.
 
 **Send back**: the `DRV,A` line from step 3, and the four `DRV` lines from
 step 5; which MS3 pin worked. Expect `DRV,B,1,21,1,0,...`, `DRV,C,1,21,0,1,...`

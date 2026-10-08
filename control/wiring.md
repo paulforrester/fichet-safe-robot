@@ -1,6 +1,6 @@
 # Wiring harness — Mega 2560 + RAMPS 1.4 + 4 × BTT TMC2209 V1.3
 
-> **Revision 2026-10-08.1** · all four drivers on the RAMPS (key in E0) · log: `docs/revisions.md`
+> **Revision 2026-10-08.2** · all four drivers on the RAMPS (key in E0); UART pigtail replaces the hub board · log: `docs/revisions.md`
 
 Written 2026-10-06 (cloud session, no hardware). Everything below is from the
 sources listed at the bottom; anything I could not establish is marked
@@ -15,12 +15,18 @@ and 6 (the remote board and its cable) are retired; section 4 is now the key
 motor's own cable; section 5 (hub) shrinks to the UART junction. Reasoning in
 the decision log, 2026-10-08.
 
+**Revision 2026-10-08.2 (2026-10-08):** the hub board is replaced by the
+**UART pigtail** (section 5): six leads with female Dupont ends, R1 in line in
+the TX2 lead, one solder splice. Same circuit. Decision log, 2026-10-08
+(pigtail).
+
 ## Summary — what was decided
 
 1. **One UART bus, one 1 kΩ resistor in total**: Mega TX2 (D16) → 1 kΩ → bus;
    RX2 (D17) straight on the bus; every driver's PDN_UART straight on the bus.
    This is the datasheet's own circuit (TMC2209 DS Fig. 4.1). *Correction* of
-   `sequence.md`, which said one resistor per driver.
+   `sequence.md`, which said one resistor per driver. Built as the **UART
+   pigtail** (section 5, revision 2026-10-08.2).
 2. **UART on RAMPS needs no soldering**: the BTT V1.3's PDN_UART pin sits in
    the socket's **MS3** position, and RAMPS brings MS3 out to its MS3 jumper
    pin. Leave the MS3 jumper **off** and clip a female jumper onto that pin.
@@ -45,7 +51,8 @@ the decision log, 2026-10-08.
    (GCONF.shaft) and the TOFF disable are gone (firmware v0.4).
 8. **Fusing**: RAMPS's own 5 A polyfuse feeds all four drivers (every socket's
    VMOT). *Revision 2026-10-08.1*: the hub's 1.1 A fuse on a separate key
-   branch is gone with the branch.
+   branch is gone with the branch. 12 V goes from the PSU adapter straight
+   into the RAMPS "5A" terminal; nothing else carries it.
 9. **Currents**: dial drivers 1.0 A RMS (hold 0.5 A) until the dial torque is
    measured; key driver starts at 0.6 A RMS and is then set to 2 × the measured
    minimum that turns the key (bench stage 5).
@@ -68,9 +75,9 @@ top-right, C = bottom** (standing in front of the safe).
 | Dial C DIAG | D18 (INT, no. 5) | **Z_MIN** header, S pin | Marlin Z_MIN_PIN 18 |
 | Key STEP / DIR / EN | D26 / D28 / D24 | RAMPS **E0** socket (driver plugs in) | Marlin E0_STEP/DIR/ENABLE (`pins_RAMPS.h`) — *rev 2026-10-08.1* |
 | Key DIAG | D19 (INT, no. 4) | **Z_MAX** header, S pin (lead from the E0 driver's DIAG mod) | Marlin Z_MAX_PIN 19 |
-| UART TX2 | D16 | **AUX-4 pin 18** → hub 1 kΩ | Marlin: "Serial2 — TX2 = D16 RX2 = D17 (AUX4-18 and AUX4-17)" |
-| UART RX2 | D17 | **AUX-4 pin 17** → hub bus node | same |
-| Drivers' PDN_UART | — | MS3 jumper pin of X, Y, Z **and E0** (signal side) → hub bus node | KiCad: socket MS3 ↔ jumper pad 5 |
+| UART TX2 | D16 | **AUX-4 pin 18** ← pigtail lead TX2 (R1 1 kΩ in line) | Marlin: "Serial2 — TX2 = D16 RX2 = D17 (AUX4-18 and AUX4-17)" |
+| UART RX2 | D17 | **AUX-4 pin 17** ← pigtail lead RX2 (to the splice) | same |
+| Drivers' PDN_UART | — | MS3 jumper pin of X, Y, Z **and E0** (signal side) ← pigtail leads A, B, C, KEY | KiCad: socket MS3 ↔ jumper pad 5 |
 | Start / stop button | D14 (input, pull-up) | **Y_MIN** header: S and − pins | Marlin Y_MIN_PIN 14 (no interrupt needed) |
 | Spare (was 5 V/GND for the remote board until rev 2026-10-08.1) | 5 V, GND | Y_MAX header + and − pins | KiCad: endstop pin 3 = 5 V, pin 2 = GND |
 | Status LED | D13 | on-board LED | Marlin LED_PIN 13 |
@@ -227,25 +234,39 @@ dial motors plug into.
   shielded cable with Phoenix 8-pin connectors to a remote driver board; see
   git history (`76a4167`).
 
-## 5. Dial-end hub board — the UART junction (revision 2026-10-08.1)
+## 5. UART pigtail — the UART junction (revision 2026-10-08.2)
 
-A small perfboard (a few cm square) on the dial unit's electronics deck,
-next to the Mega. It holds the one UART resistor and the bus node, nothing
-else. **It needs a place on the deck — mechanical to-do.**
+The bus node and R1 are built into a small harness instead of a board
+(Paul, 2026-10-08): six leads, each ending in a female Dupont, joined in one
+solder splice. Drawing: `control/harness/uart_pigtail.svg`. Build steps:
+`docs/manual.md` §2.5.
 
-*Revision 2026-10-08.1*: the hub no longer splits 12 V, has no fuse and no
-Phoenix header. The PSU's DC-jack adapter goes **straight to the RAMPS "5A"
-terminal**.
-
-| Hub point | Connects to | With |
+| Lead (tape label) | Female end goes on | Other end |
 |---|---|---|
-| R1 1 kΩ | TX2 pin → R1 → BUS | on board (one of the 100 ordered) |
-| TX2 pin | AUX-4 pin 18 (D16) | F–F jumper |
-| BUS pins × 5 | RX2: AUX-4 pin 17 (D17); X, Y, Z and E0 MS3 jumper pins | F–F jumpers |
+| **TX2** — R1 1 kΩ in line, ~3 cm from the female end | AUX-4 pin 18 (D16) | R1 → splice |
+| **RX2** | AUX-4 pin 17 (D17) | splice |
+| **A** | X socket MS3 jumper pin, signal side (dial A, addr 0) | splice |
+| **B** | Y socket MS3 jumper pin, signal side (dial B, addr 1) | splice |
+| **C** | Z socket MS3 jumper pin, signal side (dial C, addr 2) | splice |
+| **KEY** | E0 socket MS3 jumper pin, signal side (key, addr 3) | splice |
 
-Use 2.54 mm male header pins on the hub for the jumper ends. Keep R1 right at
-the TX2 pin, and the bus node short; the drivers' UART leads are ~10 cm F–F
-jumpers. Placement drawing: `control/harness/hub_board.svg`.
+- **The splice is the bus node** of DS Fig. 4.1: R1's far end, RX2 and the
+  four PDN_UART leads. Heat shrink over the joint and over R1; zip-tie the
+  splice to the deck so the leads can't pull on it.
+- **Leads**: six F–F jumpers with one end cut off each (or jumper halves if
+  long enough), cut to the measured run from AUX-4 / the MS3 pin to a splice
+  near the middle of the RAMPS, plus a few cm.
+- **Signals only**: no 12 V, 5 V or GND. The Mega and all four drivers share
+  ground through the RAMPS.
+- **Check before fitting** (multimeter, Ω): TX2 → RX2 ≈ 1 kΩ; TX2 → A, B, C,
+  KEY ≈ 1 kΩ each; RX2 → A, B, C, KEY ≈ 0 Ω each.
+- Each driver lead keeps its own female end, so a lead can still be moved to
+  the other MS3 pin if `ping` gets no answer (bring-up stage 1).
+
+*Until revision 2026-10-08.2* this was a perfboard ("hub board") with male
+pins for six F–F jumpers: the same circuit and the same six jumpers, but six
+more plug-in joints (one at each hub pin) and a part to mount.
+Before revision 2026-10-08.1 it also split 12 V to a fused key branch.
 
 ## 6. Remote driver board (key turner) — retired (revision 2026-10-08.1)
 
@@ -318,18 +339,19 @@ GCONF.en_spreadCycle) — StallGuard4 only works in StealthChop (DS §11).
   prints the project revision (`REVISION`) in every title block.
   **Regenerate it after any change here.**
 - `control/harness/harness.yml` → `harness.svg` / `harness.png` (WireViz):
-  the jumper connections between the RAMPS headers and the hub, and the key
-  motor cable to E0.
+  the UART pigtail between the RAMPS pins and its splice, and the key motor
+  cable to E0.
 - `control/harness/overview.dot` → `overview.svg` (Graphviz): block diagram
   of everything in this file.
-- `control/harness/hub_board.py` → `hub_board.svg` / `.png`: hub placement.
-- `control/harness/ramps_and_hub.md`: one bench sheet of everything fitted
-  to the RAMPS and the hub.
+- `control/harness/uart_pigtail.py` → `uart_pigtail.svg` / `.png`: the
+  UART pigtail (revision 2026-10-08.2; replaced `hub_board.py`).
+- `control/harness/ramps_and_uart.md`: one bench sheet of everything fitted
+  to the RAMPS, and the pigtail (was `ramps_and_hub.md`).
 
 Regenerate: `python3 control/harness/schematic.py` (needs `pip install
 reportlab`), `wireviz control/harness/harness.yml`,
 `dot -Tsvg control/harness/overview.dot -o control/harness/overview.svg` and
-`python3 control/harness/hub_board.py`. Then `python3 tools/check_revision.py`.
+`python3 control/harness/uart_pigtail.py`. Then `python3 tools/check_revision.py`.
 
 ## 10. Shopping list (beyond `docs/bom.md`'s "still to buy")
 
@@ -340,8 +362,8 @@ discrete part" (2026-10-07).
 | Item | Qty | For |
 |---|---|---|
 | **Multimeter** — **on hand** (Paul, 2026-10-07) | 1 | 12 V polarity at the DC-jack adapter before first power-up |
-| F–F Dupont jumpers, 10–20 cm — **ordered** 2026-10-07 | ~20 | UART taps (4), DIAG leads (4 jumpers cut in half for the mod), hub ↔ RAMPS |
-| 2.54 mm male header strips — **on hand** (Paul, 2026-10-07) | 1 pack | hub jumper pins |
+| F–F Dupont jumpers, 10–20 cm — **ordered** 2026-10-07 | ~20 | UART pigtail (6 leads, one end cut off each), DIAG leads (4 jumpers cut in half for the mod), the button |
+| Heat shrink — **ordered** | — | over R1 and the pigtail splice |
 | Female DC barrel jack **5.5 × 2.1 mm** → screw terminal adapter (fits the Ledmo HTY-1200500 plug, centre positive) — **ordered** 2026-10-07 | 1 | PSU → RAMPS "5A" terminal without cutting the plug. Check its + / − marking with the multimeter before first use |
 | 20 AWG wire, red + black, ~1 m each — **ordered** 2026-10-07 | 1 | adapter → RAMPS 12 V |
 | Solder — **on hand**: came with the station, with wick (Paul, 2026-10-07) | — | |
@@ -352,9 +374,16 @@ the 1.1 A PTC fuses and the 5 × 20 mm fuse kit + printed holder (no separate
 key branch), the 100 µF capacitors (no remote board), the 6-conductor
 QUARKZMAN cable and the Phoenix 8-pin connectors (no inter-unit signal
 cable), the female header strips (no driver socket on a perfboard).
+**And from revision 2026-10-08.2:** the perfboard and the male header strip
+for the hub board (the UART pigtail replaces it).
 
 ## 11. Things to verify on the bench (steps in `control/bringup.md`)
 
+- UART pigtail: the multimeter readings in section 5 before fitting.
+- **VERIFY** (not established from any source): a female Dupont fits on each
+  MS3 jumper pin with the heatsinked driver seated above it. Test-fit one
+  lead on X before building the pigtail (manual §2.5 step 1). This has been
+  the UART-tap plan since 2026-10-06; it was never checked.
 - UART lead on the correct MS3 jumper pin (firmware `ping`).
 - Which top-edge pin is DIAG (`ping` + a hand stall).
 - The E0 socket: the key driver answers `ping` at address 3 (MS1 = MS2 = 1),
@@ -393,6 +422,38 @@ cable), the female header strips (no driver socket on a perfboard).
    2026-10-03). The step angle is still not confirmed against its data sheet.
 
 ## Decision log (most recent first)
+
+### 2026-10-08 — hub board → UART pigtail (revision 2026-10-08.2)
+
+**Paul:** with only a resistor and a junction left, the hub "feels more like a
+custom cable than a full daughter board".
+
+**Agreed.** After revision 2026-10-08.1 the hub held only R1 and the bus node
+(section 5's old table): one resistor and a six-way junction, all signals.
+A harness does the same with less:
+- no part to mount on the deck (that mount was still an open CAD item), and
+  the area over the drivers stays clear for cooling and bring-up access
+  (Paul had considered stacking a perfboard over the RAMPS on its three
+  holes; the heatsinks' height and airflow would have had to be checked);
+- six fewer plug-in joints: the same six jumpers, but their hub ends are
+  now one solder splice instead of six Dupont-on-pin contacts;
+- nothing lost for debugging: every lead keeps its own female end, so the
+  "move the lead to the other MS3 pin" fallback in stage 1 still works.
+
+**Same circuit** as DS Fig. 4.1: TX2 → 1 kΩ → bus; RX2 and every PDN_UART on
+the bus. R1 now sits ~3 cm from the TX2 female end instead of "right at the
+TX2 pin" on the board. **Assumption** (not from a source): at 115200 baud
+and these lead lengths (tens of cm), where R1 sits along the TX2 lead makes
+no difference; the old "right at the pin" note was neatness, not a
+datasheet requirement. If stage 1 shows UART errors, this is one thing to
+look at.
+
+**Changed:** section 5 rewritten; pin map rows for TX2/RX2/PDN; diagrams
+(`uart_pigtail.svg` replaces `hub_board.svg`; schematic sheets 1, 2, 5, 6, 7;
+harness; overview); `ramps_and_hub.md` renamed `ramps_and_uart.md`. Also
+fixed on schematic sheet 1: the 12 V line was drawn into the hub block
+instead of the RAMPS (**Correction**: it was wrong in revision 2026-10-08.1
+too; 12 V has gone to the RAMPS "5A" terminal since then).
 
 ### 2026-10-08 — key driver onto the RAMPS, E0 socket (revision 2026-10-08.1)
 
