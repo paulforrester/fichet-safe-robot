@@ -205,8 +205,8 @@ RAMPS, UART pigtail); firmware written and host-tested
 ## Harness: what's left (bench, not design)
 
 Verify on the bench (steps go in `control/bringup.md`): driver orientation
-in the sockets (no pin-1 mark on Paul's RAMPS: multimeter check, manual §2.4
-step 2); every driver answers `ping` with its lead on RX; DIAG is the pin the
+in the sockets — settled by Paul 2026-10-08 from the small EN/GND silkscreen
+labels at each socket (no square pad on top; manual §2.4 step 2); every driver answers `ping` with its lead on RX; DIAG is the pin the
 silkscreen says (stage 3); the key answers at address 3 (E0); the key's StallGuard through the 1 m
 motor cable (shorten it if too dull); the pigtail's multimeter check (manual
 §2.5). No board mount is needed any more (the pigtail's splice zip-ties to the

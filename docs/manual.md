@@ -444,8 +444,11 @@ Four drivers are used (three dials + the key), plus one spare.
    **Never fit an MS3 jumper.** On the V1.3 the MS3 position is the UART
    line, and a jumper there would tie it to 5 V.
 2. **Check which way the drivers go**, before the RAMPS goes on the Mega.
-   The sockets have no pin-1 marking on top. Power off, no drivers,
-   multimeter on continuity, for the **X** socket:
+   There's no square pad or pin-1 dot on top, but the silkscreen has small
+   **EN** and **GND** labels at the sockets (Paul found them, 2026-10-08):
+   the driver's EN pin goes at the EN label, its GND pins at the GND labels.
+   That settled it for Paul. If the labels are hard to read, cross-check
+   with the multimeter (power off, no drivers, continuity), **X** socket:
    1. Underneath, look for a **square** solder pad on each socket: that's
       pin 1, **EN**.
    2. "5A" terminal **−** to each hole of the socket row nearer the X motor

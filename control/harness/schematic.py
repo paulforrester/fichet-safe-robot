@@ -673,11 +673,12 @@ def sheet_details(s):
                              ("stage 3 (`ping` + a hand stall).", True, WARN)], 8)
     # --- orientation in the socket
     ty = 380
-    s.text(x0, ty, "Which way the driver goes (no pin-1 mark on the RAMPS)", 11, True)
+    s.text(x0, ty, "Which way the driver goes (match the EN / GND silkscreen labels)", 11, True)
     s.para(x0, ty + 16, [
+        "Driver EN and GND pins at the small EN / GND labels on the RAMPS silkscreen (no square pad on top).",
         "The driver's VS / GND / motor row goes in the socket row NEARER that axis's 4-pin motor",
         "header; EN sits directly across from VS (RAMPS 1.4 KiCad: EN is the square pad underneath).",
-        ("Check each socket first (power off, no driver, continuity):", True),
+        ("Cross-check if the labels are unclear (power off, no driver, continuity):", True),
         "'5A' - to the motor-side row: 2 holes beep (GND, one at each end).",
         "'5A' + to the end hole beside a GND: beeps through F1 = VS.",
         ("A reversed driver is destroyed. Manual 2.4 step 2.", True, WARN),

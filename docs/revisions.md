@@ -57,9 +57,10 @@ RX–TX open (R10 not fitted); a Dupont grips the top of RX and conducts.
 - **DIAG mod → two snips**: cut both EN-end pins' bottom ends flush; DIAG is
   a plain F–F jumper on the top of the DIAG pin (next to the pot). No
   soldering on the drivers; no cut-in-half jumpers.
-- **Driver orientation check** added (manual §2.4 step 2): the RAMPS
-  sockets have no pin-1 mark on top; the VS/GND/motor row goes nearer the
-  motor header, checked by continuity to the "5A" terminal.
+- **Driver orientation** (manual §2.4 step 2): no square pad on top, but
+  small EN and GND silkscreen labels at each socket (Paul used them,
+  2026-10-08). The VS/GND/motor row goes nearer the motor header; a
+  continuity check to the "5A" terminal is the cross-check.
 - Schematic sheets 3–7, the pigtail drawing, harness and overview, the
   bench sheet, manual §2.3/2.4/2.5/2.7, bring-up stages 0–1, `CLAUDE.md`,
   `docs/bom.md` and two firmware comments updated. Reasoning:

@@ -38,8 +38,9 @@ both at once.)
    **bottom** ends of the two EN-end pins flush underneath; leave the tops.
    No soldering (revision 2026-10-08.2; `control/wiring.md` §3.3).
 5. Fit heatsinks. **Driver orientation**: do the multimeter check in manual
-   §2.4 step 2 first (the sockets have no pin-1 mark on top). The driver's
-   VS/GND/motor side goes in the socket row nearer that axis's motor header.
+   §2.4 step 2: match the driver's EN and GND pins to the small EN and GND
+   labels in the RAMPS silkscreen. The driver's VS/GND/motor side goes in the
+   socket row nearer that axis's motor header.
 
 **Send back**: the two lines from step 2; the orientation check results for
 X (manual §2.4 step 2); any surprises in steps 3–5.
