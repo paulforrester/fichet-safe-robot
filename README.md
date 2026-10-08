@@ -1,5 +1,7 @@
 # Fichet-Bauche "Complice" Safe — Combination Robot
 
+> **Revision 2026-10-08.1** · all four drivers on the RAMPS (key in E0) · log: `docs/revisions.md`
+
 An automated device to determine the combination of an unmarked
 Fichet-Bauche "Complice" safe found in the house at 6 Rue du Mulet,
 Bordeaux. The project spans three phases: mechanical (tube-socket
@@ -78,6 +80,7 @@ HEIGHT (radial), DEPTH (axial into the socket) — see
   print the door-pattern test (`cad/print_dial_pattern_test.scad`) and the
   three gear-shafts first, and check them on the real door, before the
   big parts. Springs ordered (arriving 2026-10-07).
-- Wiring harness designed (`control/wiring.md`); firmware written and
-  host-tested (`control/firmware/`); next: the bench bring-up
-  (`control/bringup.md`).
+- Wiring harness designed (`control/wiring.md`; **revision 2026-10-08.1**:
+  all four drivers on the RAMPS, the key in the E0 socket, no remote board
+  or signal cable); firmware written and host-tested (`control/firmware/`,
+  v0.4); next: the bench bring-up (`control/bringup.md`).

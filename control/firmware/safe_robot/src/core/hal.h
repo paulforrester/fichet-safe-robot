@@ -40,7 +40,6 @@ struct MoveResult {
   bool aborted = false;    // operator abort ('!' on serial)
   bool timedOut = false;
   bool diagHighAtStart = false;  // DIAG already high: wire off or driver error
-  bool dirFailed = false;  // key: direction register didn't read back (UART)
   bool driverFault = false;  // set by the core, not the Hal: GSTAT showed a fault before or after the move
   uint16_t sgMin = 0xFFFF; // lowest SG_RESULT seen at cruise speed (0xFFFF = none)
 };

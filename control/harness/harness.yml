@@ -1,97 +1,83 @@
 # Wiring harness for the Fichet safe robot — see control/wiring.md.
 # Render: wireviz control/harness/harness.yml   (WireViz 0.4.1 + Graphviz)
-# Cable colours from Paul (2026-10-06); assignment in control/wiring.md §4.
+# Project revision 2026-10-08.1: all four drivers on the RAMPS (key in E0).
+# The only wire between the units is the key motor's own cable.
+
+metadata:
+  title: Fichet safe robot — harness (revision 2026-10-08.1)
 
 connectors:
-  P1:
-    type: 5.08 mm pluggable screw terminal, 8-pin
-    subtype: header on hub board (dial unit)
-    pinlabels: [+12V (after PTC), GND, empty, +5V VIO, KEY_STEP (D23), UART bus, KEY_DIAG (D19), SHIELD to GND]
-  P2:
-    type: 5.08 mm pluggable screw terminal, 8-pin
-    subtype: header on remote driver board (key turner)
-    pinlabels: [VM + 100uF, GND, empty, VIO + MS1 + MS2, STEP, RX = PDN_UART, DIAG, not connected]
+  KEYMOT:
+    type: key motor 17HE19-2004S
+    subtype: supplied 4-wire cable, ~1 m
+    pinlabels: [A+, A-, B+, B-]
+    notes: on the key turner (revision 2026-10-08.1)
+  E0MOT:
+    type: RAMPS E0 motor header (4-pin)
+    pinlabels: [2B, 2A, 1A, 1B]
+    notes: on the RAMPS, dial unit
   AUX4:
     type: RAMPS AUX-4 header
-    pins: [1, 2, 16, 17, 18]
-    pinlabels: [5V, GND, D23, D17 RX2, D16 TX2]
-  YMAX:
-    type: RAMPS Y_MAX endstop header
-    pins: [S, '-', '+']
-    pinlabels: [D15 spare, GND, 5V]
-  ZMAX:
-    type: RAMPS Z_MAX endstop header
-    pins: [S, '-', '+']
-    pinlabels: [D19 KEY_DIAG, GND, 5V]
+    pins: [17, 18]
+    pinlabels: [D17 RX2, D16 TX2]
   MS3_X:
-    type: RAMPS X socket MS3 jumper pin (signal side, jumper OFF)
+    type: X socket MS3 jumper pin (jumper OFF)
     pins: [1]
     pinlabels: [PDN_UART dial A addr 0]
   MS3_Y:
-    type: RAMPS Y socket MS3 jumper pin (signal side, jumper OFF)
+    type: Y socket MS3 jumper pin (jumper OFF)
     pins: [1]
     pinlabels: [PDN_UART dial B addr 1]
   MS3_Z:
-    type: RAMPS Z socket MS3 jumper pin (signal side, jumper OFF)
+    type: Z socket MS3 jumper pin (jumper OFF)
     pins: [1]
     pinlabels: [PDN_UART dial C addr 2]
+  MS3_E0:
+    type: E0 socket MS3 jumper pin (jumper OFF)
+    pins: [1]
+    pinlabels: [PDN_UART key addr 3]
   HUB:
     type: hub board 2.54 mm pins
-    pins: [TX2, RX2, BUS_X, BUS_Y, BUS_Z, STEP, DIAG, 5V, GND]
-    notes: TX2 to 1k to BUS node; RX2, BUS_X/Y/Z and P1-6 on the BUS node; STEP to P1-5; DIAG from P1-7; 5V to P1-4; GND to P1-2, P1-8
+    pins: [TX2, RX2, BUS_X, BUS_Y, BUS_Z, BUS_E0]
+    notes: TX2 → 1k → BUS node; RX2 and all four PDN pins sit on the BUS node (revision 2026-10-08.1)
 
 cables:
-  W1:
-    type: QUARKZMAN 22 AWG shielded, 6 conductors
+  KEYCABLE:
+    type: key motor cable (supplied with the motor)
+    gauge: motor lead
+    length: 1.0
+    colors: [BK, GN, RD, BU]
+    wirelabels: [A+, A-, B+, B-]
+    notes: plug it into the E0 motor header. Shorten only if the key's StallGuard reads too dull (bench stage 5).
+  J_UART:
+    type: F-F Dupont jumpers
+    category: bundle
     wirecount: 6
-    gauge: 22 AWG
-    length: 0.3
-    shield: true
-    colors: [RD, BK, OG, YE, GN, WH]
-    wirelabels: [+12V, GND, +5V, STEP, UART, DIAG]
-    notes: Shield drain to GND at the dial end only (P1-8); cut back and insulate at P2.
-  J1:
-    type: F-F Dupont jumpers
-    category: bundle
-    wirecount: 5
     length: 0.15
-    wirelabels: [TX2, RX2, KEY_STEP, 5V, GND]
-  J2:
-    type: F-F Dupont jumpers
-    category: bundle
-    wirecount: 4
-    length: 0.15
-    wirelabels: [UART A, UART B, UART C, KEY_DIAG]
+    wirelabels: [TX2, RX2, UART A, UART B, UART C, UART key]
 
 connections:
   -
-    - P1: [1, 2, 4, 5, 6, 7]
-    - W1: [1, 2, 3, 4, 5, 6]
-    - P2: [1, 2, 4, 5, 6, 7]
+    - KEYMOT: [1, 2, 3, 4]
+    - KEYCABLE: [1, 2, 3, 4]
+    - E0MOT: [1, 2, 3, 4]
   -
-    - P1: 8
-    - W1: s
-  -
-    - AUX4: [18, 17, 16]
-    - J1: [1, 2, 3]
-    - HUB: [TX2, RX2, STEP]
-  -
-    - YMAX: ['+', '-']
-    - J1: [4, 5]
-    - HUB: [5V, GND]
+    - AUX4: [18, 17]
+    - J_UART: [1, 2]
+    - HUB: [TX2, RX2]
   -
     - MS3_X: [1]
-    - J2: [1]
+    - J_UART: [3]
     - HUB: [BUS_X]
   -
     - MS3_Y: [1]
-    - J2: [2]
+    - J_UART: [4]
     - HUB: [BUS_Y]
   -
     - MS3_Z: [1]
-    - J2: [3]
+    - J_UART: [5]
     - HUB: [BUS_Z]
   -
-    - ZMAX: [S]
-    - J2: [4]
-    - HUB: [DIAG]
+    - MS3_E0: [1]
+    - J_UART: [6]
+    - HUB: [BUS_E0]

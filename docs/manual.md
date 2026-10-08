@@ -1,7 +1,10 @@
 # Fichet safe robot — build and operating manual
 
-For Paul. Covers the robot as of **2026-10-06**: dial unit v2, key turner v1,
-harness v1 (`control/wiring.md`), firmware **0.2**.
+> **Revision 2026-10-08.1** · key driver on the RAMPS E0 socket · log: `docs/revisions.md`
+
+For Paul. Covers the robot as of **revision 2026-10-08.1**: dial unit v2, key
+turner v1, wiring with all four drivers on the RAMPS (`control/wiring.md`),
+firmware **0.4**.
 
 **Status:** nothing has run on hardware yet. The first time through, follow
 the bench bring-up (`control/bringup.md`) instead of section 5. It builds
@@ -37,9 +40,9 @@ manual:
 
 ## 0. Read first: safety rules
 
-1. **Plug or unplug anything with 12 V off.** That means motors, drivers and
-   the inter-unit cable. A driver cut off from its supply while its motor
-   turns can be damaged (TMC2209 datasheet §3).
+1. **Plug or unplug anything with 12 V off.** That means every motor (the
+   key motor cable included) and the drivers. A driver cut off from its
+   supply while its motor turns can be damaged (TMC2209 datasheet §3).
 2. **Power order:** USB first, then 12 V. To switch off: 12 V first, then USB.
 3. **Emergency stop: pull the 12 V plug.** Typing `!` in the logger stops the
    current move and switches all drivers off. The button pauses a run after
@@ -304,13 +307,14 @@ From the notes at the end of `cad/key_turner_housing.scad`:
 5. **Cap.** It's a loose part that sits between the key and the hub: its
    slot takes the bow, and its tongue sits in the hub's groove. It lets the
    unit sit up to 2.7 mm off the key axis without side-loading the lock.
-6. **Not designed yet:** the mount for the remote driver board
-   (`control/wiring.md` §6.2: ~70 × 30 mm, ~30 mm tall plus 10 mm of air,
-   Phoenix plug facing the dial unit, magnet retainers left reachable).
+6. **Key motor cable.** Its own ~1 m cable runs to the dial unit and plugs
+   into the RAMPS **E0** motor header (revision 2026-10-08.1 — the driver is
+   on the RAMPS now, so there is no board to mount here). Leave the three
+   magnet retainers reachable; zip-tie the cable clear of the rotating cap.
 
 ### 1.6 Putting the units on the door
 
-1. **12 V off**, cable unplugged.
+1. **12 V off**, key motor cable unplugged from E0.
 2. **Key** in the lock by hand, at its start position (bow vertical).
 3. **Dial unit:** pointer tab **up** (it points at the top pair of holes).
    Bring it straight onto the door over the three dial holes and let the
@@ -327,15 +331,16 @@ From the notes at the end of `cad/key_turner_housing.scad`:
    cap may slide out while you hold the unit. If it does, put the cap on the
    bow first (marks top and bottom), then slide the unit on. Turn the hub
    by hand (motor unpowered) until its groove takes the cap's tongue.
-5. Plug in the inter-unit cable. Zip-tie it within about 20 mm of each plug,
-   clear of the cap.
+5. Plug the key motor cable into the RAMPS E0 motor header. Zip-tie it at the
+   key turner and near the RAMPS, clear of the cap.
 
 ### 1.7 Mechanical items still open
 
 - Magnet pull test (1.3), and whether the magnets alone hold the units.
 - Reprint the dial front assembly and key-turner base with magnet holes.
-- CAD: mount for the remote driver board; a place on the deck for the hub
-  board and the button.
+- CAD: a place on the deck for the hub board and the button. (Revision
+  2026-10-08.1 removed the remote-driver-board mount: the key driver is on
+  the RAMPS now.)
 - Access to the Mega's connectors at its position on the deck.
 - Only if the first full run fails: a key turner that pulls the key out and
   pushes it back in at every attempt (`control/sequence.md`, Open items).
@@ -345,9 +350,17 @@ From the notes at the end of `cad/key_turner_housing.scad`:
 ## 2. Electrical assembly
 
 The full design, with sources, is `control/wiring.md`. **Print
-`control/harness/schematic.pdf`**: the full schematic on 7 A4 sheets,
-in colour. Other diagrams: `control/harness/overview.svg` (block diagram)
-and `control/harness/harness.png` (cable and connector ends).
+`control/harness/schematic.pdf`** (the full schematic in colour) and keep
+`control/harness/ramps_and_hub.md` (one bench sheet of everything on the
+RAMPS and the hub) beside you. Other drawings: `control/harness/overview.svg`
+(block diagram), `control/harness/hub_board.svg` (hub placement) and
+`control/harness/harness.png` (the jumpers and the key motor cable).
+
+**Revision 2026-10-08.1 (2026-10-08):** all four drivers now sit in RAMPS
+sockets — the key in **E0**, beside the three dials. There is no remote
+driver board and no inter-unit signal cable; the only wire between the units
+is the key motor's own cable, into the E0 motor header. The hub board is now
+just the UART junction. See `docs/revisions.md`.
 
 ### 2.1 Build it in bring-up order
 
@@ -356,52 +369,47 @@ bring-up stage before the next one is added:
 
 | Build | Then test with |
 |---|---|
-| 2.3 Drivers: DIAG mod, heatsinks, jumpers. Flash the firmware (section 4) | `control/bringup.md` stage 0 |
-| 2.4 Mega + RAMPS + one driver; 2.5 hub board; 2.7 power; 2.8 jumpers | stage 1 (one driver, then three) |
-| 2.9 one motor on the bench | stages 2 and 3 |
+| 2.3 Drivers: DIAG mod (all four), heatsinks, jumpers. Flash the firmware (section 4) | `control/bringup.md` stage 0 |
+| 2.4 Mega + RAMPS + the four drivers; 2.5 hub board; 2.6 power; 2.7 jumpers | stage 1 (one driver, then all four) |
+| 2.8 one motor on the bench | stages 2 and 3 |
 | Dial unit assembled (section 1) with its three motors | stage 4 |
-| 2.6 remote board, 2.10 inter-unit cable, key turner (section 1) | stage 5 |
+| Key motor cable to E0, key turner (section 1) | stage 5 |
 | Everything on the door | stage 6 (short dry run) |
 
 ### 2.2 Tools and parts
 
 - Soldering station, solder, flush cutters, heat shrink and heat gun,
   calipers, a marker.
-- **Multimeter** (you have one). Use it before connecting the remote
-  driver board (`control/wiring.md` §10): sections 2.5, 2.6 and 2.10 need
-  it for polarity and continuity checks.
+- **Multimeter** (you have one). Use it to check the DC-jack adapter's
+  polarity before the first power-up.
 - Parts: **`docs/bom.md`, "Electronics assembly — every discrete part"**
-  lists each one. Everything is now on hand or ordered (2026-10-07). The
-  only discrete parts you fit beyond what's on the boards:
-  - the 1.1 A PTC fuse (hub F1). Until it arrives, a 1.6 A glass fuse
-    in a holder you print takes its place;
-  - two 100 µF ≥ 25 V capacitors in parallel (C1a, C1b).
+  lists each one. What you fit beyond what's already on the boards is small
+  (revision 2026-10-08.1):
+  - **R1, 1 kΩ** on the hub (the only UART resistor);
+  - the **DC-jack-to-screw-terminal adapter** (5.5 × 2.1 mm) and **20 AWG**
+    red + black wire, PSU → RAMPS "5A" terminal;
+  - about **20 F–F jumpers** and the 7 mm **start/stop button**.
 
-  The rest to buy is connectors and wiring (the header strips are on hand):
-  - a 5.5 × 2.1 mm DC-jack-to-screw-terminal adapter, for the PSU's
-    plug to go into;
-  - 20 AWG red and black wire;
-  - ~20 F–F jumpers;
-  - zip ties.
-
-  The fuses, diode, capacitors and resistors drawn in grey on the
-  schematic are already on the RAMPS.
+  The fuses, diode, capacitors and resistors drawn in grey on the schematic
+  are already on the RAMPS. **No longer used** (bought earlier; keep as
+  spares): the 1.1 A PTC and the fuse kit + printed holder, the two 100 µF
+  capacitors, the 6-conductor cable and the Phoenix connectors, the female
+  header strips.
 
 ### 2.3 Prepare the drivers (BTT TMC2209 V1.3)
 
-There are five drivers: three for the dials, one for the key turner, one spare.
+Four drivers are used (three dials + the key), plus one spare.
 
-1. **DIAG mod, on the three dial drivers only** (`control/wiring.md` §3.3):
-   do this before fitting the heatsinks.
+1. **DIAG mod, on all four drivers** (`control/wiring.md` §3.3), before the
+   heatsinks:
    1. Two short pins point *down* at the EN end: INDEX and DIAG. Cut both
       flush with their plastic spacer.
    2. Cut an F–F jumper in half. Strip 2–3 mm and tin it.
    3. Solder it to the **top-side joint of the pin labelled DIAG** (second
       from the EN corner). Keep the iron off the trimmer pot next to it.
 
-   Leave the key-turner driver and the spare untouched: the remote board
-   has a socket for the down-pointing pin.
-   **VERIFY:** which pin is DIAG. Stage 3 confirms it.
+   (Leave the spare untouched.) **VERIFY:** which pin is DIAG. Stage 3
+   confirms it.
 2. **Heatsinks** on all drivers you'll use. At ≤ 1 A RMS no fan is needed
    (BTT: active cooling above 1.2 A).
 3. **Don't bridge R10** on any driver (`control/wiring.md` §2).
@@ -410,161 +418,94 @@ There are five drivers: three for the dials, one for the key turner, one spare.
    back using its pot, until the firmware notices at the end of that move
    (`control/wiring.md` §7).
 
-### 2.4 Mega, RAMPS and the dial drivers
+### 2.4 Mega, RAMPS and the four drivers
 
-*One-sheet summary of everything on the RAMPS and hub: `control/harness/ramps_and_hub.md`. Hub placement drawing: `control/harness/hub_board.svg`.*
+*One-sheet summary of everything on the RAMPS and hub:
+`control/harness/ramps_and_hub.md`.*
 
+1. **RAMPS jumpers**, under the X, Y, Z and E0 sockets. They set each
+   driver's UART address:
 
-1. **RAMPS jumpers**, under the X, Y and Z sockets. They set each driver's
-   UART address (TMC2209 datasheet §3.4):
-
-   | Socket | Dial | MS1 | MS2 | MS3 | Address |
+   | Socket | Role | MS1 | MS2 | MS3 | Address |
    |---|---|---|---|---|---|
-   | X | A (top-left) | off | off | **off** | 0 |
-   | Y | B (top-right) | **on** | off | **off** | 1 |
-   | Z | C (bottom) | off | **on** | **off** | 2 |
+   | X | dial A (top-left) | off | off | **off** | 0 |
+   | Y | dial B (top-right) | **on** | off | **off** | 1 |
+   | Z | dial C (bottom) | off | **on** | **off** | 2 |
+   | **E0** | **key** | **on** | **on** | **off** | **3** |
 
-   **Never fit an MS3 jumper.** On the V1.3, the MS3 position is the UART
-   line, and a jumper there would tie the UART line to 5 V.
+   **Never fit an MS3 jumper.** On the V1.3 the MS3 position is the UART
+   line, and a jumper there would tie it to 5 V.
 2. Press the RAMPS onto the Mega.
 3. Plug each driver into its socket, **EN / DIR / VM / GND matching the
-   silkscreen**. Leave E0 and E1 empty.
-4. **Mount the Mega**: four M3 × 6–8 screws go through the Mega's own
-   plastic base into the electronics deck. Three are enough
-   (`docs/bom.md`, 2026-10-04).
+   silkscreen**. The key driver goes in **E0**. Leave **E1 empty**.
+4. **Mount the Mega**: four M3 × 6–8 screws through the Mega's own plastic
+   base into the electronics deck (three are enough).
 
-### 2.5 Hub board (dial end)
+### 2.5 Hub board — the UART junction
 
-A small perfboard, about 50 × 30 mm, next to the Mega. It's where the 12 V
-supply splits, it holds the one UART resistor, and it carries the cable's
-8-pin Phoenix header (`control/wiring.md` §5). **Part placement:
-`control/harness/hub_board.svg`.** The layout is free; keep R1
-right at the TX2 pin.
+A small perfboard next to the Mega. Revision 2026-10-08.1: it holds only the
+UART resistor and the bus node — no 12 V, no fuse, no Phoenix header.
+Placement: `control/harness/hub_board.svg` (the fuse and 12 V parts shown
+there are gone).
 
 | Hub point | Connects to |
 |---|---|
-| 12V IN + / − | PSU, through the 5.5 × 2.1 DC-jack adapter (centre +), 20 AWG |
-| 12V OUT + / − | RAMPS power terminal, the pair marked **5A**, 20 AWG |
-| F1 (1.1 A PTC; for now a 1.6 A glass fuse in a printed holder) | 12V IN + → F1 → Phoenix pin 1 |
-| R1 (1 kΩ) | TX2 pin → R1 → BUS |
+| R1 (1 kΩ) | TX2 pin → R1 → BUS node |
 | TX2 pin | AUX-4 pin 18 (D16) |
-| BUS pins × 4 | RX2 = AUX-4 pin 17 (D17); the X, Y and Z **MS3 jumper pins** (see 2.8); Phoenix pin 6 |
-| STEP pin | AUX-4 pin 16 (D23) → Phoenix pin 5 |
-| DIAG pin | Z_MAX **S** (D19) ← Phoenix pin 7 |
-| 5V pin | Y_MAX **+** → Phoenix pin 4 |
-| GND pin | Y_MAX **−** → hub GND; also Phoenix pins 2 and 8, and 12V IN − |
+| BUS node | RX2 = AUX-4 pin 17 (D17); and the X, Y, Z and **E0** MS3 jumper pins (see 2.7) |
 
-Use 2.54 mm male header pins for the jumper ends. **Where it mounts on the
-deck isn't designed yet** (mechanical to-do; see 1.7).
+Use 2.54 mm male header pins for the jumper ends; keep R1 right at the TX2
+pin. Where it mounts on the deck isn't designed yet (mechanical to-do).
 
-### 2.6 Remote driver board (key turner)
-
-A perfboard of about 70 × 30 mm. The driver plugs into female headers, so it
-can be swapped. Follow the layout in `control/wiring.md` §6.1 exactly.
-In short:
-
-| Driver pin | Goes to |
-|---|---|
-| EN, DIR, CLK | GND |
-| MS1, MS2 | +5 V (sets UART address 3) |
-| RX (= PDN_UART) | Phoenix 6 |
-| TX | nothing |
-| STEP | Phoenix 5 |
-| DIAG (its own down-pointing pin, in a 2-pin socket) | Phoenix 7 |
-| VM | Phoenix 1, and the + of C1a and C1b (two 100 µF in parallel) |
-| GND (both) | Phoenix 2, and the − of C1a and C1b |
-| VIO | Phoenix 4 |
-| A2, A1, B1, B2 | 4-pin motor header, same order as a RAMPS motor header |
-
-1. **VERIFY before soldering the headers**: lay the driver on the perfboard
-   and check that INDEX/DIAG fall on the 2.54 mm grid.
-2. Fit **C1a and C1b side by side**, right next to the driver's VM and GND
-   pins, with short leads. The stripe on each marks −: both go to GND.
-3. **Before its first power-up**: turn the driver's VREF pot to minimum.
-   Its EN is tied low, so it switches on at its power-up current as soon as
-   12 V arrives, until the firmware sets the real one (`control/wiring.md`
-   §8).
-4. With the multimeter, check there's no short between Phoenix pins 1, 2
-   and 4 before plugging the driver in.
-
-**Where it mounts on the key turner isn't designed yet**
-(`control/wiring.md` §6.2 lists the size and needs; see 1.7).
-
-### 2.7 Power wiring
+### 2.6 Power wiring
 
 PSU (Ledmo HTY-1200500, 12 V 5 A, 5.5 × 2.1 mm barrel, centre +) → DC-jack
-adapter → hub 12V IN → hub 12V OUT → RAMPS **5A** terminal. Use 20 AWG red
-for + and black for −.
+adapter → **RAMPS "5A" terminal**, 20 AWG red for + and black for −. That's
+all: the RAMPS's own 5 A fuse feeds all four drivers (revision 2026-10-08.1;
+no hub 12 V branch any more).
 
-**Leave the Mega's own barrel jack empty.**
-- It feeds only the Mega (its VIN).
-- The motor drivers get 12 V only through the RAMPS "5A" terminal.
-- The RAMPS diode D1 passes power from that terminal to the Mega's VIN,
-  never back (RAMPS KiCad netlist: VIN connects only to D1's cathode).
+**Leave the Mega's own barrel jack empty.** It feeds only the Mega (VIN);
+the drivers get 12 V only through the "5A" terminal, and diode D1 passes
+power from there to VIN, never back. A PSU in the Mega's jack would run the
+Mega but leave every driver missing on `ping`.
 
-So a PSU in the Mega's jack would run the Mega but not the drivers: `ping`
-would report every driver missing.
+**Check the adapter's + / − with the multimeter** before the first power-up.
 
-**Check the adapter's + / − marking with the multimeter** before the first
-power-up (`control/wiring.md` §10).
+### 2.7 Signal jumpers on the RAMPS
 
-### 2.8 Signal jumpers on the RAMPS
-
-Use F–F jumpers about 10 cm long. The RAMPS endstop headers are
-**S** (signal), **−** (GND) and **+** (5 V).
+Use F–F jumpers about 10 cm long. The endstop headers are **S** (signal),
+**−** (GND) and **+** (5 V).
 
 | From | To |
 |---|---|
-| Dial A driver DIAG lead (from the 2.3 mod) | **X_MIN S** (D3) |
+| Dial A driver DIAG lead (from 2.3) | **X_MIN S** (D3) |
 | Dial B driver DIAG lead | **X_MAX S** (D2) |
 | Dial C driver DIAG lead | **Z_MIN S** (D18) |
-| X, Y, Z **MS3 jumper pin**, signal side (nearer the driver's EN/STEP/DIR row) | hub BUS |
-| AUX-4 pins 18 / 17 / 16 (D16 / D17 / D23) | hub TX2 / BUS / STEP |
-| Z_MAX S (D19) | hub DIAG |
-| Y_MAX + / − | hub 5V / GND |
-| Start/stop button (7 mm pushbutton) | **Y_MIN S** and **Y_MIN −** (D14) |
+| **Key** driver DIAG lead (E0) | **Z_MAX S** (D19) |
+| X, Y, Z, **E0** MS3 jumper pins, signal side | hub BUS node |
+| AUX-4 pin 18 / 17 (D16 / D17) | hub TX2 / BUS node |
+| Start/stop button (7 mm) | **Y_MIN S** and **Y_MIN −** (D14) |
 
-**VERIFY:** which MS3 pin is the signal side on your Fasizi board. If
-`ping` gets no answer in stage 1, move the lead to the other pin. The wrong
-pin is the 5 V side, which does no harm.
+**VERIFY:** which MS3 pin is the signal side on your Fasizi board. If `ping`
+gets no answer in stage 1, move that lead to the other pin (the wrong one is
+the 5 V side — harmless). The button's mount isn't designed yet; a loose
+button on its leads is fine for the bench.
 
-**ASSUMPTION:** where the button mounts is not designed yet. A loose button
-on its leads is fine for the bench.
+### 2.8 Motors
 
-### 2.9 Motors
-
-- **Dials**: dial A's motor goes on the **X** motor header, B on **Y**, C
-  on **Z**. The key motor goes on the remote board's 4-pin header.
+- **Dials**: dial A's motor on the **X** motor header, B on **Y**, C on
+  **Z**.
+- **Key**: the key motor's own ~1 m cable plugs into the **E0** motor header
+  (revision 2026-10-08.1 — no remote board). It's the only wire between the
+  two units. Use the supplied cable as it is; shorten it only if the key's
+  StallGuard reads too dull in stage 5. Zip-tie it at the key turner and near
+  the RAMPS so a tug lands on the ties, and keep the spare length clear of
+  the key cap.
 - If a motor **buzzes or jitters instead of turning**: 12 V off, then swap
-  the two middle wires in its connector. Some 17HE19-2004S motors have them
-  swapped (`docs/bom.md`).
-- Motor currents are set by the firmware over UART. The drivers' VREF pots
-  matter only if a driver resets (2.3, step 4), so keep them all at minimum
-  (`control/wiring.md` §7). Dials run at 1.0 A RMS; the key starts at
-  0.6 A, and stage 5 sets its final value.
-
-### 2.10 Inter-unit cable
-
-QUARKZMAN 22 AWG shielded 6-core. Cut **about 300 mm** and strip 30 mm of
-jacket at each end. It's wired **straight through**: same pin numbers at
-both ends (`control/wiring.md` §4).
-
-| Pin | Signal | Colour |
-|---|---|---|
-| 1 | +12 V (after the PTC) | red |
-| 2 | GND | black |
-| 3 | — empty | — |
-| 4 | +5 V (VIO) | orange |
-| 5 | KEY_STEP | yellow |
-| 6 | UART bus | green |
-| 7 | KEY_DIAG | white |
-| 8 | shield drain: **hub end only**; at the remote end fold it back under heat shrink | shield |
-
-1. Mark pin 1 on both plug halves. **VERIFY** that the plug fits only one way.
-2. Zip-tie the cable to each housing within about 20 mm of the plug. Keep it
-   clear of the key cap's rotation.
-3. With the multimeter, check continuity pin to pin, and no short between
-   neighbouring pins.
+  the two middle wires in its connector. Some 17HE19-2004S have them swapped.
+- **Never plug or unplug a motor with 12 V on**, the key motor included.
+- Currents are set over UART (pots at minimum): dials 1.0 A RMS; the key
+  starts at 0.6 A and stage 5 sets its final value.
 
 ---
 
@@ -729,7 +670,7 @@ Placing the units is described in more detail in 1.6.
    the session start seats them.
 4. **Key turner:** cap roof marks top and bottom, slide it over the key's
    bow, and let the magnets take it.
-5. Plug in the inter-unit cable (12 V still off).
+5. Plug the key motor cable into E0 (12 V still off).
 6. USB to the Mac. Start the logger (5.3).
 7. 12 V on.
 8. Type `ping`. Expect four lines starting `DRV,A,1,21`, `DRV,B,1,21`,
@@ -965,7 +906,7 @@ If you lost the CSV, rebuild it from the raw log:
 ### 5.13 Taking the robot off the door
 
 1. `pause` (if running), wait for it, then 12 V off, then USB.
-2. Unplug the inter-unit cable.
+2. Unplug the key motor cable from E0.
 3. Pull each unit straight off the door, peeling from one edge if the
    magnets hold hard. Don't slide it along the door: the plugs are in the
    stars.

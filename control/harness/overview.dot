@@ -1,7 +1,8 @@
 // System overview for the Fichet safe robot wiring — see control/wiring.md.
 // Render: dot -Tsvg control/harness/overview.dot -o control/harness/overview.svg
+// Project revision 2026-10-08.1: all four drivers on the RAMPS (key in E0).
 digraph overview {
-  graph [rankdir=LR, fontname="Helvetica", fontsize=11, nodesep=0.35, ranksep=0.7, label="Fichet safe robot — wiring overview (control/wiring.md, 2026-10-06)", labelloc=t];
+  graph [rankdir=LR, fontname="Helvetica", fontsize=11, nodesep=0.35, ranksep=0.7, label="Fichet safe robot — wiring overview (control/wiring.md, revision 2026-10-08.1)", labelloc=t];
   node  [shape=box, style="rounded", fontname="Helvetica", fontsize=10];
   edge  [fontname="Helvetica", fontsize=9];
 
@@ -9,14 +10,15 @@ digraph overview {
   usb  [label="Computer\nUSB serial log\n(logger.py)"];
 
   subgraph cluster_dial {
-    label="Dial unit"; style=dashed; fontsize=10;
-    hub  [label="Hub board\n• 12 V split\n• PTC 1.1 A → remote 12 V\n• 1 kΩ: TX2 → UART bus\n• Phoenix 8-pin P1"];
+    label="Dial unit — all the electronics"; style=dashed; fontsize=10;
+    hub  [label="Hub board\nthe UART junction only:\n1 kΩ TX2 → UART bus,\nRX2 + all 4 PDN on the bus"];
     subgraph cluster_ramps {
-      label="Mega 2560 + RAMPS 1.4"; style=solid; fontsize=10;
-      mega [label="Mega 2560\nTX2 D16 / RX2 D17 (AUX-4 18/17)\nKEY_STEP D23 (AUX-4 16)\nbutton D14 (Y_MIN)"];
+      label="Mega 2560 + RAMPS 1.4  (5 A fuse feeds all 4 drivers)"; style=solid; fontsize=10;
+      mega [label="Mega 2560\nTX2 D16 / RX2 D17 (AUX-4 18/17)\nbutton D14 (Y_MIN)"];
       x    [label="X socket: TMC2209 addr 0\nDial A (top-left)\nSTEP 54 DIR 55 EN 38\nDIAG → X_MIN D3"];
-      y    [label="Y socket: TMC2209 addr 1 (MS1 jumper)\nDial B (top-right)\nSTEP 60 DIR 61 EN 56\nDIAG → X_MAX D2"];
-      z    [label="Z socket: TMC2209 addr 2 (MS2 jumper)\nDial C (bottom)\nSTEP 46 DIR 48 EN 62\nDIAG → Z_MIN D18"];
+      y    [label="Y socket: TMC2209 addr 1 (MS1)\nDial B (top-right)\nSTEP 60 DIR 61 EN 56\nDIAG → X_MAX D2"];
+      z    [label="Z socket: TMC2209 addr 2 (MS2)\nDial C (bottom)\nSTEP 46 DIR 48 EN 62\nDIAG → Z_MIN D18"];
+      e0   [label="E0 socket: TMC2209 addr 3 (MS1+MS2)\nKey\nSTEP 26 DIR 28 EN 24\nDIAG → Z_MAX D19"];
     }
     ma [label="Motor A\n17HE19-2004S", shape=ellipse];
     mb [label="Motor B", shape=ellipse];
@@ -25,18 +27,17 @@ digraph overview {
 
   subgraph cluster_key {
     label="Key turner"; style=dashed; fontsize=10;
-    rem [label="Remote board\nTMC2209 addr 3 (MS1+MS2 → 5 V)\nEN → GND, DIR → GND\n100 µF on VM\nPhoenix 8-pin P2"];
-    mk  [label="Key motor\n17HE19-2004S", shape=ellipse];
+    mk  [label="Key motor\n17HE19-2004S\nits own ~1 m cable", shape=ellipse];
   }
 
-  psu -> hub [label="12 V"];
+  psu -> mega [label="12 V → RAMPS '5A' input\n(F1 5 A → every VMOT, incl. E0)"];
   usb -> mega [dir=both, label="USB"];
-  mega -> x [arrowhead=none]; mega -> y [arrowhead=none]; mega -> z [arrowhead=none];
+  mega -> x [arrowhead=none]; mega -> y [arrowhead=none]; mega -> z [arrowhead=none]; mega -> e0 [arrowhead=none];
   x -> ma; y -> mb; z -> mc;
+  e0 -> mk [penwidth=2, label="key motor cable, ~1 m\n(the only wire between the units)"];
   hub -> x [dir=both, style=dashed, label="UART (MS3 jumper pin)"];
   hub -> y [dir=both, style=dashed];
   hub -> z [dir=both, style=dashed];
-  mega -> hub [dir=both, label="12 V → RAMPS 5A input (F1 5 A → VMOT)\nTX2/RX2, KEY_STEP, KEY_DIAG\n5 V/GND from Y_MAX"];
-  hub -> rem [dir=both, penwidth=2, label="6-core shielded, ~0.3 m\n12V · GND · 5V · STEP · UART · DIAG\n(shield → GND at hub only)"];
-  rem -> mk;
+  hub -> e0 [dir=both, style=dashed];
+  mega -> hub [dir=both, label="TX2 / RX2 (AUX-4)"];
 }

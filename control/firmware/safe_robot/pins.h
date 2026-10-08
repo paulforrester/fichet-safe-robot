@@ -20,11 +20,13 @@
 #define PIN_C_EN     62   // A8
 #define PIN_C_DIAG   18   // Z_MIN header S; external interrupt
 
-// Key turner — remote board over the cable, UART address 3. Its DIR and EN
-// are tied to GND on the remote board: direction = GCONF.shaft, enable =
-// CHOPCONF.TOFF, both over UART.
-#define PIN_K_STEP   23   // AUX-4 pin 16
-#define PIN_K_DIAG   19   // Z_MAX header S; external interrupt
+// Key turner — RAMPS E0 socket, UART address 3 (MS1 + MS2 jumpers). Since
+// revision 2026-10-08.1 (wiring.md log): the key motor's own cable plugs into
+// the E0 motor header; no remote board. Marlin pins_RAMPS.h E0_STEP/DIR/ENABLE.
+#define PIN_K_STEP   26
+#define PIN_K_DIR    28
+#define PIN_K_EN     24
+#define PIN_K_DIAG   19   // Z_MAX header S (lead from the E0 driver's DIAG mod); external interrupt
 
 #define PIN_BUTTON   14   // Y_MIN header S, button to GND
 #define PIN_LED      13   // on-board LED

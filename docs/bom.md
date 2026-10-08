@@ -1,5 +1,17 @@
 # Bill of materials
 
+> **Revision 2026-10-08.1** · key driver on the RAMPS E0 socket · log: `docs/revisions.md`
+
+**Revision 2026-10-08.1 (2026-10-08):** the key driver moved to the RAMPS
+**E0** socket. Several parts that were ordered are **no longer used** (keep
+them as spares): the 1.1 A PTC fuse and the 1.6 A glass fuse kit + its printed
+holder (no separate key-branch fuse), the two 100 µF capacitors (no remote
+board), the 6-conductor QUARKZMAN cable and the Phoenix 8-pin connectors (no
+inter-unit signal cable), and the female header strips (no driver socket on a
+perfboard). The order records below are kept as history. What is still fitted:
+R1 (1 kΩ) on the hub, the DC-jack adapter + 20 AWG wire (PSU → RAMPS "5A"),
+F–F jumpers, the start/stop button, and the key motor's own cable into E0.
+
 What to buy, based on decisions locked in so far (two-unit architecture,
 StallGuard force feedback on all 4 motors — see `control/sequence.md` and
 `docs/decisions.md`). Prices are rough EUR estimates for common hobbyist
@@ -45,7 +57,11 @@ has specific picks for amazon.fr and mouser.fr, with prices and stock, and
 lists what neither site has. amazon.fr covers everything in one order.
 **Ordered 2026-10-07** (amazon.fr, Paul): every item that was 🛒 below.
 
-**A. Parts you buy and fit** (the hub board, the remote driver board, the wiring)
+**A. Parts you buy and fit** (the hub board and the wiring). **Revision
+2026-10-08.1:** the "remote board" rows (fuse, PTC, C1, female headers,
+Phoenix J1/J3, 6-conductor cable, remote perfboard, standoffs) are **no longer
+used** — the key driver is in the RAMPS E0 socket. They stay in the table as a
+record of what was bought; treat them as spares.
 
 | Status | Ref | Part | Spec | Qty (+ spare) | Where it goes | Source |
 |---|---|---|---|---|---|---|

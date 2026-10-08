@@ -2,11 +2,10 @@
 """
 Hub-board layout diagram (control/harness/hub_board.svg).
 
-A top-down placement drawing of the dial-end hub board from
-control/wiring.md section 5: a ~50 x 30 mm perfboard that splits the 12 V
-supply, carries the one UART resistor R1 and the UART bus node, and holds the
-8-pin Phoenix header for the inter-unit cable. The interim 5x20 mm fuse holder
-is a separate printed part beside it.
+Revision 2026-10-08.1: the hub board is the UART junction only. It holds the
+one UART resistor R1 and the bus node where RX2 and the four driver PDN_UART
+leads meet. No 12 V, no fuse, no Phoenix header (those went when the key
+driver moved to the RAMPS E0 socket).
 
 Not a PCB layout — a placement guide so Paul can see what sits where. The
 links shown are nets; on a perfboard they are point-to-point wires underneath.
@@ -15,20 +14,20 @@ links shown are nets; on a perfboard they are point-to-point wires underneath.
 """
 import os
 
+REV = open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "REVISION")).read().strip()
+
 SCALE = 8.0
 MARGIN = 48
-# board in mm
-BW_MM, BH_MM = 52, 34
-BX, BY = MARGIN, 150          # board top-left in px
+BW_MM, BH_MM = 40, 30
+BX, BY = MARGIN, 150
 BW, BH = BW_MM * SCALE, BH_MM * SCALE
-RIGHT = BX + BW + 210         # right-hand net-list column x
-W = RIGHT + 360
-H = BY + BH + 230
+RIGHT = BX + BW + 60
+W = RIGHT + 430
+H = BY + BH + 150
 
 C = {
-    '12V': '#c0392b', '5V': '#e67e22', 'GND': '#2c3e50',
-    'STEP': '#f1c40f', 'UART': '#27ae60', 'DIAG': '#8e44ad',
-    'board': '#eef2f3', 'edge': '#7f8c8d', 'ink': '#2c3e50', 'pale': '#95a5a6',
+    'UART': '#27ae60', 'board': '#eef2f3', 'edge': '#7f8c8d',
+    'ink': '#2c3e50', 'pale': '#95a5a6', 'res': '#bdc3c7',
 }
 
 
@@ -42,128 +41,71 @@ def main():
         s.append(f'<text x="{x:.0f}" y="{y:.0f}" font-size="{size}"{w} '
                  f'fill="{col or C["ink"]}" text-anchor="{anc}">{t}</text>')
 
-    def box(x, y, w, h, fill, stroke=None, rx=4):
-        s.append(f'<rect x="{x:.0f}" y="{y:.0f}" width="{w:.0f}" height="{h:.0f}" rx="{rx}" '
-                 f'fill="{fill}" stroke="{stroke or C["ink"]}" stroke-width="1.5"/>')
+    def pad(x, y, r=6, col=None):
+        s.append(f'<circle cx="{x:.0f}" cy="{y:.0f}" r="{r}" fill="{col or C["UART"]}" stroke="{C["ink"]}" stroke-width="1.2"/>')
 
-    def pad(x, y, net, r=6):
-        col = C.get(net, C['pale'])
-        s.append(f'<circle cx="{x:.0f}" cy="{y:.0f}" r="{r}" fill="{col}" stroke="{C["ink"]}" stroke-width="1.2"/>')
-
-    def wire(x0, y0, x1, y1, net):
+    def wire(x0, y0, x1, y1):
         s.append(f'<path d="M{x0:.0f},{y0:.0f} L{x1:.0f},{y1:.0f}" fill="none" '
-                 f'stroke="{C[net]}" stroke-width="2.6" stroke-linecap="round"/>')
-
-    def orth(x0, y0, x1, y1, net, midx=None):
-        mx = midx if midx is not None else (x0 + x1) / 2
-        s.append(f'<path d="M{x0:.0f},{y0:.0f} H{mx:.0f} V{y1:.0f} H{x1:.0f}" fill="none" '
-                 f'stroke="{C[net]}" stroke-width="2.6" stroke-linejoin="round"/>')
+                 f'stroke="{C["UART"]}" stroke-width="2.6" stroke-linecap="round"/>')
 
     # ---- title ----
-    txt(MARGIN, 42, 'Hub board — dial end', 24, True)
-    txt(MARGIN, 68, 'The 12 V split point. Holds the one UART resistor (R1) and the UART bus node, and carries the cable header.', 12.5)
-    txt(MARGIN, 86, '~50 x 30 mm perfboard, seen from the component side. Nets shown; on a perfboard they are point-to-point wires underneath.', 12.5)
-    txt(MARGIN, 104, 'Layout is a guide — place parts to suit your board. The one rule: keep R1 right at the TX2 pin and the bus node short.', 12.5, col=C['ink'])
+    txt(MARGIN, 42, 'Hub board — the UART junction', 24, True)
+    txt(W - MARGIN, 30, f'Revision {REV}', 11, col=C['pale'], anc='end')
+    txt(MARGIN, 68, "Revision 2026-10-08.1: with all four drivers on the RAMPS, the hub is just R1 and the UART bus node.", 12.5)
+    txt(MARGIN, 86, "No 12 V, no fuse, no Phoenix header. A small perfboard beside the Mega. Keep R1 right at the TX2 pin.", 12.5)
+    txt(MARGIN, 104, "Nets shown; on a perfboard they are point-to-point wires underneath.", 12.5, col=C['pale'])
 
     # ---- board ----
-    box(BX, BY, BW, BH, C['board'], C['edge'], rx=8)
+    s.append(f'<rect x="{BX:.0f}" y="{BY:.0f}" width="{BW:.0f}" height="{BH:.0f}" rx="8" '
+             f'fill="{C["board"]}" stroke="{C["edge"]}" stroke-width="2"/>')
 
-    # zone A: power terminals (left)
-    ax = BX + 26
-    pad(ax, BY + 46, '12V'); txt(ax + 14, BY + 50, '12V IN +', 11, True)
-    pad(ax, BY + 70, 'GND'); txt(ax + 14, BY + 74, '12V IN -', 11, True)
-    txt(ax - 6, BY + 22, 'from PSU (DC-jack adapter)', 9.5, col=C['pale'])
-    pad(ax, BY + 150, '12V'); txt(ax + 14, BY + 154, '12V OUT +', 11, True)
-    pad(ax, BY + 174, 'GND'); txt(ax + 14, BY + 178, '12V OUT -', 11, True)
-    txt(ax - 6, BY + 196, 'to RAMPS "5A" terminal, 20 AWG', 9.5, col=C['pale'])
-    wire(ax, BY + 46, ax, BY + 150, '12V')   # IN+ feeds OUT+ (raw 12 V)
-    txt(ax - 18, BY + 100, 'raw', 9, col=C['12V']); txt(ax - 18, BY + 112, '12 V', 9, col=C['12V'])
+    # pin column on the left of the board
+    px = BX + 40
+    pins = [('TX2', 'to AUX-4 18 / D16'), ('RX2', 'to AUX-4 17 / D17'),
+            ('BUS X', 'X socket MS3 pin'), ('BUS Y', 'Y socket MS3 pin'),
+            ('BUS Z', 'Z socket MS3 pin'), ('BUS E0', 'E0 socket MS3 pin (key)')]
+    def py(k): return BY + 28 + k * 32
+    for k, (nm, note) in enumerate(pins):
+        pad(px, py(k), 6)
+        txt(px - 12, py(k) + 4, nm, 11, True, anc='end')
 
-    # GND rail along the board bottom
-    rail_y = BY + BH - 20
-    s.append(f'<line x1="{BX+16:.0f}" y1="{rail_y:.0f}" x2="{BX+BW-16:.0f}" y2="{rail_y:.0f}" '
-             f'stroke="{C["GND"]}" stroke-width="3.4"/>')
-    txt(BX + BW/2, rail_y + 18, 'GND rail', 11, True, C['GND'], 'middle')
-    wire(ax, BY + 70, ax, rail_y, 'GND')
-    wire(ax, BY + 174, ax, rail_y, 'GND')
+    # R1 between the TX2 pin and the bus node
+    rx0, rx1 = px + 150, px + 210
+    ry = py(0)
+    s.append(f'<rect x="{rx0:.0f}" y="{ry-9:.0f}" width="{rx1-rx0:.0f}" height="18" rx="3" fill="{C["res"]}" stroke="{C["ink"]}" stroke-width="1.3"/>')
+    txt((rx0+rx1)/2, ry+4, 'R1 1k', 11, True, anc='middle')
+    wire(px, ry, rx0, ry)
+    # bus node: vertical line to the right of R1, joining rows 1..5 and R1 out
+    xn = px + 250
+    wire(rx1, ry, xn, ry)
+    for k in range(1, 6):
+        wire(px, py(k), xn, py(k))
+        pad(xn, py(k), 4)
+    s.append(f'<line x1="{xn:.0f}" y1="{py(0):.0f}" x2="{xn:.0f}" y2="{py(5):.0f}" stroke="{C["UART"]}" stroke-width="2.6"/>')
+    pad(xn, py(0), 4)
+    txt(xn + 10, py(2) + 4, 'bus node', 11, True, C['UART'])
+    txt(xn + 10, py(3) + 4, 'RX2 + R1 (from TX2) + all 4 PDN_UART', 9.5, col=C['pale'])
 
-    # zone B: R1 + bus node (middle)
-    mx = BX + BW * 0.66
-    box(mx - 34, BY + 54, 68, 26, '#d9dde0', C['ink'])
-    txt(mx, BY + 71, 'R1  1k', 11.5, True, C['ink'], 'middle')
-    busx, busy = mx + 4, BY + 118
-    pad(busx, busy, 'UART', 7); txt(busx, busy + 22, 'UART bus node', 10, True, C['UART'], 'middle')
-    wire(mx + 30, BY + 67, busx, busy, 'UART')     # R1 → bus
-
-    # zone C: header pins to the RAMPS (a labelled 1x6 male strip)
-    hx = BX + BW * 0.40
-    hdr = [('TX2', 'UART'), ('BUS', 'UART'), ('STEP', 'STEP'),
-           ('DIAG', 'DIAG'), ('5V', '5V'), ('GND', 'GND')]
-    txt(hx, BY + 46, 'header pins', 10, True, C['ink'], 'middle')
-    txt(hx, BY + 59, '(F-F jumpers to RAMPS)', 8.5, col=C['pale'], anc='middle')
-    for i, (nm, net) in enumerate(hdr):
-        y = BY + 76 + i * 18
-        pad(hx, y, net, 5)
-        txt(hx - 10, y + 4, nm, 10, True, C['ink'], 'end')
-    # R1 sits between the TX2 header pin and the bus; draw TX2->R1 and bus->BUS pin
-    wire(hx, BY + 64, mx - 30, BY + 67, 'UART')          # TX2 pin → R1 left
-    wire(busx, busy, hx, BY + 64 + 18, 'UART')           # bus node → BUS pin
-
-    # zone D: Phoenix 8-pin header on the right edge of the board
-    phx = BX + BW - 26
-    box(phx - 12, BY + 40, 24, 170, '#34495e', C['ink'])
-    txt(phx, BY + 32, 'Phoenix 8-pin', 10, True, C['ink'], 'middle')
-    pins = [('1', '12V'), ('2', 'GND'), ('3', 'pale'), ('4', '5V'),
-            ('5', 'STEP'), ('6', 'UART'), ('7', 'DIAG'), ('8', 'GND')]
-    phy0 = BY + 54
-    for i, (n, net) in enumerate(pins):
-        y = phy0 + i * 20
-        pad(phx, y, net, 5)
-        txt(phx - 16, y + 4, n, 9.5, col=C['ink'], anc='end')
-    txt(phx, phy0 + 8*20 + 2, 'to cable', 9.5, col=C['pale'], anc='middle')
-
-    # ---- off-board fuse, above the board ----
-    fy = BY - 42
-    box(BX + 150, fy, 300, 34, 'white', C['12V'])
-    s.append(f'<rect x="{BX+150:.0f}" y="{fy:.0f}" width="300" height="34" rx="4" fill="none" '
-             f'stroke="{C["12V"]}" stroke-width="2" stroke-dasharray="6 4"/>')
-    txt(BX + 300, fy + 15, 'F1 fuse holder — separate printed part', 10.5, True, C['12V'], 'middle')
-    txt(BX + 300, fy + 29, '1.1 A PTC when it arrives; for now the 1.6 A glass fuse', 9.5, col=C['ink'], anc='middle')
-
-    # ---- the net list on the right ----
-    lx = RIGHT
+    # ---- net list on the right ----
+    lx = RIGHT + 80
     txt(lx, 150, 'What lands where', 15, True)
     rows = [
-        ('12V', 'Pin 1  +12 V', 'PSU + → F1 holder in; F1 out → Phoenix pin 1'),
-        ('GND', 'Pin 2  GND', 'GND rail (PSU -, OUT -, Y_MAX -, shield)'),
-        ('pale', 'Pin 3  empty', 'left open — keeps 12 V away from 5 V logic'),
-        ('5V', 'Pin 4  +5 V', 'header 5V pin ← RAMPS Y_MAX +'),
-        ('STEP', 'Pin 5  KEY_STEP', 'header STEP pin ← AUX-4 16 (D23)'),
-        ('UART', 'Pin 6  UART', 'bus node ← RX2 (D17) + X/Y/Z PDN_UART'),
-        ('DIAG', 'Pin 7  KEY_DIAG', 'header DIAG pin ← Z_MAX S (D19)'),
-        ('GND', 'Pin 8  shield', 'shield drain → GND rail (dial end only)'),
+        ('TX2', 'from AUX-4 pin 18 (D16) → R1 → bus node'),
+        ('RX2', 'from AUX-4 pin 17 (D17) → bus node'),
+        ('BUS X / Y / Z / E0', 'the four MS3 jumper pins (signal side) → bus node'),
     ]
-    y = 178
-    for net, a, b in rows:
-        pad(lx + 7, y - 4, net, 6)
+    y = 180
+    for a, b in rows:
+        pad(lx + 7, y - 4, 6)
         txt(lx + 22, y, a, 12, True)
-        txt(lx + 22, y + 15, b, 10, col=C['ink'])
-        y += 40
-    txt(lx, y + 4, 'R1 (1 k): TX2 pin (D16 / AUX-4 18) → R1 → bus node.', 11)
-    txt(lx, y + 20, 'Bus node also joins RX2 and each dial driver\'s PDN_UART (its MS3 jumper pin).', 10)
-    txt(lx, y + 40, 'Header pins: 2.54 mm male. RAMPS side uses F-F jumpers (~10 cm).', 10)
-    txt(lx, y + 56, 'Everything marked - on a pad goes to the GND rail.', 10)
+        txt(lx + 22, y + 15, b, 10)
+        y += 42
+    txt(lx, y + 4, 'Bus = the datasheet single-wire UART (TMC2209 Fig. 4.1):', 11)
+    txt(lx, y + 20, 'TX2 → 1 kΩ → bus; RX2 and every PDN_UART on the bus.', 10)
+    txt(lx, y + 40, 'Use 2.54 mm male pins for the jumper ends; RAMPS side uses', 10)
+    txt(lx, y + 54, 'F–F jumpers (~10 cm). That is the whole hub board.', 10)
 
-    # ---- legend ----
-    ly = H - 70
-    txt(MARGIN, ly, 'Net colours', 13, True)
-    leg = [('12V', '12 V'), ('5V', '5 V / VIO'), ('GND', 'GND'),
-           ('STEP', 'KEY_STEP'), ('UART', 'UART bus'), ('DIAG', 'KEY_DIAG (white in cable)')]
-    for i, (net, lab) in enumerate(leg):
-        x = MARGIN + (i % 6) * 150
-        pad(x + 6, ly + 20, net, 6)
-        txt(x + 18, ly + 24, lab, 10.5)
-    txt(MARGIN, H - 12, 'Generated by control/harness/hub_board.py from control/wiring.md section 5.', 9.5, col=C['pale'])
+    txt(MARGIN, H - 14, 'Generated by control/harness/hub_board.py from control/wiring.md section 5.', 9.5, col=C['pale'])
 
     s.append('</svg>')
     out = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'hub_board.svg')

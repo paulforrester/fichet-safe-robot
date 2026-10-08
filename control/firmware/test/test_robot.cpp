@@ -216,7 +216,7 @@ TEST(refuses_to_start_untuned) {
 
 TEST(missing_driver_stops_before_any_motion) {
   SimHal h;
-  h.present[AX_KEY] = false;  // 12 V off at the key turner, or the cable unplugged
+  h.present[AX_KEY] = false;  // E0 driver missing, or its UART lead off the MS3 pin
   Settings s = tunedSettings();
   Robot r(h, s);
   r.boot();
@@ -660,7 +660,7 @@ TEST(calibrate_command_stores_what_a_run_needs) {
 }
 
 // ---------------------------------------------------------------- driver resets (GSTAT)
-// A driver whose supply dips (fuse holder contact, PTC trip, cable) comes back
+// A driver whose supply dips (12 V terminal, a loose socket, a 5 V glitch) comes back
 // with its power-on registers: no StallGuard. The firmware must notice before
 // it trusts another move.
 namespace {

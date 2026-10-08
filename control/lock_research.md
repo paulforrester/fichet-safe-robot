@@ -1,5 +1,8 @@
 # Does the Fichet-Bauche "Complice" relock or lock out after wrong tries?
 
+> **Revision 2026-10-08.1** · project revision baseline (this research is unchanged by the E0 wiring change) · log: `../docs/revisions.md`
+
+
 Researched 2026-10-06 (cloud session), for the `control/sequence.md` open
 item "anti-manipulation relocking behaviour, before running thousands of
 automated attempts". Updated the same evening with the manual's own "Normal

@@ -35,14 +35,12 @@ class HwMega : public core::Hal {
  private:
   bool pollSerial();        // true if '!' (abort) arrived
   void pollButton();
-  bool setKeyShaft(bool shaft);
   void sgStart(uint8_t ax);
   void sgPoll(uint8_t ax, uint32_t stepIndex, bool cruise, bool trace, core::SgSink* sink);
   void sgFinish();
 
   core::Settings& s_;
   TMC2209Stepper drv_[core::AX_COUNT];
-  bool keyEnabled_ = false;
   // serial line buffer
   char line_[64];
   uint8_t lineLen_ = 0;
