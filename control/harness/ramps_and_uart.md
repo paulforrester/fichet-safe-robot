@@ -59,8 +59,9 @@ with the RAMPS held so the "END STOPS" silkscreen reads normally:
 
 - **Endstop block** — six 3-pin headers side by side along the top edge,
   under the silkscreen "END STOPS". Left to right: **X−, X+, Y−, Y+, Z−, Z+**.
-  The board prints **−** for MIN and **+** for MAX: X_MIN = X−, X_MAX = X+,
-  and so on.
+  The KiCad layout names them with **−** for MIN and **+** for MAX
+  (X_MIN = X−, X_MAX = X+, …). **VERIFY** what your board's silkscreen
+  prints; if it says MIN/MAX instead, use those.
 - Each header's 3 pins run from the board edge inward: **S** (signal,
   nearest the edge), **GND** (middle), **+5 V** (innermost). The "−"/"+"
   in a header's *name* is MIN/MAX, not the pin.
