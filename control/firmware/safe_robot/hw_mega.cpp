@@ -11,12 +11,14 @@ using namespace core;
 namespace {
 
 struct AxisPins { uint8_t step, dir, en, diag; };
-// 0xFF = not wired (the key's DIR and EN are tied low on its board).
+// All four drivers sit in RAMPS sockets (X, Y, Z, E0), each with its own
+// STEP, DIR and EN line (revision 2026-10-08.1; before it, the key's DIR and
+// EN were tied low on a remote board).
 const AxisPins kPins[AX_COUNT] = {
   {PIN_A_STEP, PIN_A_DIR, PIN_A_EN, PIN_A_DIAG},
   {PIN_B_STEP, PIN_B_DIR, PIN_B_EN, PIN_B_DIAG},
   {PIN_C_STEP, PIN_C_DIR, PIN_C_EN, PIN_C_DIAG},
-  {PIN_K_STEP, 0xFF, 0xFF, PIN_K_DIAG},
+  {PIN_K_STEP, PIN_K_DIR, PIN_K_EN, PIN_K_DIAG},
 };
 
 // DIAG is a pulse (datasheet §11.2): latch it in an interrupt so a short
@@ -49,8 +51,10 @@ void HwMega::begin() {
     const AxisPins& p = kPins[a];
     pinMode(p.step, OUTPUT);
     digitalWrite(p.step, LOW);
-    if (p.dir != 0xFF) { pinMode(p.dir, OUTPUT); digitalWrite(p.dir, LOW); }
-    if (p.en != 0xFF) { pinMode(p.en, OUTPUT); digitalWrite(p.en, HIGH); }  // disabled
+    pinMode(p.dir, OUTPUT);
+    digitalWrite(p.dir, LOW);
+    pinMode(p.en, OUTPUT);
+    digitalWrite(p.en, HIGH);  // disabled (RAMPS also pulls EN high, 10 k)
     // Pull-up: an unplugged DIAG lead reads high = "stalled", and the
     // firmware refuses to move (wiring.md §1).
     pinMode(p.diag, INPUT_PULLUP);
@@ -154,7 +158,7 @@ bool HwMega::configure(Axis ax, const DriverSetup& c) {
   d.internal_Rsense(false);  // external 0.11 ohm sense resistors
   d.en_spreadCycle(false);   // StealthChop: StallGuard4 only works there (datasheet §11)
   d.multistep_filt(true);
-  d.toff((ax == AX_KEY && !keyEnabled_) ? 0 : kToffOn);
+  d.toff(kToffOn);           // power stage on/off is the EN pin, for every axis
   d.intpol(true);
   d.microsteps(s_.microsteps);
   d.rms_current(c.runMa, c.holdPct / 100.0f);
@@ -176,7 +180,7 @@ bool HwMega::configure(Axis ax, const DriverSetup& c) {
 // GSTAT is read-and-write-1-to-clear (datasheet p. 24): reading leaves it
 // set, so a reset stays visible until configure() clears it. TMCStepper's
 // read() flags a reply that never came as a CRC error (all zeros fail its
-// crc == 0 test) and tries twice; three of those, as in setKeyShaft().
+// crc == 0 test) and tries twice; three of those.
 uint8_t HwMega::gstat(Axis ax) {
   TMC2209Stepper& d = drv_[ax];
   for (uint8_t attempt = 0; attempt < 3; ++attempt) {
@@ -187,23 +191,7 @@ uint8_t HwMega::gstat(Axis ax) {
 }
 
 void HwMega::enable(Axis ax, bool on) {
-  if (ax == AX_KEY) {
-    // EN is tied low on the remote board: switch the power stage over UART.
-    drv_[AX_KEY].toff(on ? kToffOn : 0);
-    keyEnabled_ = on;
-  } else {
-    digitalWrite(kPins[ax].en, on ? LOW : HIGH);  // EN is active low
-  }
-}
-
-bool HwMega::setKeyShaft(bool shaft) {
-  TMC2209Stepper& d = drv_[AX_KEY];
-  for (uint8_t attempt = 0; attempt < 3; ++attempt) {
-    d.shaft(shaft);
-    const uint32_t g = d.GCONF();
-    if (!d.CRCerror && (bool)((g >> 3) & 1) == shaft) return true;  // GCONF bit 3 = shaft
-  }
-  return false;
+  digitalWrite(kPins[ax].en, on ? LOW : HIGH);  // EN is active low
 }
 
 // ---------------------------------------------------------------- SG sampling
@@ -275,13 +263,8 @@ MoveResult HwMega::move(const MoveRequest& r) {
   const AxisPins& p = kPins[r.axis];
   const bool logicalFwd = r.steps > 0;
   const bool motorFwd = logicalFwd != (bool)s_.ax[r.axis].invert;
-  if (r.axis == AX_KEY) {
-    // DIR is tied low on the remote board: shaft=1 reverses the motor.
-    if (!setKeyShaft(!motorFwd)) { res.dirFailed = true; return res; }
-  } else {
-    digitalWrite(p.dir, motorFwd ? HIGH : LOW);
-    delayMicroseconds(5);  // DIR-to-STEP setup is 20 ns min (datasheet p. 63)
-  }
+  digitalWrite(p.dir, motorFwd ? HIGH : LOW);
+  delayMicroseconds(5);  // DIR-to-STEP setup is 20 ns min (datasheet p. 63)
   if (digitalRead(p.diag) == HIGH) { res.diagHighAtStart = true; return res; }
 
   const uint32_t n = (uint32_t)(r.steps > 0 ? r.steps : -r.steps);

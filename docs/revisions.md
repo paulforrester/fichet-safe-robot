@@ -1,0 +1,55 @@
+# Project revisions
+
+> **Revision 2026-10-08.1** · this file is the revision log · current ID in `REVISION`
+
+Every project document and drawing carries the project revision it was last
+brought up to date in, so a printed or downloaded copy can be told apart from
+a newer one. The ID is the date plus a sequence number for that day:
+`2026-10-08.1` is the first revision of 8 October 2026.
+
+**Rules (for Paul and for any Claude session):**
+- The current ID lives in one place: the `REVISION` file at the repo root.
+- A design change that affects how the robot is built, wired or run gets a
+  new ID. Bump `REVISION`, add an entry below, and update the revision line
+  in every document (`python3 tools/check_revision.py` lists any that don't
+  match). Typo fixes and notes don't need a new ID.
+- Markdown documents carry the line near the top:
+  `> **Revision 2026-10-08.1** · …`. Generated drawings (schematic PDF,
+  harness, overview, hub board) print it in their title block, read from
+  `REVISION` when they're regenerated.
+- The firmware has its own version (`FW_VERSION` in `safe_robot.ino`),
+  which also names the project revision it was built for.
+
+## Log (most recent first)
+
+### 2026-10-08.1 — key driver moves onto the RAMPS (E0 socket)
+
+**Change.** The key turner's TMC2209 moves from its own perfboard at the key
+turner to the RAMPS **E0** socket, beside the three dial drivers (Paul's
+suggestion; analysis in `control/wiring.md`, log 2026-10-08). The key motor's
+own ~1 m cable plugs into the E0 motor header.
+
+**Gone:** the remote driver board, the 6-conductor inter-unit cable and its
+Phoenix connectors, the 12 V branch on the hub board with its fuse (PTC, or
+the interim 1.6 A glass fuse and its printed holder), and the remote board's
+two 100 µF capacitors.
+
+**Changed:**
+- Key pins: STEP D26, DIR D28, EN D24 (E0 socket); DIAG D19 (Z_MAX) as
+  before, now through the E0 driver's own DIAG-mod lead. Address 3 = MS1 +
+  MS2 jumpers under E0.
+- DIAG mod on **four** drivers, not three.
+- The hub board shrinks to the UART junction: R1 (1 kΩ) and the bus node.
+  12 V goes from the PSU adapter straight into the RAMPS "5A" terminal.
+- Firmware v0.4: the key is an ordinary axis (DIR and EN pins); the UART
+  direction workaround is gone; the key driver now stays off at power-up.
+
+**Documents updated:** `control/wiring.md`, `control/harness/*` (schematic,
+harness, overview, hub board, RAMPS/hub sheet), `control/sequence.md`,
+`control/bringup.md`, `control/firmware/` (code, tests, README),
+`docs/manual.md`, `docs/bom.md`, `docs/order_remaining_parts.md`,
+`CLAUDE.md`, `README.md`, `control/README.md`. Every document now carries
+this revision line.
+
+**Previous state:** `main` at commit `76a4167` (2026-10-07), before this
+revision. There were no revision IDs before this one.

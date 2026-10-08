@@ -1,5 +1,7 @@
 # Control architecture and operating sequence
 
+> **Revision 2026-10-08.1** · key driver on the RAMPS E0 socket · log: `docs/revisions.md`
+
 Working notes on how the robot actually operates the safe, so this
 doesn't only live in chat. Captures the mechanism understanding and
 the operating sequence as of 2026-09-29 — expect this to get refined
@@ -63,6 +65,12 @@ key-turner unit's driver does **not** plug into the shield, per the
 driver-placement rule above; it's wired out to the remote unit over the
 inter-unit cable instead.
 
+**Correction (revision 2026-10-08.1, 2026-10-08):** the key driver now plugs
+into the RAMPS **E0** socket too, so all four drivers are on the shield. The
+remote board and the inter-unit signal cable are gone; only the key motor's
+own cable runs to the key turner. See the "Cable and driver placement"
+correction below and `control/wiring.md` (log 2026-10-08).
+
 **Correction to the earlier "4 hardware UART ports" plan**: the Mega
 has 4 hardware serial ports total (`Serial`/`Serial1`/`Serial2`/`Serial3`),
 but `Serial` (pins 0/1) is tied up by USB — using it for a driver would
@@ -94,6 +102,11 @@ X_MIN (D3), **X_MAX (D2)** and Z_MIN (D18) for dials A/B/C, and the key's
 DIAG to Z_MAX (D19). DIAG is a *pulse* (TMC2209 datasheet §11.2), so the
 firmware latches it with an interrupt, and Y_MIN's D14 has no external
 interrupt on the Mega. Y_MIN now takes the start/stop button.
+
+*(Superseded by revision 2026-10-08.1: the key driver is in the RAMPS E0
+socket, so its STEP/DIR/EN come from E0 — D26/D28/D24 — and its DIAG lead
+goes to Z_MAX like the dials', with no cable. The paragraph below is kept as
+the earlier remote-driver plan.)*
 
 For the remote key-turner driver (off-shield): STEP/DIR/ENABLE + its
 DIAG line are wired from 4 free Mega digital pins (exact pins aren't
@@ -149,17 +162,20 @@ printed with strings and bare discs grip poorly sideways. See
 dimensionally accurate across the full door width, and each unit is
 small enough to print in one piece.
 
-**Cable and driver placement**: the stepper driver (TMC2209) stays
-physically next to its motor, including at the remote key-turner unit
-— StallGuard reads back-EMF right at the motor, and long motor-phase
-wiring would dull that sensitivity, which both units depend on for
-force feedback. So only logic-level signals cross the cable to the
-key-turner unit (step/dir/enable + UART for the stall threshold) plus
-motor power — a 6-8 conductor cable with a small keyed connector
-(e.g. JST-XH) at each end, so the key-turner unit can be unplugged
-for repositioning. (Built with the 6-conductor shielded cable and 5.08mm
-8-pin pluggable screw terminals that were ordered — pin-out in
-`control/wiring.md` §4.)
+**Cable and driver placement**: originally each driver sat next to its
+motor — the key driver on a remote board at the key turner — on the
+reasoning that "StallGuard reads back-EMF right at the motor, and long
+motor-phase wiring would dull that sensitivity".
+
+**Correction (revision 2026-10-08.1, 2026-10-08):** that reasoning is
+withdrawn. StallGuard is measured inside the driver, and sensorless homing
+is routinely done with the driver on the mainboard and the motor on a cable
+of this length (e.g. 3D printers; Klipper's TMC documentation). So the key
+driver moves to the RAMPS **E0** socket like the dials, and the key motor's
+own ~1 m cable runs to it. The 6-conductor signal cable, the remote board
+and its Phoenix connectors are gone. If bench stage 5 shows the key's
+StallGuard too dull through the cable, shorten it. Full reasoning:
+`control/wiring.md`, decision log 2026-10-08.
 
 **Alignment**: the key-turner unit has an easier mounting job than the
 dial unit — since the real key is already seated in socket #4 by hand

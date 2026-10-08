@@ -133,7 +133,7 @@ struct SimHal : public core::Hal {
   void driverReset(int ax) {
     gstatFlags[ax] |= core::GSTAT_RESET;
     sgthrs[ax] = 0;                         // SGTHRS = 0: no stall signal
-    if (ax == core::AX_KEY) enabled[ax] = true;  // CHOPCONF.TOFF back to 3; its EN is tied low
+    // enabled[] is unchanged: every driver's EN is a Mega pin, held by the firmware.
   }
 
   // ---- Hal

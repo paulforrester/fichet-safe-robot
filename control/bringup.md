@@ -1,5 +1,7 @@
 # Bench bring-up plan
 
+> **Revision 2026-10-08.1** · key driver on the RAMPS E0 socket · log: `docs/revisions.md`
+
 Seven short stages, in order. Each ends with **"Send back"**: the numbers or
 log lines I need to fill in `control/firmware/safe_robot/config.h`.
 
@@ -7,8 +9,8 @@ Wiring is in `control/wiring.md`; firmware commands in
 `control/firmware/README.md`.
 
 **Safety, every stage**
-- Plug and unplug things (motors, drivers, the inter-unit cable) only with
-  **12 V off**.
+- Plug and unplug things (motors including the key motor cable, and drivers)
+  only with **12 V off**.
 - Keep a hand near the 12 V plug: pulling it stops everything. Typing `!`
   aborts a move.
 - Power order: USB first, then 12 V. Off: 12 V first.
@@ -28,11 +30,11 @@ both at once.)
    `control/firmware/safe_robot/safe_robot.ino`, board "Arduino Mega or Mega
    2560". Upload with only USB connected (RAMPS may be on or off the Mega).
 2. Start the logger and type `status`. You should see
-   `# Fichet safe robot 0.3 (2026-10-07) - type help` and `# state=IDLE run=0 next=0 ...`.
+   `# Fichet safe robot 0.4 (2026-10-08, rev 2026-10-08.1) - type help` and `# state=IDLE run=0 next=0 ...`.
 3. **RAMPS jumpers** (under the sockets): X none; Y **MS1** only; Z **MS2**
    only; **no MS3 jumper anywhere**.
-4. **DIAG mod** on 3 drivers (the dial ones; keep one untouched for the key
-   turner, plus the spare): before fitting the heatsinks, clip the two short
+4. **DIAG mod** on all **four** drivers (the three dials and the key; leave
+   the spare untouched — revision 2026-10-08.1): before fitting the heatsinks, clip the two short
    down-pointing pins at the EN end (INDEX, DIAG) flush with their plastic
    spacer. Then solder half of a female–female jumper to the **top** of the
    pin labelled **DIAG** (`control/wiring.md` §3.3).
@@ -60,14 +62,14 @@ X's DIAG lead → X_MIN **S** pin. 12 V into RAMPS's **5A** input.
 4. If it says `DRV,A,0,0,...`: 12 V off. Move the bus lead to the *other* pin
    of the MS3 jumper pair, then try again. Still 0: check TX2/RX2 aren't
    swapped and the 1 kΩ is on TX2.
-5. 12 V off. Add the Y and Z drivers (with their jumpers and DIAG leads: Y →
-   X_MAX S, Z → Z_MIN S), and their MS3 pins on the bus. 12 V on.
-   `set axes 7`, `ping`.
+5. 12 V off. Add the Y, Z and **E0 (key)** drivers — with their jumpers and
+   DIAG leads: Y → X_MAX S, Z → Z_MIN S, **E0 → Z_MAX S** — and their MS3
+   pins on the bus. 12 V on. `set axes 15`, `ping`.
 
-**Send back**: the four `DRV` lines from step 3, and the four from step 5;
-which MS3 pin worked.
-Expect `DRV,B,1,21,1,0,...` and `DRV,C,1,21,0,1,...`. If a DIAG field reads 1
-at rest, say which.
+**Send back**: the `DRV,A` line from step 3, and the four `DRV` lines from
+step 5; which MS3 pin worked. Expect `DRV,B,1,21,1,0,...`, `DRV,C,1,21,0,1,...`
+and **`DRV,K,1,21,1,1,...`** (the key in E0, address 3: MS1 = MS2 = 1). If a
+DIAG field reads 1 at rest, say which.
 
 ---
 
@@ -172,8 +174,10 @@ it is left (no spring back). It comes out only back at the start. So before
 any stage below, turn it back to the start by hand.
 
 **5b. Mounted**: key in, at its start; key turner on (12 V off while placing
-and plugging). Remote board's VREF pot at minimum. Cable plugged in. 12 V on.
-`set axes 8` (key only), then `ping`: expect `DRV,K,1,21,1,1,...`.
+and plugging). The key driver is in the RAMPS **E0** socket (revision
+2026-10-08.1), VREF pot at minimum; its motor's own cable is plugged into the
+E0 motor header. 12 V on. `set axes 8` (key only), then `ping`: expect
+`DRV,K,1,21,1,1,...`.
 1. **Direction**: `set maK 400`, `key 10`. The key should turn **clockwise**
    10° and come back. If it went anticlockwise: `set invK 1`, and say so.
 2. **Minimum current**, with StallGuard off (`set sgK 0`): `key 80` at
@@ -188,12 +192,15 @@ and plugging). Remote board's VREF pot at minimum. Cable plugged in. 12 V on.
    `NSTOP` line (N and the spread).
 6. Watch the key-turner housing during the learns: does it shift or rock
    on its magnets?
-7. **12 V off**, then touch C1a and C1b on the remote board. Cool,
-   lukewarm or warm? (They aren't sold as low ESR: `control/wiring.md`
-   log 2026-10-07.)
+7. **Key StallGuard through the cable**: during the `learn` turns, did the
+   key's stall detection find the stop cleanly (an `NSTOP` line each time,
+   with a small spread)? If it reads dull or erratic, shorten the key motor
+   cable and repeat (revision 2026-10-08.1: the cable length is the one thing
+   about the E0 move still unproven).
 
 **Send back**: direction; the current table from 5b.2; final `maK`; the raw
-log (CAL, LEARN, NSTOP lines); any housing movement; how warm C1a/C1b felt.
+log (CAL, LEARN, NSTOP lines); any housing movement; whether the key's
+StallGuard found the stop cleanly through the 1 m cable.
 
 ---
 

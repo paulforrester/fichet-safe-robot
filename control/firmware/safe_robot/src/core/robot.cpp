@@ -864,7 +864,6 @@ bool Robot::checkMove(const MoveResult& r, Axis ax, bool expectStall, bool allow
   if (r.driverFault) { driverFault(); return false; }  // first: a reset explains any other symptom
   if (r.aborted) { error(CP("ABORT"), CP("move aborted by operator")); return false; }
   if (r.diagHighAtStart) { error(CP("DIAG"), CP("DIAG already high before the move: lead off, or driver error")); return false; }
-  if (r.dirFailed) { error(CP("DIR"), CP("key direction register did not read back (UART)")); return false; }
   if (r.timedOut) { error(CP("TIMEOUT"), CP("move took too long")); return false; }
   if (r.stalled && !allowStall) {
     Line l;

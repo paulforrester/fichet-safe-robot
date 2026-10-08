@@ -17,7 +17,7 @@
 #include "src/core/robot.h"
 #include "src/core/settings_from_config.h"
 
-#define FW_VERSION "0.3 (2026-10-07)"
+#define FW_VERSION "0.4 (2026-10-08, rev 2026-10-08.1)"
 
 core::Settings g_settings = core::makeSettings();
 HwMega g_hw(g_settings);

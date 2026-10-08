@@ -1,112 +1,54 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1034" height="652" viewBox="0 0 1034 652" font-family="Helvetica,Arial,sans-serif">
-<rect width="1034" height="652" fill="white"/>
-<text x="48" y="42" font-size="24" font-weight="bold" fill="#2c3e50" text-anchor="start">Hub board — dial end</text>
-<text x="48" y="68" font-size="12.5" fill="#2c3e50" text-anchor="start">The 12 V split point. Holds the one UART resistor (R1) and the UART bus node, and carries the cable header.</text>
-<text x="48" y="86" font-size="12.5" fill="#2c3e50" text-anchor="start">~50 x 30 mm perfboard, seen from the component side. Nets shown; on a perfboard they are point-to-point wires underneath.</text>
-<text x="48" y="104" font-size="12.5" fill="#2c3e50" text-anchor="start">Layout is a guide — place parts to suit your board. The one rule: keep R1 right at the TX2 pin and the bus node short.</text>
-<rect x="48" y="150" width="416" height="272" rx="8" fill="#eef2f3" stroke="#7f8c8d" stroke-width="1.5"/>
-<circle cx="74" cy="196" r="6" fill="#c0392b" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="88" y="200" font-size="11" font-weight="bold" fill="#2c3e50" text-anchor="start">12V IN +</text>
-<circle cx="74" cy="220" r="6" fill="#2c3e50" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="88" y="224" font-size="11" font-weight="bold" fill="#2c3e50" text-anchor="start">12V IN -</text>
-<text x="68" y="172" font-size="9.5" fill="#95a5a6" text-anchor="start">from PSU (DC-jack adapter)</text>
-<circle cx="74" cy="300" r="6" fill="#c0392b" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="88" y="304" font-size="11" font-weight="bold" fill="#2c3e50" text-anchor="start">12V OUT +</text>
-<circle cx="74" cy="324" r="6" fill="#2c3e50" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="88" y="328" font-size="11" font-weight="bold" fill="#2c3e50" text-anchor="start">12V OUT -</text>
-<text x="68" y="346" font-size="9.5" fill="#95a5a6" text-anchor="start">to RAMPS "5A" terminal, 20 AWG</text>
-<path d="M74,196 L74,300" fill="none" stroke="#c0392b" stroke-width="2.6" stroke-linecap="round"/>
-<text x="56" y="250" font-size="9" fill="#c0392b" text-anchor="start">raw</text>
-<text x="56" y="262" font-size="9" fill="#c0392b" text-anchor="start">12 V</text>
-<line x1="64" y1="402" x2="448" y2="402" stroke="#2c3e50" stroke-width="3.4"/>
-<text x="256" y="420" font-size="11" font-weight="bold" fill="#2c3e50" text-anchor="middle">GND rail</text>
-<path d="M74,220 L74,402" fill="none" stroke="#2c3e50" stroke-width="2.6" stroke-linecap="round"/>
-<path d="M74,324 L74,402" fill="none" stroke="#2c3e50" stroke-width="2.6" stroke-linecap="round"/>
-<rect x="289" y="204" width="68" height="26" rx="4" fill="#d9dde0" stroke="#2c3e50" stroke-width="1.5"/>
-<text x="323" y="221" font-size="11.5" font-weight="bold" fill="#2c3e50" text-anchor="middle">R1  1k</text>
-<circle cx="327" cy="268" r="7" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="327" y="290" font-size="10" font-weight="bold" fill="#27ae60" text-anchor="middle">UART bus node</text>
-<path d="M353,217 L327,268" fill="none" stroke="#27ae60" stroke-width="2.6" stroke-linecap="round"/>
-<text x="214" y="196" font-size="10" font-weight="bold" fill="#2c3e50" text-anchor="middle">header pins</text>
-<text x="214" y="209" font-size="8.5" fill="#95a5a6" text-anchor="middle">(F-F jumpers to RAMPS)</text>
-<circle cx="214" cy="226" r="5" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="204" y="230" font-size="10" font-weight="bold" fill="#2c3e50" text-anchor="end">TX2</text>
-<circle cx="214" cy="244" r="5" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="204" y="248" font-size="10" font-weight="bold" fill="#2c3e50" text-anchor="end">BUS</text>
-<circle cx="214" cy="262" r="5" fill="#f1c40f" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="204" y="266" font-size="10" font-weight="bold" fill="#2c3e50" text-anchor="end">STEP</text>
-<circle cx="214" cy="280" r="5" fill="#8e44ad" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="204" y="284" font-size="10" font-weight="bold" fill="#2c3e50" text-anchor="end">DIAG</text>
-<circle cx="214" cy="298" r="5" fill="#e67e22" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="204" y="302" font-size="10" font-weight="bold" fill="#2c3e50" text-anchor="end">5V</text>
-<circle cx="214" cy="316" r="5" fill="#2c3e50" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="204" y="320" font-size="10" font-weight="bold" fill="#2c3e50" text-anchor="end">GND</text>
-<path d="M214,214 L293,217" fill="none" stroke="#27ae60" stroke-width="2.6" stroke-linecap="round"/>
-<path d="M327,268 L214,232" fill="none" stroke="#27ae60" stroke-width="2.6" stroke-linecap="round"/>
-<rect x="426" y="190" width="24" height="170" rx="4" fill="#34495e" stroke="#2c3e50" stroke-width="1.5"/>
-<text x="438" y="182" font-size="10" font-weight="bold" fill="#2c3e50" text-anchor="middle">Phoenix 8-pin</text>
-<circle cx="438" cy="204" r="5" fill="#c0392b" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="422" y="208" font-size="9.5" fill="#2c3e50" text-anchor="end">1</text>
-<circle cx="438" cy="224" r="5" fill="#2c3e50" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="422" y="228" font-size="9.5" fill="#2c3e50" text-anchor="end">2</text>
-<circle cx="438" cy="244" r="5" fill="#95a5a6" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="422" y="248" font-size="9.5" fill="#2c3e50" text-anchor="end">3</text>
-<circle cx="438" cy="264" r="5" fill="#e67e22" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="422" y="268" font-size="9.5" fill="#2c3e50" text-anchor="end">4</text>
-<circle cx="438" cy="284" r="5" fill="#f1c40f" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="422" y="288" font-size="9.5" fill="#2c3e50" text-anchor="end">5</text>
-<circle cx="438" cy="304" r="5" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="422" y="308" font-size="9.5" fill="#2c3e50" text-anchor="end">6</text>
-<circle cx="438" cy="324" r="5" fill="#8e44ad" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="422" y="328" font-size="9.5" fill="#2c3e50" text-anchor="end">7</text>
-<circle cx="438" cy="344" r="5" fill="#2c3e50" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="422" y="348" font-size="9.5" fill="#2c3e50" text-anchor="end">8</text>
-<text x="438" y="366" font-size="9.5" fill="#95a5a6" text-anchor="middle">to cable</text>
-<rect x="198" y="108" width="300" height="34" rx="4" fill="white" stroke="#c0392b" stroke-width="1.5"/>
-<rect x="198" y="108" width="300" height="34" rx="4" fill="none" stroke="#c0392b" stroke-width="2" stroke-dasharray="6 4"/>
-<text x="348" y="123" font-size="10.5" font-weight="bold" fill="#c0392b" text-anchor="middle">F1 fuse holder — separate printed part</text>
-<text x="348" y="137" font-size="9.5" fill="#2c3e50" text-anchor="middle">1.1 A PTC when it arrives; for now the 1.6 A glass fuse</text>
-<text x="674" y="150" font-size="15" font-weight="bold" fill="#2c3e50" text-anchor="start">What lands where</text>
-<circle cx="681" cy="174" r="6" fill="#c0392b" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="696" y="178" font-size="12" font-weight="bold" fill="#2c3e50" text-anchor="start">Pin 1  +12 V</text>
-<text x="696" y="193" font-size="10" fill="#2c3e50" text-anchor="start">PSU + → F1 holder in; F1 out → Phoenix pin 1</text>
-<circle cx="681" cy="214" r="6" fill="#2c3e50" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="696" y="218" font-size="12" font-weight="bold" fill="#2c3e50" text-anchor="start">Pin 2  GND</text>
-<text x="696" y="233" font-size="10" fill="#2c3e50" text-anchor="start">GND rail (PSU -, OUT -, Y_MAX -, shield)</text>
-<circle cx="681" cy="254" r="6" fill="#95a5a6" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="696" y="258" font-size="12" font-weight="bold" fill="#2c3e50" text-anchor="start">Pin 3  empty</text>
-<text x="696" y="273" font-size="10" fill="#2c3e50" text-anchor="start">left open — keeps 12 V away from 5 V logic</text>
-<circle cx="681" cy="294" r="6" fill="#e67e22" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="696" y="298" font-size="12" font-weight="bold" fill="#2c3e50" text-anchor="start">Pin 4  +5 V</text>
-<text x="696" y="313" font-size="10" fill="#2c3e50" text-anchor="start">header 5V pin ← RAMPS Y_MAX +</text>
-<circle cx="681" cy="334" r="6" fill="#f1c40f" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="696" y="338" font-size="12" font-weight="bold" fill="#2c3e50" text-anchor="start">Pin 5  KEY_STEP</text>
-<text x="696" y="353" font-size="10" fill="#2c3e50" text-anchor="start">header STEP pin ← AUX-4 16 (D23)</text>
-<circle cx="681" cy="374" r="6" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="696" y="378" font-size="12" font-weight="bold" fill="#2c3e50" text-anchor="start">Pin 6  UART</text>
-<text x="696" y="393" font-size="10" fill="#2c3e50" text-anchor="start">bus node ← RX2 (D17) + X/Y/Z PDN_UART</text>
-<circle cx="681" cy="414" r="6" fill="#8e44ad" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="696" y="418" font-size="12" font-weight="bold" fill="#2c3e50" text-anchor="start">Pin 7  KEY_DIAG</text>
-<text x="696" y="433" font-size="10" fill="#2c3e50" text-anchor="start">header DIAG pin ← Z_MAX S (D19)</text>
-<circle cx="681" cy="454" r="6" fill="#2c3e50" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="696" y="458" font-size="12" font-weight="bold" fill="#2c3e50" text-anchor="start">Pin 8  shield</text>
-<text x="696" y="473" font-size="10" fill="#2c3e50" text-anchor="start">shield drain → GND rail (dial end only)</text>
-<text x="674" y="502" font-size="11" fill="#2c3e50" text-anchor="start">R1 (1 k): TX2 pin (D16 / AUX-4 18) → R1 → bus node.</text>
-<text x="674" y="518" font-size="10" fill="#2c3e50" text-anchor="start">Bus node also joins RX2 and each dial driver's PDN_UART (its MS3 jumper pin).</text>
-<text x="674" y="538" font-size="10" fill="#2c3e50" text-anchor="start">Header pins: 2.54 mm male. RAMPS side uses F-F jumpers (~10 cm).</text>
-<text x="674" y="554" font-size="10" fill="#2c3e50" text-anchor="start">Everything marked - on a pad goes to the GND rail.</text>
-<text x="48" y="582" font-size="13" font-weight="bold" fill="#2c3e50" text-anchor="start">Net colours</text>
-<circle cx="54" cy="602" r="6" fill="#c0392b" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="66" y="606" font-size="10.5" fill="#2c3e50" text-anchor="start">12 V</text>
-<circle cx="204" cy="602" r="6" fill="#e67e22" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="216" y="606" font-size="10.5" fill="#2c3e50" text-anchor="start">5 V / VIO</text>
-<circle cx="354" cy="602" r="6" fill="#2c3e50" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="366" y="606" font-size="10.5" fill="#2c3e50" text-anchor="start">GND</text>
-<circle cx="504" cy="602" r="6" fill="#f1c40f" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="516" y="606" font-size="10.5" fill="#2c3e50" text-anchor="start">KEY_STEP</text>
-<circle cx="654" cy="602" r="6" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="666" y="606" font-size="10.5" fill="#2c3e50" text-anchor="start">UART bus</text>
-<circle cx="804" cy="602" r="6" fill="#8e44ad" stroke="#2c3e50" stroke-width="1.2"/>
-<text x="816" y="606" font-size="10.5" fill="#2c3e50" text-anchor="start">KEY_DIAG (white in cable)</text>
-<text x="48" y="640" font-size="9.5" fill="#95a5a6" text-anchor="start">Generated by control/harness/hub_board.py from control/wiring.md section 5.</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="858" height="540" viewBox="0 0 858 540" font-family="Helvetica,Arial,sans-serif">
+<rect width="858" height="540" fill="white"/>
+<text x="48" y="42" font-size="24" font-weight="bold" fill="#2c3e50" text-anchor="start">Hub board — the UART junction</text>
+<text x="810" y="30" font-size="11" fill="#95a5a6" text-anchor="end">Revision 2026-10-08.1</text>
+<text x="48" y="68" font-size="12.5" fill="#2c3e50" text-anchor="start">Revision 2026-10-08.1: with all four drivers on the RAMPS, the hub is just R1 and the UART bus node.</text>
+<text x="48" y="86" font-size="12.5" fill="#2c3e50" text-anchor="start">No 12 V, no fuse, no Phoenix header. A small perfboard beside the Mega. Keep R1 right at the TX2 pin.</text>
+<text x="48" y="104" font-size="12.5" fill="#95a5a6" text-anchor="start">Nets shown; on a perfboard they are point-to-point wires underneath.</text>
+<rect x="48" y="150" width="320" height="240" rx="8" fill="#eef2f3" stroke="#7f8c8d" stroke-width="2"/>
+<circle cx="88" cy="178" r="6" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
+<text x="76" y="182" font-size="11" font-weight="bold" fill="#2c3e50" text-anchor="end">TX2</text>
+<circle cx="88" cy="210" r="6" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
+<text x="76" y="214" font-size="11" font-weight="bold" fill="#2c3e50" text-anchor="end">RX2</text>
+<circle cx="88" cy="242" r="6" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
+<text x="76" y="246" font-size="11" font-weight="bold" fill="#2c3e50" text-anchor="end">BUS X</text>
+<circle cx="88" cy="274" r="6" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
+<text x="76" y="278" font-size="11" font-weight="bold" fill="#2c3e50" text-anchor="end">BUS Y</text>
+<circle cx="88" cy="306" r="6" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
+<text x="76" y="310" font-size="11" font-weight="bold" fill="#2c3e50" text-anchor="end">BUS Z</text>
+<circle cx="88" cy="338" r="6" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
+<text x="76" y="342" font-size="11" font-weight="bold" fill="#2c3e50" text-anchor="end">BUS E0</text>
+<rect x="238" y="169" width="60" height="18" rx="3" fill="#bdc3c7" stroke="#2c3e50" stroke-width="1.3"/>
+<text x="268" y="182" font-size="11" font-weight="bold" fill="#2c3e50" text-anchor="middle">R1 1k</text>
+<path d="M88,178 L238,178" fill="none" stroke="#27ae60" stroke-width="2.6" stroke-linecap="round"/>
+<path d="M298,178 L338,178" fill="none" stroke="#27ae60" stroke-width="2.6" stroke-linecap="round"/>
+<path d="M88,210 L338,210" fill="none" stroke="#27ae60" stroke-width="2.6" stroke-linecap="round"/>
+<circle cx="338" cy="210" r="4" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
+<path d="M88,242 L338,242" fill="none" stroke="#27ae60" stroke-width="2.6" stroke-linecap="round"/>
+<circle cx="338" cy="242" r="4" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
+<path d="M88,274 L338,274" fill="none" stroke="#27ae60" stroke-width="2.6" stroke-linecap="round"/>
+<circle cx="338" cy="274" r="4" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
+<path d="M88,306 L338,306" fill="none" stroke="#27ae60" stroke-width="2.6" stroke-linecap="round"/>
+<circle cx="338" cy="306" r="4" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
+<path d="M88,338 L338,338" fill="none" stroke="#27ae60" stroke-width="2.6" stroke-linecap="round"/>
+<circle cx="338" cy="338" r="4" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
+<line x1="338" y1="178" x2="338" y2="338" stroke="#27ae60" stroke-width="2.6"/>
+<circle cx="338" cy="178" r="4" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
+<text x="348" y="246" font-size="11" font-weight="bold" fill="#27ae60" text-anchor="start">bus node</text>
+<text x="348" y="278" font-size="9.5" fill="#95a5a6" text-anchor="start">RX2 + R1 (from TX2) + all 4 PDN_UART</text>
+<text x="508" y="150" font-size="15" font-weight="bold" fill="#2c3e50" text-anchor="start">What lands where</text>
+<circle cx="515" cy="176" r="6" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
+<text x="530" y="180" font-size="12" font-weight="bold" fill="#2c3e50" text-anchor="start">TX2</text>
+<text x="530" y="195" font-size="10" fill="#2c3e50" text-anchor="start">from AUX-4 pin 18 (D16) → R1 → bus node</text>
+<circle cx="515" cy="218" r="6" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
+<text x="530" y="222" font-size="12" font-weight="bold" fill="#2c3e50" text-anchor="start">RX2</text>
+<text x="530" y="237" font-size="10" fill="#2c3e50" text-anchor="start">from AUX-4 pin 17 (D17) → bus node</text>
+<circle cx="515" cy="260" r="6" fill="#27ae60" stroke="#2c3e50" stroke-width="1.2"/>
+<text x="530" y="264" font-size="12" font-weight="bold" fill="#2c3e50" text-anchor="start">BUS X / Y / Z / E0</text>
+<text x="530" y="279" font-size="10" fill="#2c3e50" text-anchor="start">the four MS3 jumper pins (signal side) → bus node</text>
+<text x="508" y="310" font-size="11" fill="#2c3e50" text-anchor="start">Bus = the datasheet single-wire UART (TMC2209 Fig. 4.1):</text>
+<text x="508" y="326" font-size="10" fill="#2c3e50" text-anchor="start">TX2 → 1 kΩ → bus; RX2 and every PDN_UART on the bus.</text>
+<text x="508" y="346" font-size="10" fill="#2c3e50" text-anchor="start">Use 2.54 mm male pins for the jumper ends; RAMPS side uses</text>
+<text x="508" y="360" font-size="10" fill="#2c3e50" text-anchor="start">F–F jumpers (~10 cm). That is the whole hub board.</text>
+<text x="48" y="526" font-size="9.5" fill="#95a5a6" text-anchor="start">Generated by control/harness/hub_board.py from control/wiring.md section 5.</text>
 </svg>

@@ -1,5 +1,13 @@
 # Ordering the remaining parts: amazon.fr vs mouser.fr (2026-10-07)
 
+> **Revision 2026-10-08.1** · key driver on the RAMPS E0 socket · log: `docs/revisions.md`
+
+**Revision 2026-10-08.1 (2026-10-08):** a record of the 2026-10-07 order.
+Some of these parts — the PTC fuse, the 100 µF capacitors, and (elsewhere) the
+6-conductor cable and Phoenix connectors — are **no longer used** now that the
+key driver is in the RAMPS E0 socket. They were bought; keep them as spares.
+Nothing here needs re-ordering. See `docs/revisions.md` and `docs/bom.md`.
+
 This covers everything still marked 🛒 in `docs/bom.md` ("Electronics
 assembly — every discrete part", table A), plus the three tools on its
 "Still to buy" list (multimeter, solder, flush cutters).

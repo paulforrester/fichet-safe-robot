@@ -1,7 +1,25 @@
 # Firmware — Fichet safe robot (Mega 2560 + RAMPS 1.4 + 4 × TMC2209)
 
+> **Revision 2026-10-08.1** · key driver on the RAMPS E0 socket; firmware v0.4 · log: `../../docs/revisions.md`
+
 Implements the sequence in `control/sequence.md` on the pin map in
 `control/wiring.md`. Bring it up on the bench with `control/bringup.md`.
+
+## v0.4 (2026-10-08, project revision 2026-10-08.1): key driver on RAMPS E0
+
+The key's TMC2209 moved from a remote board at the key turner to the RAMPS
+**E0** socket (`control/wiring.md`, log 2026-10-08). For the firmware:
+- `pins.h`: key STEP **D26**, DIR **D28**, EN **D24** (Marlin `pins_RAMPS.h`
+  E0_STEP/DIR/ENABLE); DIAG stays on **D19** (Z_MAX S).
+- The key is now an ordinary axis: direction from its DIR pin and enable from
+  its EN pin, like the dials. Gone: `setKeyShaft()` (GCONF.shaft written and
+  read back before each key move), the TOFF = 0 disable, and the `DIR` error
+  that reported a shaft read-back failure.
+- **Safer at power-up**: RAMPS pulls every EN line high (10 kΩ), so the key
+  driver now stays off until the firmware enables it. Before, its EN was tied
+  low and it switched on with 12 V at its pot current.
+- Verified: host tests 53/53 (~36,500 checks), logger tests 3/3, AVR build
+  52.1 KB flash. Not run on hardware.
 
 ## What it does
 
@@ -87,8 +105,9 @@ No move starts on a driver that has reset (next section).
 **The problem.** A TMC2209's logic runs from VS (12 V) through its own
 regulator, not from VIO (datasheet §2.2, p. 10; `control/wiring.md` §3.5). If
 VS or VIO dips, the chip resets to its power-on registers (§17, p. 74). Here
-that could be a loose contact in the hub's interim fuse holder
-(`control/wiring.md`, log 2026-10-07), a PTC trip, or a cable glitch. After a
+that could be a loose 12 V terminal, a driver loose in its socket, or a 5 V
+glitch. (Until revision 2026-10-08.1 the key driver's 12 V also ran through
+the hub's fuse holder and the inter-unit cable; both are gone.) After a
 reset (datasheet pp. 9, 22–23, 28–29, 32):
 - `SGTHRS` and `TCOOLTHRS` are 0: no StallGuard, no DIAG pulse;
 - the current comes from the VREF pot (`I_scale_analog` = 1), with `IRUN` = 31;
@@ -101,7 +120,9 @@ Only `GSTAT.reset` (bit 0) shows that it happened. v0.2 set the drivers up
 only during the session start (and at each bench command), and read GSTAT
 only in `ping`.
 
-**The worst case in v0.2** (traced from the datasheet defaults and the
+**The worst case in v0.2** (kept as history: in v0.4 `setKeyShaft()` is gone,
+so this exact path no longer exists, but any reset still runs the driver on
+its power-on registers until the GSTAT check below catches it; traced from the datasheet defaults and the
 TMCStepper 0.7.3 source; not tried on hardware): the key driver resets
 between two key moves.
 - Before each key move, `setKeyShaft()` calls `shaft()`, and TMCStepper
@@ -141,10 +162,10 @@ result.
   run, it first rewinds to the last re-check, as a failed re-check does.
 
 **Why stop, instead of re-running `configure()` and re-homing.**
-- It's how every other hardware fault is handled (DRIVER, CONFIG, DIR, DIAG,
+- It's how every other hardware fault is handled (DRIVER, CONFIG, DIAG,
   JAM, TIMEOUT): drivers off, an ERR line, Paul fixes the cause, `resume`.
   Only EARLY retries, and it stops after three.
-- A reset means a supply dropped out: a contact or cable fault, which will
+- A reset means a supply dropped out: a contact fault, which will
   probably come back, perhaps worse. Carrying on would hide it.
 - After a reset the positions are lost, not just the settings. Steps sent
   while the driver was down did nothing, and the motor may have jumped 2 full
@@ -212,7 +233,7 @@ a move must stop with `DRVFAULT`).
   `read()`).
 - It exposes everything we need: `rms_current()` (datasheet current formula
   with the 0.11 Ω sense resistors), `SGTHRS`, `SG_RESULT`, `TCOOLTHRS`,
-  `shaft`, `toff`, `GSTAT`, `IOIN`, `senddelay`.
+  `toff`, `GSTAT`, `IOIN`, `senddelay` (and `shaft`, used until v0.3).
 - Marlin 2.0.x — which runs TMC2209 over UART on RAMPS/Mega boards —
   depends on exactly this version (`ini/features.ini`: `HAS_TRINAMIC_CONFIG =
   TMCStepper@~0.7.3`, branch head 743d310). Marlin 2.1.x now builds against its own fork,
@@ -320,8 +341,8 @@ python3 control/firmware/tools/logger.py --analyse runs/<stamp>_attempts.csv
   every attempt.
 - **AVR build**: compiles for the ATmega2560 with avr-gcc 7.3 + Arduino AVR
   core 1.8.6 + TMCStepper 0.7.3 (Ubuntu packages; the Arduino download
-  servers are blocked here): 52.4 KB flash (20.0 %), 1.4 KB static RAM
-  (16.6 %), no warnings from this code.
+  servers are blocked here): 52.1 KB flash (19.9 %), 1.4 KB static RAM
+  (16.6 %), no warnings from this code (v0.4, 2026-10-08).
 
 **Not verified**: anything on hardware. The simulator's lock is my model of
 the description in `control/sequence.md` and Paul's checks, not the real lock;
