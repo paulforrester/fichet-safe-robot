@@ -53,7 +53,33 @@ drivers in.
 
 ### A3. Jumper wires landing on the RAMPS headers (F–F, ~10 cm)
 
-Endstop headers are 3-pin: **S** signal, **−** GND, **+** 5 V.
+**Where the headers are** (RAMPS 1.4 KiCad layout, `matt3u/RAMPS-1.4_KiCad`
+`ea33bdf`; check the readings below on your Fasizi board). Directions are
+with the RAMPS held so the "END STOPS" silkscreen reads normally:
+
+- **Endstop block** — six 3-pin headers side by side along the top edge,
+  under the silkscreen "END STOPS". Left to right: **X−, X+, Y−, Y+, Z−, Z+**.
+  The KiCad layout names them with **−** for MIN and **+** for MAX
+  (X_MIN = X−, X_MAX = X+, …). **VERIFY** what your board's silkscreen
+  prints; if it says MIN/MAX instead, use those.
+- Each header's 3 pins run from the board edge inward: **S** (signal,
+  nearest the edge), **GND** (middle), **+5 V** (innermost). The "−"/"+"
+  in a header's *name* is MIN/MAX, not the pin.
+- **AUX-4** — the long single row of 18 pins along the right-hand edge.
+  **Pin 1 = 5 V, pin 2 = GND** at its lower end; pin numbers count up
+  toward the top edge. **Pin 18 (TX2, D16)** is the top end pin, **pin 17
+  (RX2, D17)** the one just below it.
+
+**Check before fitting** (power off, multimeter on continuity):
+1. The **middle** pins of all six endstop headers beep to each other and to
+   the "5A" − terminal (GND).
+2. The **inner** pins beep to each other (5 V). The **edge** pins (S) beep
+   to nothing else in the block.
+3. AUX-4: the pin at the lower end beeps to the endstop 5 V pins (pin 1);
+   the next one beeps to GND (pin 2). So pin 18 is the far end.
+
+**No lead goes on a +5 V pin.** Every lead in the table goes on an **S** pin;
+the button also uses its header's middle (GND) pin.
 
 | From | To (RAMPS) | Mega pin |
 |---|---|---|
