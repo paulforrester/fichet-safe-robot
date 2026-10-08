@@ -1,13 +1,31 @@
-# RAMPS board + hub board — what goes where
+# RAMPS board, hub board and key-turner board — what goes where
 
 A single bench sheet pulling together everything that gets fitted to the
-RAMPS and the hub board, so nothing is missed. It restates `control/wiring.md`
+RAMPS, the hub board and the key-turner board, so nothing is missed. It restates `control/wiring.md`
 (the reference — read it for the *why* and the sources) and the manual's §2.4,
 §2.5 and §2.8. The hub board's part placement is drawn in
 `control/harness/hub_board.svg`.
 
 Dial naming: **A = top-left, B = top-right, C = bottom**, standing in front of
 the safe.
+
+## The four drivers at a glance
+
+There are **four** TMC2209 drivers in use (plus one spare). Three sit on the
+RAMPS; the fourth sits on its own small board at the key turner, next to its
+motor, because StallGuard reads the motor's back-EMF and works best with
+short motor wires (`control/wiring.md`, Summary and §6).
+
+| Driver | Turns | Where it sits | UART address | DIAG (stall) goes to | Section |
+|---|---|---|---|---|---|
+| 1 | dial A (top-left) | RAMPS **X** socket | 0 | X_MIN S (D3) | A |
+| 2 | dial B (top-right) | RAMPS **Y** socket | 1 | X_MAX S (D2) | A |
+| 3 | dial C (bottom) | RAMPS **Z** socket | 2 | Z_MIN S (D18) | A |
+| 4 | key | **remote board** at the key turner | 3 | cable pin 7 → hub → Z_MAX S (D19) | C |
+| (5) | spare | in the box | — | — | — |
+
+All four share one UART line (one 1 kΩ, on the hub). The key driver gets its
+12 V, 5 V, STEP, UART and DIAG through the inter-unit cable from the hub.
 
 ---
 
@@ -116,11 +134,60 @@ resistor and the bus node, and carries the 8-pin Phoenix header for the cable.
 
 ---
 
-## C. Order of work (from `bringup.md`)
+## C. On the key-turner board (driver 4)
+
+A ~70 × 30 mm perfboard at the key turner. The driver plugs into female
+headers so it can be swapped. Full layout, with the grid positions:
+`control/wiring.md` §6.1; build steps: manual §2.6.
+
+**The driver itself:**
+- **No DIAG mod** on this one. Its down-pointing DIAG pin plugs straight
+  into a 2-pin female socket on the board (the INDEX pin beside it goes in
+  the other half, connected to nothing).
+- Heatsink on. **VREF pot to minimum before its first power-up**: its EN is
+  tied to GND, so it switches on as soon as 12 V arrives, at whatever the pot
+  says, until the firmware sets the real current.
+- Don't bridge R10.
+
+**What each driver pin connects to:**
+
+| Driver pin | Goes to |
+|---|---|
+| EN, DIR, CLK | GND (direction and on/off are set over UART instead) |
+| MS1, MS2 | +5 V (sets UART address 3) |
+| RX (= PDN_UART) | Phoenix pin 6 (UART) |
+| TX | nothing |
+| STEP | Phoenix pin 5 |
+| DIAG (in its socket) | Phoenix pin 7 |
+| VIO | Phoenix pin 4 (+5 V) |
+| VM | Phoenix pin 1 (+12 V), and the + of C1a and C1b |
+| GND (both pins) | Phoenix pin 2, and the − of C1a and C1b |
+| A2, A1, B1, B2 | 4-pin male header for the key motor, same order as a RAMPS motor header |
+
+**Other parts on this board:**
+- **C1a, C1b**: two 100 µF ≥ 25 V electrolytics in parallel, right next to
+  VM and GND, short leads. The stripe marks −; both go to GND.
+- **8-pin Phoenix header** for the cable. Phoenix pin 3 is empty; pin 8 (the
+  shield) is **not** connected at this end: fold the drain wire back under
+  heat shrink.
+- Female headers: 2 × 1×8 for the driver's two rows, 1 × 1×2 for
+  INDEX/DIAG. **VERIFY** before soldering them: lay the driver on the board
+  and check the INDEX/DIAG pins land on the 2.54 mm grid.
+
+**Before plugging the driver in:** with the multimeter, check there's no
+short between Phoenix pins 1, 2 and 4.
+
+**Not designed yet:** where this board mounts on the key turner (CAD to-do;
+size and needs in `control/wiring.md` §6.2).
+
+---
+
+## D. Order of work (from `bringup.md`)
 
 1. RAMPS jumpers (A1) → RAMPS onto Mega → drivers in (A2).
 2. Build the hub board (B), fuse holder beside it.
-3. Power wiring: PSU → DC-jack adapter → hub 12V IN → hub 12V OUT → RAMPS 5A.
+3. Build the key-turner board (C). Driver 4 goes in only after the short check.
+4. Power wiring: PSU → DC-jack adapter → hub 12V IN → hub 12V OUT → RAMPS 5A.
    Check adapter polarity with the multimeter first.
-4. Signal jumpers (A3).
-5. Bring-up stage 1: `ping` — every driver must answer before anything moves.
+5. Signal jumpers (A3); the inter-unit cable last, with 12 V off.
+6. Bring-up stage 1: `ping` — every driver must answer before anything moves.
