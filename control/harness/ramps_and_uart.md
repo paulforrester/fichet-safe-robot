@@ -42,10 +42,12 @@ drivers in.
 ### A2. Drivers
 
 - **Four** TMC2209: dial A in **X**, dial B in **Y**, dial C in **Z**, the
-  **key in E0**. Orientation: match the driver's **EN / DIR / VM / GND** corner
-  pins to the RAMPS silkscreen. A reversed driver is destroyed.
-- Each of the four has the **DIAG mod** (manual §2.3): the two down-pointing
-  pins clipped, a flying lead soldered to the DIAG joint.
+  **key in E0**. **Orientation:** the driver's motor-side row (VS, GND, A2,
+  A1, B1, B2, VIO, GND) goes in the socket row **nearer that axis's 4-pin
+  motor header**; EN … DIR in the other row. Check each socket with the
+  multimeter first (manual §2.4 step 1). A reversed driver is destroyed.
+- Each of the four has its two EN-end pins **cut flush underneath** (manual
+  §2.3). No soldering: the DIAG and UART leads clip onto pins on top.
 - Heatsink on each. **VREF pot to minimum** on every driver first.
 - Leave **E1 empty**. Don't bridge R10 on any driver.
 
@@ -55,22 +57,24 @@ Endstop headers are 3-pin: **S** signal, **−** GND, **+** 5 V.
 
 | From | To (RAMPS) | Mega pin |
 |---|---|---|
-| Dial A driver DIAG lead | **X_MIN**, S pin | D3 |
-| Dial B driver DIAG lead | **X_MAX**, S pin | D2 |
-| Dial C driver DIAG lead | **Z_MIN**, S pin | D18 |
-| **Key (E0) driver DIAG lead** | **Z_MAX**, S pin | D19 |
+| Dial A driver: top of its **DIAG** pin | **X_MIN**, S pin | D3 |
+| Dial B driver: top of its **DIAG** pin | **X_MAX**, S pin | D2 |
+| Dial C driver: top of its **DIAG** pin | **Z_MIN**, S pin | D18 |
+| **Key (E0) driver: top of its DIAG pin** | **Z_MAX**, S pin | D19 |
 | Start/stop button | **Y_MIN**, S and − pins | D14 |
 | Pigtail lead **TX2** (the one with R1) | **AUX-4 pin 18** | D16 |
 | Pigtail lead **RX2** | **AUX-4 pin 17** | D17 |
-| Pigtail lead **A** | X socket **MS3 jumper pin** (signal side) | PDN_UART, dial A |
-| Pigtail lead **B** | Y socket **MS3 jumper pin** (signal side) | PDN_UART, dial B |
-| Pigtail lead **C** | Z socket **MS3 jumper pin** (signal side) | PDN_UART, dial C |
-| Pigtail lead **KEY** | **E0 socket MS3 jumper pin** (signal side) | PDN_UART, key |
+| Pigtail lead **A** | top of the **RX** pin, driver in X | PDN_UART, dial A |
+| Pigtail lead **B** | top of the **RX** pin, driver in Y | PDN_UART, dial B |
+| Pigtail lead **C** | top of the **RX** pin, driver in Z | PDN_UART, dial C |
+| Pigtail lead **KEY** | top of the **RX** pin, driver in **E0** | PDN_UART, key |
 
-- The four **MS3 jumper pins** carry each driver's UART line to the pigtail's
-  splice. Leave the MS3 *jumper* off (A1); clip the pigtail lead onto the pin
-  **on the side nearer the driver's EN/STEP/DIR row**. If `ping` gets no answer
-  in bring-up stage 1, move it to the other pin (the 5 V side — harmless).
+- **RX** is the driver's 4th pin from EN (EN, MS1, MS2, **RX**, TX, CLK, …),
+  standing up through the top. Nothing on TX or CLK. Leave the MS3 *jumper*
+  off (A1). Revision 2026-10-08.2: this replaced the RAMPS MS3 jumper pin as
+  the tap (checked: a Dupont grips RX; RX–TX open).
+- **DIAG** is the EN-end pin next to the trimmer pot ("DIAG" printed under
+  it). Nothing on the other EN-end pin.
 - The key's **STEP, DIR and EN** are in the E0 socket itself (D26, D28, D24):
   the driver plugging into E0 connects them. No jumper wires for those.
 - Power to the RAMPS is **not** a jumper: it's the 20 AWG pair from the
@@ -109,10 +113,8 @@ the TMC2209 single-wire bus (datasheet Fig. 4.1), TX2 → 1 kΩ → bus; RX2 and
 every driver's PDN_UART on the bus. No 12 V, 5 V or GND on it.
 
 **Build:**
-1. **Test-fit one female Dupont** on the X socket's MS3 jumper pin under the
-   seated, heatsinked driver (**VERIFY**, unchecked so far). Then **measure**
-   the run from AUX-4 to each socket's MS3 jumper pin (X, Y, Z, E0) with the
-   drivers in. Pick a splice point near the middle of the RAMPS.
+1. **Measure**, with the drivers seated: the run from AUX-4 to each driver's
+   RX pin (X, Y, Z, E0). Pick a splice point near the middle of the RAMPS.
 2. **Make six leads**: cut one end off each of six F–F jumpers (jumper halves
    will do if they're long enough). Each lead keeps its factory-crimped
    female end. Cut each to its measured length + a few cm.
@@ -127,8 +129,8 @@ every driver's PDN_UART on the bus. No 12 V, 5 V or GND on it.
 7. **Fit** (power off): leads as in A3; zip-tie the splice to the deck so the
    leads can't pull on the joint.
 
-Because every lead has its own female end, a driver lead can still be moved
-to the other MS3 pin if `ping` gets no answer (bring-up stage 1).
+Every driver lead has its own female end: pull it off the RX pin before
+unplugging that driver.
 
 ---
 
@@ -138,7 +140,7 @@ to the other MS3 pin if `ping` gets no answer (bring-up stage 1).
 2. Build the UART pigtail (B) and check it with the multimeter.
 3. Power wiring: PSU → DC-jack adapter → RAMPS "5A" terminal. Check adapter
    polarity with the multimeter first.
-4. Signal jumpers (A3): the four DIAG leads, the six pigtail leads, the
+4. Signal jumpers (A3): the four DIAG jumpers, the six pigtail leads, the
    button.
 5. The key motor cable into the E0 motor header (A5), 12 V off.
 6. Bring-up stage 1: `ping` — all four drivers must answer (A at address 0 …

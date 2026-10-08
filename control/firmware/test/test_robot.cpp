@@ -216,7 +216,7 @@ TEST(refuses_to_start_untuned) {
 
 TEST(missing_driver_stops_before_any_motion) {
   SimHal h;
-  h.present[AX_KEY] = false;  // E0 driver missing, or its UART lead off the MS3 pin
+  h.present[AX_KEY] = false;  // E0 driver missing, or its UART lead off its RX pin
   Settings s = tunedSettings();
   Robot r(h, s);
   r.boot();

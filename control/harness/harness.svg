@@ -171,38 +171,38 @@
 <text text-anchor="start" x="951.5" y="-553.3" font-family="arial" font-size="14.00">6x</text>
 <polygon fill="none" stroke="black" points="980,-545.5 980,-568.5 1050,-568.5 1050,-545.5 980,-545.5"/>
 <text text-anchor="start" x="993.5" y="-553.3" font-family="arial" font-size="14.00">0.15 m</text>
-<text text-anchor="start" x="717.5" y="-532.3" font-family="arial" font-size="14.00"> </text>
-<text text-anchor="start" x="663.5" y="-513.3" font-family="arial" font-size="14.00">AUX4:18:D16 TX2</text>
-<text text-anchor="start" x="857.5" y="-513.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;TX2 (R1 1k in line) &#160;&#160;&#160;</text>
+<text text-anchor="start" x="714" y="-532.3" font-family="arial" font-size="14.00"> </text>
+<text text-anchor="start" x="660" y="-513.3" font-family="arial" font-size="14.00">AUX4:18:D16 TX2</text>
+<text text-anchor="start" x="852.5" y="-513.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;TX2 (R1 1k in line) &#160;&#160;&#160;</text>
 <polygon fill="#000000" stroke="transparent" points="597,-505.5 597,-507.5 1050,-507.5 1050,-505.5 597,-505.5"/>
 <polygon fill="#ffffff" stroke="transparent" points="597,-503.5 597,-505.5 1050,-505.5 1050,-503.5 597,-503.5"/>
 <polygon fill="#000000" stroke="transparent" points="597,-501.5 597,-503.5 1050,-503.5 1050,-501.5 597,-501.5"/>
-<text text-anchor="start" x="663" y="-488.3" font-family="arial" font-size="14.00">AUX4:17:D17 RX2</text>
-<text text-anchor="start" x="900" y="-488.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;RX2 &#160;&#160;&#160;</text>
+<text text-anchor="start" x="659.5" y="-488.3" font-family="arial" font-size="14.00">AUX4:17:D17 RX2</text>
+<text text-anchor="start" x="895" y="-488.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;RX2 &#160;&#160;&#160;</text>
 <polygon fill="#000000" stroke="transparent" points="597,-480.5 597,-482.5 1050,-482.5 1050,-480.5 597,-480.5"/>
 <polygon fill="#ffffff" stroke="transparent" points="597,-478.5 597,-480.5 1050,-480.5 1050,-478.5 597,-478.5"/>
 <polygon fill="#000000" stroke="transparent" points="597,-476.5 597,-478.5 1050,-478.5 1050,-476.5 597,-476.5"/>
-<text text-anchor="start" x="614" y="-463.3" font-family="arial" font-size="14.00">MS3_X:1:PDN_UART dial A addr 0</text>
-<text text-anchor="start" x="909.5" y="-463.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;A &#160;&#160;&#160;</text>
+<text text-anchor="start" x="615" y="-463.3" font-family="arial" font-size="14.00">RX_X:1:PDN_UART dial A addr 0</text>
+<text text-anchor="start" x="904.5" y="-463.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;A &#160;&#160;&#160;</text>
 <polygon fill="#000000" stroke="transparent" points="597,-455.5 597,-457.5 1050,-457.5 1050,-455.5 597,-455.5"/>
 <polygon fill="#ffffff" stroke="transparent" points="597,-453.5 597,-455.5 1050,-455.5 1050,-453.5 597,-453.5"/>
 <polygon fill="#000000" stroke="transparent" points="597,-451.5 597,-453.5 1050,-453.5 1050,-451.5 597,-451.5"/>
-<text text-anchor="start" x="613.5" y="-438.3" font-family="arial" font-size="14.00">MS3_Y:1:PDN_UART dial B addr 1</text>
-<text text-anchor="start" x="909" y="-438.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;B &#160;&#160;&#160;</text>
+<text text-anchor="start" x="615" y="-438.3" font-family="arial" font-size="14.00">RX_Y:1:PDN_UART dial B addr 1</text>
+<text text-anchor="start" x="904" y="-438.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;B &#160;&#160;&#160;</text>
 <polygon fill="#000000" stroke="transparent" points="597,-430.5 597,-432.5 1050,-432.5 1050,-430.5 597,-430.5"/>
 <polygon fill="#ffffff" stroke="transparent" points="597,-428.5 597,-430.5 1050,-430.5 1050,-428.5 597,-428.5"/>
 <polygon fill="#000000" stroke="transparent" points="597,-426.5 597,-428.5 1050,-428.5 1050,-426.5 597,-426.5"/>
-<text text-anchor="start" x="613" y="-413.3" font-family="arial" font-size="14.00">MS3_Z:1:PDN_UART dial C addr 2</text>
-<text text-anchor="start" x="908.5" y="-413.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;C &#160;&#160;&#160;</text>
+<text text-anchor="start" x="614.5" y="-413.3" font-family="arial" font-size="14.00">RX_Z:1:PDN_UART dial C addr 2</text>
+<text text-anchor="start" x="903.5" y="-413.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;C &#160;&#160;&#160;</text>
 <polygon fill="#000000" stroke="transparent" points="597,-405.5 597,-407.5 1050,-407.5 1050,-405.5 597,-405.5"/>
 <polygon fill="#ffffff" stroke="transparent" points="597,-403.5 597,-405.5 1050,-405.5 1050,-403.5 597,-403.5"/>
 <polygon fill="#000000" stroke="transparent" points="597,-401.5 597,-403.5 1050,-403.5 1050,-401.5 597,-401.5"/>
-<text text-anchor="start" x="615.5" y="-388.3" font-family="arial" font-size="14.00">MS3_E0:1:PDN_UART key addr 3</text>
-<text text-anchor="start" x="900" y="-388.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;KEY &#160;&#160;&#160;</text>
+<text text-anchor="start" x="617" y="-388.3" font-family="arial" font-size="14.00">RX_E0:1:PDN_UART key addr 3</text>
+<text text-anchor="start" x="895" y="-388.3" font-family="arial" font-size="14.00"> &#160;&#160;&#160;&#160;KEY &#160;&#160;&#160;</text>
 <polygon fill="#000000" stroke="transparent" points="597,-380.5 597,-382.5 1050,-382.5 1050,-380.5 597,-380.5"/>
 <polygon fill="#ffffff" stroke="transparent" points="597,-378.5 597,-380.5 1050,-380.5 1050,-378.5 597,-378.5"/>
 <polygon fill="#000000" stroke="transparent" points="597,-376.5 597,-378.5 1050,-378.5 1050,-376.5 597,-376.5"/>
-<text text-anchor="start" x="717.5" y="-363.3" font-family="arial" font-size="14.00"> </text>
+<text text-anchor="start" x="714" y="-363.3" font-family="arial" font-size="14.00"> </text>
 <polygon fill="none" stroke="black" points="597,-334.5 597,-357.5 1050,-357.5 1050,-334.5 597,-334.5"/>
 <text text-anchor="start" x="601" y="-342.3" font-family="arial" font-size="14.00">each lead keeps a female Dupont end; cut to measured length + a few cm</text>
 </g>
@@ -229,93 +229,93 @@
 <polygon fill="none" stroke="black" points="1268,-418.5 1268,-441.5 1874,-441.5 1874,-418.5 1268,-418.5"/>
 <text text-anchor="start" x="1272" y="-426.3" font-family="arial" font-size="14.00">solder + heat shrink, zip&#45;tied to the deck. R1 1 kΩ sits in line in the TX2 lead (revision 2026&#45;10&#45;08.2)</text>
 </g>
-<!-- MS3_X -->
+<!-- RX_X -->
 <g id="node5" class="node">
-<title>MS3_X</title>
-<polygon fill="#ffffff" stroke="black" points="331.5,-547 46.5,-547 46.5,-478 331.5,-478 331.5,-547"/>
-<polygon fill="none" stroke="black" points="47,-523.5 47,-546.5 332,-546.5 332,-523.5 47,-523.5"/>
-<text text-anchor="start" x="166.5" y="-531.3" font-family="arial" font-size="14.00">MS3_X</text>
-<polygon fill="none" stroke="black" points="47,-500.5 47,-523.5 293,-523.5 293,-500.5 47,-500.5"/>
-<text text-anchor="start" x="51" y="-508.3" font-family="arial" font-size="14.00">X socket MS3 jumper pin (jumper OFF)</text>
-<polygon fill="none" stroke="black" points="293,-500.5 293,-523.5 332,-523.5 332,-500.5 293,-500.5"/>
-<text text-anchor="start" x="297" y="-508.3" font-family="arial" font-size="14.00">1&#45;pin</text>
-<polygon fill="none" stroke="black" points="47,-477.5 47,-500.5 261,-500.5 261,-477.5 47,-477.5"/>
-<text text-anchor="start" x="78.5" y="-485.3" font-family="arial" font-size="14.00">PDN_UART dial A addr 0</text>
-<polygon fill="none" stroke="black" points="261,-477.5 261,-500.5 332,-500.5 332,-477.5 261,-477.5"/>
-<text text-anchor="start" x="292.5" y="-485.3" font-family="arial" font-size="14.00">1</text>
+<title>RX_X</title>
+<polygon fill="#ffffff" stroke="black" points="330,-547 48,-547 48,-478 330,-478 330,-547"/>
+<polygon fill="none" stroke="black" points="48,-523.5 48,-546.5 330,-546.5 330,-523.5 48,-523.5"/>
+<text text-anchor="start" x="171" y="-531.3" font-family="arial" font-size="14.00">RX_X</text>
+<polygon fill="none" stroke="black" points="48,-500.5 48,-523.5 291,-523.5 291,-500.5 48,-500.5"/>
+<text text-anchor="start" x="52" y="-508.3" font-family="arial" font-size="14.00">X driver, top of its RX pin (4th from EN)</text>
+<polygon fill="none" stroke="black" points="291,-500.5 291,-523.5 330,-523.5 330,-500.5 291,-500.5"/>
+<text text-anchor="start" x="295" y="-508.3" font-family="arial" font-size="14.00">1&#45;pin</text>
+<polygon fill="none" stroke="black" points="48,-477.5 48,-500.5 261,-500.5 261,-477.5 48,-477.5"/>
+<text text-anchor="start" x="79" y="-485.3" font-family="arial" font-size="14.00">PDN_UART dial A addr 0</text>
+<polygon fill="none" stroke="black" points="261,-477.5 261,-500.5 330,-500.5 330,-477.5 261,-477.5"/>
+<text text-anchor="start" x="291.5" y="-485.3" font-family="arial" font-size="14.00">1</text>
 </g>
-<!-- MS3_X&#45;&#45;PIGTAIL -->
+<!-- RX_X&#45;&#45;PIGTAIL -->
 <g id="edge13" class="edge">
-<title>MS3_X:e&#45;&#45;PIGTAIL:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M333,-486.5C449.3,-487.25 476.58,-453.25 596,-452.5"/>
-<path fill="none" stroke="#ffffff" stroke-width="2" d="M333,-488.5C450.86,-488.5 478.14,-454.5 596,-454.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M333,-490.5C452.42,-489.75 479.7,-455.75 596,-456.5"/>
+<title>RX_X:e&#45;&#45;PIGTAIL:w</title>
+<path fill="none" stroke="#000000" stroke-width="2" d="M331,-486.5C448.19,-487.24 475.7,-453.24 596,-452.5"/>
+<path fill="none" stroke="#ffffff" stroke-width="2" d="M331,-488.5C449.74,-488.5 477.26,-454.5 596,-454.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M331,-490.5C451.3,-489.76 478.81,-455.76 596,-456.5"/>
 </g>
-<!-- MS3_Y -->
+<!-- RX_Y -->
 <g id="node6" class="node">
-<title>MS3_Y</title>
-<polygon fill="#ffffff" stroke="black" points="331.5,-454 46.5,-454 46.5,-385 331.5,-385 331.5,-454"/>
-<polygon fill="none" stroke="black" points="47,-430.5 47,-453.5 332,-453.5 332,-430.5 47,-430.5"/>
-<text text-anchor="start" x="166.5" y="-438.3" font-family="arial" font-size="14.00">MS3_Y</text>
-<polygon fill="none" stroke="black" points="47,-407.5 47,-430.5 293,-430.5 293,-407.5 47,-407.5"/>
-<text text-anchor="start" x="51" y="-415.3" font-family="arial" font-size="14.00">Y socket MS3 jumper pin (jumper OFF)</text>
-<polygon fill="none" stroke="black" points="293,-407.5 293,-430.5 332,-430.5 332,-407.5 293,-407.5"/>
-<text text-anchor="start" x="297" y="-415.3" font-family="arial" font-size="14.00">1&#45;pin</text>
-<polygon fill="none" stroke="black" points="47,-384.5 47,-407.5 262,-407.5 262,-384.5 47,-384.5"/>
-<text text-anchor="start" x="78" y="-392.3" font-family="arial" font-size="14.00">PDN_UART dial B addr 1</text>
-<polygon fill="none" stroke="black" points="262,-384.5 262,-407.5 332,-407.5 332,-384.5 262,-384.5"/>
-<text text-anchor="start" x="293" y="-392.3" font-family="arial" font-size="14.00">1</text>
+<title>RX_Y</title>
+<polygon fill="#ffffff" stroke="black" points="330,-454 48,-454 48,-385 330,-385 330,-454"/>
+<polygon fill="none" stroke="black" points="48,-430.5 48,-453.5 330,-453.5 330,-430.5 48,-430.5"/>
+<text text-anchor="start" x="171" y="-438.3" font-family="arial" font-size="14.00">RX_Y</text>
+<polygon fill="none" stroke="black" points="48,-407.5 48,-430.5 291,-430.5 291,-407.5 48,-407.5"/>
+<text text-anchor="start" x="52" y="-415.3" font-family="arial" font-size="14.00">Y driver, top of its RX pin (4th from EN)</text>
+<polygon fill="none" stroke="black" points="291,-407.5 291,-430.5 330,-430.5 330,-407.5 291,-407.5"/>
+<text text-anchor="start" x="295" y="-415.3" font-family="arial" font-size="14.00">1&#45;pin</text>
+<polygon fill="none" stroke="black" points="48,-384.5 48,-407.5 262,-407.5 262,-384.5 48,-384.5"/>
+<text text-anchor="start" x="78.5" y="-392.3" font-family="arial" font-size="14.00">PDN_UART dial B addr 1</text>
+<polygon fill="none" stroke="black" points="262,-384.5 262,-407.5 330,-407.5 330,-384.5 262,-384.5"/>
+<text text-anchor="start" x="292" y="-392.3" font-family="arial" font-size="14.00">1</text>
 </g>
-<!-- MS3_Y&#45;&#45;PIGTAIL -->
+<!-- RX_Y&#45;&#45;PIGTAIL -->
 <g id="edge15" class="edge">
-<title>MS3_Y:e&#45;&#45;PIGTAIL:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M333,-393.5C452.42,-394.25 479.7,-428.25 596,-427.5"/>
-<path fill="none" stroke="#ffffff" stroke-width="2" d="M333,-395.5C450.86,-395.5 478.14,-429.5 596,-429.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M333,-397.5C449.3,-396.75 476.58,-430.75 596,-431.5"/>
+<title>RX_Y:e&#45;&#45;PIGTAIL:w</title>
+<path fill="none" stroke="#000000" stroke-width="2" d="M331,-393.5C451.3,-394.24 478.81,-428.24 596,-427.5"/>
+<path fill="none" stroke="#ffffff" stroke-width="2" d="M331,-395.5C449.74,-395.5 477.26,-429.5 596,-429.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M331,-397.5C448.19,-396.76 475.7,-430.76 596,-431.5"/>
 </g>
-<!-- MS3_Z -->
+<!-- RX_Z -->
 <g id="node7" class="node">
-<title>MS3_Z</title>
-<polygon fill="#ffffff" stroke="black" points="331.5,-361 46.5,-361 46.5,-292 331.5,-292 331.5,-361"/>
-<polygon fill="none" stroke="black" points="47,-337.5 47,-360.5 332,-360.5 332,-337.5 47,-337.5"/>
-<text text-anchor="start" x="167" y="-345.3" font-family="arial" font-size="14.00">MS3_Z</text>
-<polygon fill="none" stroke="black" points="47,-314.5 47,-337.5 293,-337.5 293,-314.5 47,-314.5"/>
-<text text-anchor="start" x="51" y="-322.3" font-family="arial" font-size="14.00">Z socket MS3 jumper pin (jumper OFF)</text>
-<polygon fill="none" stroke="black" points="293,-314.5 293,-337.5 332,-337.5 332,-314.5 293,-314.5"/>
-<text text-anchor="start" x="297" y="-322.3" font-family="arial" font-size="14.00">1&#45;pin</text>
-<polygon fill="none" stroke="black" points="47,-291.5 47,-314.5 263,-314.5 263,-291.5 47,-291.5"/>
-<text text-anchor="start" x="78" y="-299.3" font-family="arial" font-size="14.00">PDN_UART dial C addr 2</text>
-<polygon fill="none" stroke="black" points="263,-291.5 263,-314.5 332,-314.5 332,-291.5 263,-291.5"/>
-<text text-anchor="start" x="293.5" y="-299.3" font-family="arial" font-size="14.00">1</text>
+<title>RX_Z</title>
+<polygon fill="#ffffff" stroke="black" points="329.5,-361 48.5,-361 48.5,-292 329.5,-292 329.5,-361"/>
+<polygon fill="none" stroke="black" points="49,-337.5 49,-360.5 330,-360.5 330,-337.5 49,-337.5"/>
+<text text-anchor="start" x="172" y="-345.3" font-family="arial" font-size="14.00">RX_Z</text>
+<polygon fill="none" stroke="black" points="49,-314.5 49,-337.5 291,-337.5 291,-314.5 49,-314.5"/>
+<text text-anchor="start" x="53" y="-322.3" font-family="arial" font-size="14.00">Z driver, top of its RX pin (4th from EN)</text>
+<polygon fill="none" stroke="black" points="291,-314.5 291,-337.5 330,-337.5 330,-314.5 291,-314.5"/>
+<text text-anchor="start" x="295" y="-322.3" font-family="arial" font-size="14.00">1&#45;pin</text>
+<polygon fill="none" stroke="black" points="49,-291.5 49,-314.5 263,-314.5 263,-291.5 49,-291.5"/>
+<text text-anchor="start" x="79" y="-299.3" font-family="arial" font-size="14.00">PDN_UART dial C addr 2</text>
+<polygon fill="none" stroke="black" points="263,-291.5 263,-314.5 330,-314.5 330,-291.5 263,-291.5"/>
+<text text-anchor="start" x="292.5" y="-299.3" font-family="arial" font-size="14.00">1</text>
 </g>
-<!-- MS3_Z&#45;&#45;PIGTAIL -->
+<!-- RX_Z&#45;&#45;PIGTAIL -->
 <g id="edge17" class="edge">
-<title>MS3_Z:e&#45;&#45;PIGTAIL:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M333,-300.5C460.36,-302.26 472.61,-404.26 596,-402.5"/>
-<path fill="none" stroke="#ffffff" stroke-width="2" d="M333,-302.5C458.37,-302.5 470.63,-404.5 596,-404.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M333,-304.5C456.39,-302.74 468.64,-404.74 596,-406.5"/>
+<title>RX_Z:e&#45;&#45;PIGTAIL:w</title>
+<path fill="none" stroke="#000000" stroke-width="2" d="M331,-300.5C459.19,-302.25 471.78,-404.25 596,-402.5"/>
+<path fill="none" stroke="#ffffff" stroke-width="2" d="M331,-302.5C457.2,-302.5 469.8,-404.5 596,-404.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M331,-304.5C455.22,-302.75 467.81,-404.75 596,-406.5"/>
 </g>
-<!-- MS3_E0 -->
+<!-- RX_E0 -->
 <g id="node8" class="node">
-<title>MS3_E0</title>
-<polygon fill="#ffffff" stroke="black" points="335.5,-268 42.5,-268 42.5,-199 335.5,-199 335.5,-268"/>
-<polygon fill="none" stroke="black" points="43,-244.5 43,-267.5 336,-267.5 336,-244.5 43,-244.5"/>
-<text text-anchor="start" x="163" y="-252.3" font-family="arial" font-size="14.00">MS3_E0</text>
-<polygon fill="none" stroke="black" points="43,-221.5 43,-244.5 297,-244.5 297,-221.5 43,-221.5"/>
-<text text-anchor="start" x="47" y="-229.3" font-family="arial" font-size="14.00">E0 socket MS3 jumper pin (jumper OFF)</text>
-<polygon fill="none" stroke="black" points="297,-221.5 297,-244.5 336,-244.5 336,-221.5 297,-221.5"/>
-<text text-anchor="start" x="301" y="-229.3" font-family="arial" font-size="14.00">1&#45;pin</text>
-<polygon fill="none" stroke="black" points="43,-198.5 43,-221.5 256,-221.5 256,-198.5 43,-198.5"/>
-<text text-anchor="start" x="79.5" y="-206.3" font-family="arial" font-size="14.00">PDN_UART key addr 3</text>
-<polygon fill="none" stroke="black" points="256,-198.5 256,-221.5 336,-221.5 336,-198.5 256,-198.5"/>
-<text text-anchor="start" x="292" y="-206.3" font-family="arial" font-size="14.00">1</text>
+<title>RX_E0</title>
+<polygon fill="#ffffff" stroke="black" points="333.5,-268 44.5,-268 44.5,-199 333.5,-199 333.5,-268"/>
+<polygon fill="none" stroke="black" points="45,-244.5 45,-267.5 334,-267.5 334,-244.5 45,-244.5"/>
+<text text-anchor="start" x="168" y="-252.3" font-family="arial" font-size="14.00">RX_E0</text>
+<polygon fill="none" stroke="black" points="45,-221.5 45,-244.5 295,-244.5 295,-221.5 45,-221.5"/>
+<text text-anchor="start" x="49" y="-229.3" font-family="arial" font-size="14.00">E0 driver, top of its RX pin (4th from EN)</text>
+<polygon fill="none" stroke="black" points="295,-221.5 295,-244.5 334,-244.5 334,-221.5 295,-221.5"/>
+<text text-anchor="start" x="299" y="-229.3" font-family="arial" font-size="14.00">1&#45;pin</text>
+<polygon fill="none" stroke="black" points="45,-198.5 45,-221.5 256,-221.5 256,-198.5 45,-198.5"/>
+<text text-anchor="start" x="80.5" y="-206.3" font-family="arial" font-size="14.00">PDN_UART key addr 3</text>
+<polygon fill="none" stroke="black" points="256,-198.5 256,-221.5 334,-221.5 334,-198.5 256,-198.5"/>
+<text text-anchor="start" x="291" y="-206.3" font-family="arial" font-size="14.00">1</text>
 </g>
-<!-- MS3_E0&#45;&#45;PIGTAIL -->
+<!-- RX_E0&#45;&#45;PIGTAIL -->
 <g id="edge19" class="edge">
-<title>MS3_E0:e&#45;&#45;PIGTAIL:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M337,-207.5C476.68,-209.69 460.3,-379.69 596,-377.5"/>
-<path fill="none" stroke="#ffffff" stroke-width="2" d="M337,-209.5C474.69,-209.5 458.31,-379.5 596,-379.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M337,-211.5C472.7,-209.31 456.32,-379.31 596,-381.5"/>
+<title>RX_E0:e&#45;&#45;PIGTAIL:w</title>
+<path fill="none" stroke="#000000" stroke-width="2" d="M335,-207.5C475.43,-209.69 459.55,-379.69 596,-377.5"/>
+<path fill="none" stroke="#ffffff" stroke-width="2" d="M335,-209.5C473.44,-209.5 457.56,-379.5 596,-379.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M335,-211.5C471.45,-209.31 455.57,-379.31 596,-381.5"/>
 </g>
 <!-- KEYCABLE&#45;&#45;E0MOT -->
 <g id="edge2" class="edge">

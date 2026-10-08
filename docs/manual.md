@@ -373,7 +373,7 @@ bring-up stage before the next one is added:
 
 | Build | Then test with |
 |---|---|
-| 2.3 Drivers: DIAG mod (all four), heatsinks, jumpers. Flash the firmware (section 4) | `control/bringup.md` stage 0 |
+| 2.3 Drivers: cut the EN-end pins underneath (all four), heatsinks. Flash the firmware (section 4) | `control/bringup.md` stage 0 |
 | 2.4 Mega + RAMPS + the four drivers; 2.5 UART pigtail; 2.6 power; 2.7 jumpers | stage 1 (one driver, then all four) |
 | 2.8 one motor on the bench | stages 2 and 3 |
 | Dial unit assembled (section 1) with its three motors | stage 4 |
@@ -407,16 +407,17 @@ bring-up stage before the next one is added:
 
 Four drivers are used (three dials + the key), plus one spare.
 
-1. **DIAG mod, on all four drivers** (`control/wiring.md` §3.3), before the
-   heatsinks:
-   1. Two short pins point *down* at the EN end: INDEX and DIAG. Cut both
-      flush with their plastic spacer.
-   2. Cut an F–F jumper in half. Strip 2–3 mm and tin it.
-   3. Solder it to the **top-side joint of the pin labelled DIAG** (second
-      from the EN corner). Keep the iron off the trimmer pot next to it.
+1. **Two snips per driver, on all four** (`control/wiring.md` §3.3), before
+   the heatsinks. Revision 2026-10-08.2: no soldering on the drivers.
+   1. At the EN end, two pins go through the board (above and below). Cut
+      the **bottom** ends of both off flush underneath. Leave the top ends.
+   2. Find **DIAG** on top: the EN-end pin next to the trimmer pot, with
+      "DIAG" printed under it. Its DIAG lead (2.7) clips onto its top.
+   3. Find **RX** on top: the 4th pin from EN (EN, MS1, MS2, **RX**, TX, CLK,
+      …), one of the three tall pins. Its UART lead (2.5) clips onto its top.
+      Nothing ever goes on TX or CLK.
 
-   (Leave the spare untouched.) **VERIFY:** which pin is DIAG. Stage 3
-   confirms it.
+   (Leave the spare untouched.) Stage 3 confirms DIAG electrically.
 2. **Heatsinks** on all drivers you'll use. At ≤ 1 A RMS no fan is needed
    (BTT: active cooling above 1.2 A).
 3. **Don't bridge R10** on any driver (`control/wiring.md` §2).
@@ -442,10 +443,28 @@ Four drivers are used (three dials + the key), plus one spare.
 
    **Never fit an MS3 jumper.** On the V1.3 the MS3 position is the UART
    line, and a jumper there would tie it to 5 V.
-2. Press the RAMPS onto the Mega.
-3. Plug each driver into its socket, **EN / DIR / VM / GND matching the
-   silkscreen**. The key driver goes in **E0**. Leave **E1 empty**.
-4. **Mount the Mega**: four M3 × 6–8 screws through the Mega's own plastic
+2. **Check which way the drivers go**, before the RAMPS goes on the Mega.
+   The sockets have no pin-1 marking on top. Power off, no drivers,
+   multimeter on continuity, for the **X** socket:
+   1. Underneath, look for a **square** solder pad on each socket: that's
+      pin 1, **EN**.
+   2. "5A" terminal **−** to each hole of the socket row nearer the X motor
+      header: **two** beep, one at each end. Those are the driver's GND pins.
+   3. "5A" terminal **+** to the end hole beside a GND hole: beeps (through
+      the RAMPS fuse; a low resistance reading is fine). That's **VS**.
+   4. Each X motor-header pin beeps to one of the four middle holes of that
+      row.
+
+   So the row nearer the motor header takes the driver's **VS, GND, A2, A1,
+   B1, B2, VIO, GND** side, and EN sits directly across from VS. Repeat step
+   2 on Y, Z and E0. (From the RAMPS 1.4 KiCad layout; your Fasizi board is
+   checked by these readings.) **Send back:** the X results and whether you
+   saw the square pads.
+3. Press the RAMPS onto the Mega.
+4. Plug each driver in: **VS/GND/motor side in the row nearer that socket's
+   motor header**, EN across from VS. A reversed driver is destroyed. The
+   key driver goes in **E0**. Leave **E1 empty**.
+5. **Mount the Mega**: four M3 × 6–8 screws through the Mega's own plastic
    base into the electronics deck (three are enough).
 
 ### 2.5 UART pigtail (replaces the hub board, revision 2026-10-08.2)
@@ -454,12 +473,10 @@ Six leads, each ending in a female Dupont, joined in one solder splice. R1
 sits in line in the TX2 lead. No 12 V, 5 V or GND on it. Drawing:
 `control/harness/uart_pigtail.svg`; reference `control/wiring.md` §5.
 
-1. **Test-fit, then measure**, with the drivers in. First push one F–F
-   jumper's female end onto the X socket's MS3 jumper pin under the seated,
-   heatsinked driver. **VERIFY:** it fits (nobody has checked this yet; if
-   it doesn't, stop and tell me). Then measure AUX-4 to each socket's MS3
-   jumper pin (X, Y, Z, E0) and pick a splice point near the middle of the
-   RAMPS.
+1. **Measure**, with the drivers seated: AUX-4 to each driver's **RX** pin
+   (X, Y, Z, E0). Pick a splice point near the middle of the RAMPS. (A
+   female Dupont on top of RX is checked: it grips and conducts, Paul
+   2026-10-08.)
 2. **Make six leads**: cut one end off each of six F–F jumpers (halves will
    do if long enough). Cut each to its measured length + a few cm.
 3. **TX2 lead:** solder **R1 (1 kΩ)** in line, ~3 cm from the female end.
@@ -500,18 +517,18 @@ built in 2.5. The endstop headers are **S** (signal), **−** (GND) and **+**
 
 | From | To |
 |---|---|
-| Dial A driver DIAG lead (from 2.3) | **X_MIN S** (D3) |
-| Dial B driver DIAG lead | **X_MAX S** (D2) |
-| Dial C driver DIAG lead | **Z_MIN S** (D18) |
-| **Key** driver DIAG lead (E0) | **Z_MAX S** (D19) |
-| Pigtail leads **A, B, C, KEY** | X, Y, Z, **E0** MS3 jumper pins, signal side |
+| Top of dial A driver's **DIAG** pin (X socket) | **X_MIN S** (D3) |
+| Top of dial B driver's **DIAG** pin (Y) | **X_MAX S** (D2) |
+| Top of dial C driver's **DIAG** pin (Z) | **Z_MIN S** (D18) |
+| Top of the **key** driver's **DIAG** pin (E0) | **Z_MAX S** (D19) |
+| Pigtail leads **A, B, C, KEY** | top of the **RX** pin of the drivers in X, Y, Z, **E0** |
 | Pigtail leads **TX2 / RX2** | AUX-4 pin 18 / 17 (D16 / D17) |
 | Start/stop button (7 mm) | **Y_MIN S** and **Y_MIN −** (D14) |
 
-**VERIFY:** which MS3 pin is the signal side on your Fasizi board. If `ping`
-gets no answer in stage 1, move that lead to the other pin (the wrong one is
-the 5 V side — harmless). The button's mount isn't designed yet; a loose
-button on its leads is fine for the bench.
+DIAG leads are plain F–F jumpers (revision 2026-10-08.2; no cut-in-half
+leads). Before unplugging a driver, pull its DIAG and RX leads off. The
+button's mount isn't designed yet; a loose button on its leads is fine for
+the bench.
 
 ### 2.8 Motors
 
@@ -860,7 +877,7 @@ success. `<value>`:
   it cool, check the motor's wires, and send me the log before resuming.
 - `4`: its **12 V is too low** right now: the supply or its wiring.
 - `80`: **no answer**: no 12 V at that driver, or its UART pigtail lead is
-  off its MS3 pin. All four at once: the RAMPS 5 A fuse or the supply, or the
+  off its RX pin. All four at once: the RAMPS 5 A fuse or the supply, or the
   pigtail's TX2 / RX2 leads, R1 or the splice (redo the 2.5 multimeter
   check).
 - Flags add up: `5` = 1 + 4.

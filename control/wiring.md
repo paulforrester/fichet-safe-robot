@@ -17,8 +17,10 @@ the decision log, 2026-10-08.
 
 **Revision 2026-10-08.2 (2026-10-08):** the hub board is replaced by the
 **UART pigtail** (section 5): six leads with female Dupont ends, R1 in line in
-the TX2 lead, one solder splice. Same circuit. Decision log, 2026-10-08
-(pigtail).
+the TX2 lead, one solder splice. Same circuit. Its driver leads clip onto the
+**top of each driver's RX pin**, and DIAG is a plain jumper on the top of the
+DIAG pin (no soldering on the drivers; two snips each). Decision log,
+2026-10-08 (pigtail) and 2026-10-08 (evening).
 
 ## Summary — what was decided
 
@@ -27,17 +29,21 @@ the TX2 lead, one solder splice. Same circuit. Decision log, 2026-10-08
    This is the datasheet's own circuit (TMC2209 DS Fig. 4.1). *Correction* of
    `sequence.md`, which said one resistor per driver. Built as the **UART
    pigtail** (section 5, revision 2026-10-08.2).
-2. **UART on RAMPS needs no soldering**: the BTT V1.3's PDN_UART pin sits in
-   the socket's **MS3** position, and RAMPS brings MS3 out to its MS3 jumper
-   pin. Leave the MS3 jumper **off** and clip a female jumper onto that pin.
+2. **UART needs no soldering**: the BTT V1.3's PDN_UART pin (**RX**, the 4th
+   pin) stands up through the top of the driver as a tall pin (Paul's drivers,
+   2026-10-08). Clip a female Dupont onto the **top of each driver's RX pin**
+   (section 3.3). Leave the MS3 jumper **off** (RX also sits in the socket's MS3
+   position). *Revision 2026-10-08.2*: until then the tap was the RAMPS MS3
+   jumper pin under the driver, which was never checked for room.
 3. **Addresses by RAMPS jumpers**: X = none (addr 0), Y = MS1 (addr 1),
    Z = MS2 (addr 2), **E0 = MS1 + MS2 (addr 3, the key)**.
    **Never fit an MS3 jumper** (it would tie the UART line to 5 V).
-4. **DIAG needs a one-time mod on all four drivers**: on the V1.3 the DIAG
-   pin points *down* (it is meant for BTT boards' DIAG sockets) and lands on
-   nothing on a RAMPS. Clip it under the board and solder a lead to its top
-   joint (section 3.3). (Before revision 2026-10-08.1 the key driver sat on
-   its own board with a socket for that pin and needed no mod.)
+4. **DIAG: two snips per driver, no soldering** (all four drivers): on Paul's
+   V1.3s the two EN-end pins (DIAG and its neighbour) stick out both above
+   and below the board. Cut the **bottom** ends flush, so nothing points down
+   at the RAMPS, and clip a plain F–F jumper onto the **top of the DIAG pin**
+   (section 3.3). *Revision 2026-10-08.2*: until then the docs assumed the
+   pins pointed down only and had a lead soldered to the DIAG joint.
 5. **DIAG pins moved to interrupt-capable Mega pins** (D2, D3, D18, D19).
    *Correction*: dial B's DIAG was planned on Y_MIN (D14), which has no
    `attachInterrupt` on the Mega, and the datasheet says DIAG is a *pulse*.
@@ -74,10 +80,10 @@ top-right, C = bottom** (standing in front of the safe).
 | Dial B DIAG | D2 (INT, no. 0) | **X_MAX** header, S pin | Marlin X_MAX_PIN 2 — *moved from Y_MIN* |
 | Dial C DIAG | D18 (INT, no. 5) | **Z_MIN** header, S pin | Marlin Z_MIN_PIN 18 |
 | Key STEP / DIR / EN | D26 / D28 / D24 | RAMPS **E0** socket (driver plugs in) | Marlin E0_STEP/DIR/ENABLE (`pins_RAMPS.h`) — *rev 2026-10-08.1* |
-| Key DIAG | D19 (INT, no. 4) | **Z_MAX** header, S pin (lead from the E0 driver's DIAG mod) | Marlin Z_MAX_PIN 19 |
+| Key DIAG | D19 (INT, no. 4) | **Z_MAX** header, S pin (F–F jumper from the top of the E0 driver's DIAG pin) | Marlin Z_MAX_PIN 19 |
 | UART TX2 | D16 | **AUX-4 pin 18** ← pigtail lead TX2 (R1 1 kΩ in line) | Marlin: "Serial2 — TX2 = D16 RX2 = D17 (AUX4-18 and AUX4-17)" |
 | UART RX2 | D17 | **AUX-4 pin 17** ← pigtail lead RX2 (to the splice) | same |
-| Drivers' PDN_UART | — | MS3 jumper pin of X, Y, Z **and E0** (signal side) ← pigtail leads A, B, C, KEY | KiCad: socket MS3 ↔ jumper pad 5 |
+| Drivers' PDN_UART | — | top of the **RX pin** of the drivers in X, Y, Z **and E0** ← pigtail leads A, B, C, KEY | BTT V1.3 schematic: RX = `UART_RX` = PDN_UART |
 | Start / stop button | D14 (input, pull-up) | **Y_MIN** header: S and − pins | Marlin Y_MIN_PIN 14 (no interrupt needed) |
 | Spare (was 5 V/GND for the remote board until rev 2026-10-08.1) | 5 V, GND | Y_MAX header + and − pins | KiCad: endstop pin 3 = 5 V, pin 2 = GND |
 | Status LED | D13 | on-board LED | Marlin LED_PIN 13 |
@@ -122,13 +128,19 @@ DIAG wire reads *high* = "stalled" and the firmware refuses to move (fail safe).
 - **UART tap**: the V1.3's header pins in the StepStick order are EN, MS1, MS2,
   **RX**, TX, CLK, STEP, DIR (BTT manual p. 5). Its schematic shows **RX =
   PDN_UART** (net `UART_RX`, chip pin 14) and **TX** connected to it only
-  through **R10, which is not fitted** (marked NC). So PDN_UART is in the MS3
-  position, and on RAMPS the MS3 position goes only to the MS3 jumper pin (KiCad
-  net `U2.MS3 ↔ JP1.5`). Clip a female jumper onto **the MS3 jumper pin on the
-  side nearer the driver's EN/STEP/DIR row** (KiCad port: the signal pins sit on
-  that side, the 5 V pins on the motor-terminal side). **VERIFY** on Paul's
-  Fasizi board: the firmware's `ping` answers only if the lead is on the right
-  pin; the wrong pin is the 5 V side, which is harmless (the bus just sits high).
+  through **R10, which is not fitted** (marked NC). **Measured (Paul,
+  2026-10-08):** RX to TX is open on his drivers (no continuity), so R10 is
+  open as the schematic says. Paul's drivers have the RX, TX and CLK pins
+  standing up through the top (tall pins; all five alike, Paul 2026-10-08),
+  and a female Dupont on the top of RX grips and conducts (Paul checked
+  continuity pin → far end of the lead). **The tap is the top of the RX
+  pin** (revision 2026-10-08.2). Put nothing on TX or CLK.
+- On the RAMPS, the RX pin also goes into the socket's MS3 hole, which leads
+  only to that socket's MS3 jumper pad (KiCad net `U2.MS3 ↔ JP1.5`; each
+  socket's MS3 is its own net, checked for all five sockets 2026-10-08, so
+  the unused E1 block can't be used as a tap). With the MS3 jumper off,
+  nothing else is on the line. *Until revision 2026-10-08.2* the tap was that
+  MS3 jumper pin, under the seated driver.
 - **Don't bridge R10 on any driver**: RAMPS ties the socket's RST and SLP
   pins together (KiCad net `U2.SLP ↔ U2.RST`), which on the V1.3 are TX and
   CLK. With R10 open, CLK sees only its 20 kΩ pull-down (BTT schematic R4) →
@@ -166,25 +178,27 @@ Consequences:
 
 ### 3.3 BTT TMC2209 V1.3 pin access on RAMPS
 
-- **UART**: no soldering — MS3 jumper pin, section 2.
-- **DIAG**: the V1.3 has two extra top-edge pins next to the EN corner,
-  INDEX and DIAG (schematic header P1B; silkscreen labels the one further from
-  EN "DIAG"). They are fitted **pointing down** (BTT manual p. 6 "BOTTOM
-  (Factory default)" photo; p. 8 shows them going into the SKR 3's DIAG
-  sockets). A RAMPS has no socket there, and the RAMPS sockets are at 20.32 mm
-  pitch — the driver boards sit edge to edge, so the pin can't be bent out
-  sideways. **Mod for all four drivers (X, Y, Z and E0; rev 2026-10-08.1),
-  before fitting the heatsinks:**
-  1. With flush cutters, cut the two down-pointing pins (INDEX and DIAG) off
-     flush with the bottom of their little plastic spacer, so nothing sticks
-     down towards the RAMPS.
-  2. Cut a female–female jumper in half. Strip 2–3 mm, tin it, and solder it
-     to the **top-side joint of the DIAG pin** (the pin labelled DIAG, second
-     from the EN corner). Keep the iron off the trimmer pot next to it.
-  3. The jumper's female end goes on the S pin of that driver's endstop header
+- **UART**: no soldering. A pigtail lead (section 5) clips onto the top of the
+  driver's **RX** pin (section 2).
+- **DIAG**: the V1.3 has extra pins at the EN end (BTT schematic header P1B
+  lists INDEX, DIAG and VREF). On Paul's drivers (photos, 2026-10-08) the top
+  edge reads, from the EN corner: the EN pin, a short unlabelled pin, an
+  empty hole, then the pin with **"DIAG"** printed under it, next to the
+  trimmer pot. Both fitted pins stick out **above and below** the board (Paul,
+  all five drivers). BTT's manual shows them pointing down only ("BOTTOM
+  (Factory default)", p. 6); Paul's are through-pins. **For all four drivers
+  (X, Y, Z, E0), before fitting the heatsinks:**
+  1. With flush cutters, cut the **bottom** ends of both EN-end pins off flush
+     with the underside (or their plastic spacer). Seated, they would point
+     down between the socket rows at the EN end. The RAMPS KiCad puts the MS
+     jumper block toward the DIR end, so they're probably clear, but what's
+     under them on Paul's Fasizi board isn't checked; cutting removes the
+     question. Leave the top ends.
+  2. A plain F–F jumper (~10 cm) from the **top of the DIAG pin** (the one
+     next to the trimmer pot) to the S pin of that driver's endstop header
      (section 1): X_MIN (A), X_MAX (B), Z_MIN (C), Z_MAX (key).
-  Alternative if you prefer: desolder the 2-pin header and solder one straight
-  pin into the DIAG hole pointing up.
+  Put nothing on the other EN-end pin. *Until revision 2026-10-08.2* this was
+  a soldered lead on the DIAG joint (the docs assumed down-only pins).
 - **VERIFY**: which pin is DIAG. The firmware's `ping` prints the DIAG state
   both from the Mega pin and from the driver's own IOIN register; bench stage
   3 stalls the motor by hand and both must flip together.
@@ -245,23 +259,23 @@ solder splice. Drawing: `control/harness/uart_pigtail.svg`. Build steps:
 |---|---|---|
 | **TX2** — R1 1 kΩ in line, ~3 cm from the female end | AUX-4 pin 18 (D16) | R1 → splice |
 | **RX2** | AUX-4 pin 17 (D17) | splice |
-| **A** | X socket MS3 jumper pin, signal side (dial A, addr 0) | splice |
-| **B** | Y socket MS3 jumper pin, signal side (dial B, addr 1) | splice |
-| **C** | Z socket MS3 jumper pin, signal side (dial C, addr 2) | splice |
-| **KEY** | E0 socket MS3 jumper pin, signal side (key, addr 3) | splice |
+| **A** | top of the RX pin, driver in X (dial A, addr 0) | splice |
+| **B** | top of the RX pin, driver in Y (dial B, addr 1) | splice |
+| **C** | top of the RX pin, driver in Z (dial C, addr 2) | splice |
+| **KEY** | top of the RX pin, driver in E0 (key, addr 3) | splice |
 
 - **The splice is the bus node** of DS Fig. 4.1: R1's far end, RX2 and the
   four PDN_UART leads. Heat shrink over the joint and over R1; zip-tie the
   splice to the deck so the leads can't pull on it.
 - **Leads**: six F–F jumpers with one end cut off each (or jumper halves if
-  long enough), cut to the measured run from AUX-4 / the MS3 pin to a splice
-  near the middle of the RAMPS, plus a few cm.
+  long enough), cut to the measured run from AUX-4 / each driver's RX pin to a
+  splice near the middle of the RAMPS, plus a few cm.
 - **Signals only**: no 12 V, 5 V or GND. The Mega and all four drivers share
   ground through the RAMPS.
 - **Check before fitting** (multimeter, Ω): TX2 → RX2 ≈ 1 kΩ; TX2 → A, B, C,
   KEY ≈ 1 kΩ each; RX2 → A, B, C, KEY ≈ 0 Ω each.
-- Each driver lead keeps its own female end, so a lead can still be moved to
-  the other MS3 pin if `ping` gets no answer (bring-up stage 1).
+- Each driver lead keeps its own female end, so a driver can still be
+  unplugged (pull the lead off its RX pin first).
 
 *Until revision 2026-10-08.2* this was a perfboard ("hub board") with male
 pins for six F–F jumpers: the same circuit and the same six jumpers, but six
@@ -362,7 +376,7 @@ discrete part" (2026-10-07).
 | Item | Qty | For |
 |---|---|---|
 | **Multimeter** — **on hand** (Paul, 2026-10-07) | 1 | 12 V polarity at the DC-jack adapter before first power-up |
-| F–F Dupont jumpers, 10–20 cm — **ordered** 2026-10-07 | ~20 | UART pigtail (6 leads, one end cut off each), DIAG leads (4 jumpers cut in half for the mod), the button |
+| F–F Dupont jumpers, 10–20 cm — **ordered** 2026-10-07 | ~20 | UART pigtail (6 leads, one end cut off each), DIAG leads (4 plain jumpers, rev 2026-10-08.2), the button |
 | Heat shrink — **ordered** | — | over R1 and the pigtail splice |
 | Female DC barrel jack **5.5 × 2.1 mm** → screw terminal adapter (fits the Ledmo HTY-1200500 plug, centre positive) — **ordered** 2026-10-07 | 1 | PSU → RAMPS "5A" terminal without cutting the plug. Check its + / − marking with the multimeter before first use |
 | 20 AWG wire, red + black, ~1 m each — **ordered** 2026-10-07 | 1 | adapter → RAMPS 12 V |
@@ -380,14 +394,14 @@ for the hub board (the UART pigtail replaces it).
 ## 11. Things to verify on the bench (steps in `control/bringup.md`)
 
 - UART pigtail: the multimeter readings in section 5 before fitting.
-- **VERIFY** (not established from any source): a female Dupont fits on each
-  MS3 jumper pin with the heatsinked driver seated above it. Test-fit one
-  lead on X before building the pigtail (manual §2.5 step 1). This has been
-  the UART-tap plan since 2026-10-06; it was never checked.
-- UART lead on the correct MS3 jumper pin (firmware `ping`).
-- Which top-edge pin is DIAG (`ping` + a hand stall).
-- The E0 socket: the key driver answers `ping` at address 3 (MS1 = MS2 = 1),
-  with its UART lead on E0's MS3 jumper pin (rev 2026-10-08.1).
+- **Done (Paul, 2026-10-08):** a female Dupont grips the top of the RX pin and
+  conducts; RX–TX open (R10 not fitted); all five drivers alike, EN-end pins
+  through the board. (This replaces the old "Dupont under the driver on the
+  MS3 jumper pin" check.)
+- UART: every driver answers `ping` with its lead on RX (stage 1).
+- Which EN-end pin is DIAG: silkscreen says the one next to the pot; stage 3
+  confirms it (`ping` + a hand stall).
+- The E0 socket: the key driver answers `ping` at address 3 (MS1 = MS2 = 1).
 - The key's StallGuard through the 1 m motor cable (stage 5); shorten the
   cable if it reads too dull (Paul, 2026-10-08).
 - Motor step angle 1.8° (one commanded revolution returns to a mark).
@@ -422,6 +436,38 @@ for the hub board (the UART pigtail replaces it).
    2026-10-03). The step angle is still not confirmed against its data sheet.
 
 ## Decision log (most recent first)
+
+### 2026-10-08 (evening) — UART on the driver's RX pin; DIAG without soldering (revision 2026-10-08.2)
+
+**What Paul found on his drivers** (BTT TMC2209 V1.3, all five alike; photos
+and bench checks, 2026-10-08):
+- The **RX, TX and CLK** pins stand up through the top of the board as tall
+  pins. BTT's pinout card labels RX and TX both "PDN"; the V1.3 schematic has
+  RX = `UART_RX` = the chip's PDN_UART (pin 14), and TX joins it only through
+  R10 (NC). **RX–TX measured open** on Paul's driver, so R10 is open.
+- A female Dupont on the top of RX grips well and conducts (continuity from
+  the pin to the far end of the lead).
+- The two EN-end pins go **through** the board (above and below). The
+  silkscreen prints "DIAG" under the one next to the trimmer pot; between it
+  and the other fitted pin is an empty hole. BTT's manual photo shows them
+  pointing down only, which is what the old DIAG mod assumed.
+- Also checked (RAMPS 1.4 KiCad, 2026-10-08): each socket's MS3 is its own
+  net (socket MS3 ↔ its jumper pad 5 only). Paul's idea of tapping the
+  unused E1 block wouldn't reach any driver.
+
+**Decision:**
+- **UART tap = top of each driver's RX pin.** It avoids the RAMPS MS3 jumper
+  pin under a seated driver, whose clearance was never checked, and needs no
+  soldering. Electrically identical (RX is the pin in the socket's MS3 hole).
+  The MS3 jumper stays off.
+- **DIAG = plain F–F jumper on the top of the DIAG pin.** Still cut the
+  bottom ends of both EN-end pins: seated, they'd point down between the
+  socket rows, and what's under them on Paul's board isn't checked.
+- Leave TX, CLK and the other EN-end pin free. Don't bridge R10.
+
+**Correction** to the pigtail entry below: its "move the lead to the other
+MS3 pin" fallback no longer applies; the lead goes on RX, which has been
+checked.
 
 ### 2026-10-08 — hub board → UART pigtail (revision 2026-10-08.2)
 

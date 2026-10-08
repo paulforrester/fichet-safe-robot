@@ -35,7 +35,7 @@ digraph overview {
   mega -> x [arrowhead=none]; mega -> y [arrowhead=none]; mega -> z [arrowhead=none]; mega -> e0 [arrowhead=none];
   x -> ma; y -> mb; z -> mc;
   e0 -> mk [penwidth=2, label="key motor cable, ~1 m\n(the only wire between the units)"];
-  uart -> x [dir=both, style=dashed, label="UART (MS3 jumper pin)"];
+  uart -> x [dir=both, style=dashed, label="UART (top of each driver's RX pin)"];
   uart -> y [dir=both, style=dashed];
   uart -> z [dir=both, style=dashed];
   uart -> e0 [dir=both, style=dashed];

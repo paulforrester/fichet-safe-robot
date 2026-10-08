@@ -153,7 +153,7 @@ RAMPS, UART pigtail); firmware written and host-tested
 - The key motor's own ~1 m cable plugs into the RAMPS **E0 motor header**
   (revision 2026-10-08.1). No inter-unit signal cable.
 - F–F jumpers (six of them, one end cut off each, make the UART pigtail; four
-  cut in half make the DIAG leads), heat shrink, a zip tie.
+  plain ones are the DIAG leads), heat shrink, a zip tie.
 - **No longer used** (bought earlier, keep as spares): the 6-conductor
   QUARKZMAN cable, the Phoenix 8-pin connectors, the 1.1 A PTC and glass-fuse
   kit + printed holder, the two 100 µF capacitors, the female header strips,
@@ -179,12 +179,17 @@ RAMPS, UART pigtail); firmware written and host-tested
   1 kΩ in total** (TX2 → 1 kΩ → bus; RX2 and every PDN_UART on the bus —
   TMC2209 DS Fig. 4.1). Addresses by MS1/MS2 jumpers: X 0 (none), Y 1 (MS1),
   Z 2 (MS2), **E0 3 (MS1 + MS2)**. **No MS3 jumpers** — on the BTT V1.3
-  PDN_UART is in the MS3 position, tapped at the MS3 jumper pin.
+  PDN_UART is the **RX** pin (4th, in the MS3 position). Paul's drivers have
+  RX/TX/CLK as tall pins through the top: the UART lead clips onto the **top
+  of RX** (rev 2026-10-08.2; RX–TX measured open, R10 not fitted). Nothing on
+  TX or CLK.
 - STEP/DIR/EN come from each socket: X D54/D55/D38, Y D60/D61/D56,
   Z D46/D48/D62, **E0 (key) D26/D28/D24** (Marlin `pins_RAMPS.h`). The key is
   an ordinary axis now — no UART direction/enable workaround.
-- DIAG, via a one-time mod on **all four** drivers (clip the down pin, solder
-  a lead to its top joint): A → X_MIN D3, B → X_MAX D2, C → Z_MIN D18,
+- DIAG: a plain F–F jumper on the **top of the DIAG pin** (EN end, next to
+  the pot; Paul's EN-end pins go through the board), after cutting both
+  EN-end pins' **bottom** ends flush — no soldering (rev 2026-10-08.2):
+  A → X_MIN D3, B → X_MAX D2, C → Z_MIN D18,
   **key → Z_MAX D19** (all interrupt pins; DIAG is a pulse). Start/stop button
   on Y_MIN D14.
 - The UART junction is the **UART pigtail** (revision 2026-10-08.2, replaced
@@ -199,9 +204,10 @@ RAMPS, UART pigtail); firmware written and host-tested
 
 ## Harness: what's left (bench, not design)
 
-Verify on the bench (steps go in `control/bringup.md`): UART lead on the
-right MS3 jumper pin (all four sockets, E0 included); which top-edge pin is
-DIAG; the key answers at address 3 (E0); the key's StallGuard through the 1 m
+Verify on the bench (steps go in `control/bringup.md`): driver orientation
+in the sockets (no pin-1 mark on Paul's RAMPS: multimeter check, manual §2.4
+step 2); every driver answers `ping` with its lead on RX; DIAG is the pin the
+silkscreen says (stage 3); the key answers at address 3 (E0); the key's StallGuard through the 1 m
 motor cable (shorten it if too dull); the pigtail's multimeter check (manual
 §2.5). No board mount is needed any more (the pigtail's splice zip-ties to the
 deck); the start button's place on the deck is still a mechanical to-do.

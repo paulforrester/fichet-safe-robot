@@ -33,16 +33,16 @@ both at once.)
    `# Fichet safe robot 0.4 (2026-10-08, rev 2026-10-08.1) - type help` and `# state=IDLE run=0 next=0 ...`.
 3. **RAMPS jumpers** (under the sockets): X none; Y **MS1** only; Z **MS2**
    only; **no MS3 jumper anywhere**.
-4. **DIAG mod** on all **four** drivers (the three dials and the key; leave
-   the spare untouched — revision 2026-10-08.1): before fitting the heatsinks, clip the two short
-   down-pointing pins at the EN end (INDEX, DIAG) flush with their plastic
-   spacer. Then solder half of a female–female jumper to the **top** of the
-   pin labelled **DIAG** (`control/wiring.md` §3.3).
-5. Fit heatsinks. **Driver orientation**: match EN / DIR / VM / GND to the
-   RAMPS silkscreen.
+4. **EN-end pins** on all **four** drivers (the three dials and the key;
+   leave the spare untouched): before fitting the heatsinks, cut the
+   **bottom** ends of the two EN-end pins flush underneath; leave the tops.
+   No soldering (revision 2026-10-08.2; `control/wiring.md` §3.3).
+5. Fit heatsinks. **Driver orientation**: do the multimeter check in manual
+   §2.4 step 2 first (the sockets have no pin-1 mark on top). The driver's
+   VS/GND/motor side goes in the socket row nearer that axis's motor header.
 
-**Send back**: the two lines from step 2; and any surprises in steps 3–5 (the
-DIAG label, how the pins looked).
+**Send back**: the two lines from step 2; the orientation check results for
+X (manual §2.4 step 2); any surprises in steps 3–5.
 
 ---
 
@@ -50,11 +50,10 @@ DIAG label, how the pins looked).
 
 Setup: Mega + RAMPS, **one** driver in the **X** socket, no motor. UART
 pigtail (manual §2.5, already checked with the multimeter): lead **TX2** on
-AUX-4 pin 18, **RX2** on AUX-4 pin 17, **A** on the X socket's **MS3 jumper
-pin on the side nearer the driver's EN/STEP/DIR row**. Leads B, C and KEY
-hang free for now (their female ends are insulated; keep them off the
-board).
-X's DIAG lead → X_MIN **S** pin. 12 V into RAMPS's **5A** input.
+AUX-4 pin 18, **RX2** on AUX-4 pin 17, **A** on the top of the X driver's
+**RX** pin (4th from EN). Leads B, C and KEY hang free for now (their female
+ends are insulated; keep them off the board). An F–F jumper from the top of
+the X driver's **DIAG** pin → X_MIN **S** pin. 12 V into RAMPS's **5A** input.
 
 1. USB on, logger running. Then 12 V on.
 2. Type `set axes 1`, then `ping`.
@@ -62,16 +61,16 @@ X's DIAG lead → X_MIN **S** pin. 12 V into RAMPS's **5A** input.
    version 21, MS1 = 0, MS2 = 0, DIAG pin low, DIAG register low. The last two
    fields are status (GSTAT reads 1 right after power-up: that's the
    driver's "I was reset" flag, normal).
-4. If it says `DRV,A,0,0,...`: 12 V off. Move lead A to the *other* pin
-   of the MS3 jumper pair, then try again. Still 0: check the TX2 and RX2
-   leads aren't swapped on AUX-4 (TX2 is the lead with R1).
+4. If it says `DRV,A,0,0,...`: 12 V off. Check lead A is on **RX** (not TX
+   or CLK), the TX2 and RX2 leads aren't swapped on AUX-4 (TX2 is the lead
+   with R1), and there's no jumper on X's MS3 position. Then try again.
 5. 12 V off. Add the Y, Z and **E0 (key)** drivers — with their jumpers and
-   DIAG leads: Y → X_MAX S, Z → Z_MIN S, **E0 → Z_MAX S** — and pigtail
-   leads B, C and KEY on their MS3 pins (same side as A). 12 V on.
+   DIAG jumpers: Y → X_MAX S, Z → Z_MIN S, **E0 → Z_MAX S** — and pigtail
+   leads B, C and KEY on the RX pins of the Y, Z and E0 drivers. 12 V on.
    `set axes 15`, `ping`.
 
 **Send back**: the `DRV,A` line from step 3, and the four `DRV` lines from
-step 5; which MS3 pin worked. Expect `DRV,B,1,21,1,0,...`, `DRV,C,1,21,0,1,...`
+step 5. Expect `DRV,B,1,21,1,0,...`, `DRV,C,1,21,0,1,...`
 and **`DRV,K,1,21,1,1,...`** (the key in E0, address 3: MS1 = MS2 = 1). If a
 DIAG field reads 1 at rest, say which.
 
@@ -245,7 +244,7 @@ measured spread and start the real run with `resume`.
 
 | Open item | Stage |
 |---|---|
-| Driver UART addresses and wiring; which MS3 pin | 1 |
+| Driver UART addresses and wiring (UART lead on each driver's RX pin) | 1 |
 | Motor step angle (1.8° assumed) | 2 |
 | StallGuard thresholds — now self-calibrated; the 50 % rule and speeds | 3, 4, 5 |
 | Hard stop and clicks per turn | answered 2026-10-06: stop anticlockwise, unlimited clockwise, 20 clicks |

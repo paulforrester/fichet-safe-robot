@@ -47,6 +47,24 @@ to-do.
 - Manual fault table (GSTAT 1 / 80 for the key): the stale "hub fuse"
   advice from before 2026-10-08.1 is replaced.
 
+**Also in 2026-10-08.2 (later the same day, before the PR merged): taps on
+the drivers, no soldering.** Paul's BTT V1.3s have RX/TX/CLK as tall pins
+through the top, and the two EN-end pins go through the board. Measured:
+RX–TX open (R10 not fitted); a Dupont grips the top of RX and conducts.
+- Pigtail leads A, B, C, KEY clip onto the **top of each driver's RX pin**,
+  not the RAMPS MS3 jumper pin (whose clearance under a seated driver was
+  never checked). MS3 jumper still off.
+- **DIAG mod → two snips**: cut both EN-end pins' bottom ends flush; DIAG is
+  a plain F–F jumper on the top of the DIAG pin (next to the pot). No
+  soldering on the drivers; no cut-in-half jumpers.
+- **Driver orientation check** added (manual §2.4 step 2): the RAMPS
+  sockets have no pin-1 mark on top; the VS/GND/motor row goes nearer the
+  motor header, checked by continuity to the "5A" terminal.
+- Schematic sheets 3–7, the pigtail drawing, harness and overview, the
+  bench sheet, manual §2.3/2.4/2.5/2.7, bring-up stages 0–1, `CLAUDE.md`,
+  `docs/bom.md` and two firmware comments updated. Reasoning:
+  `control/wiring.md`, log 2026-10-08 (evening).
+
 **Not changed:** firmware (still v0.4; its boot line names rev
 2026-10-08.1, the revision it was built for, and it runs unchanged), pin map,
 addresses, currents, power order.

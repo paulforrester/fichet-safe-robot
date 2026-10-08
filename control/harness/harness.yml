@@ -21,20 +21,20 @@ connectors:
     type: RAMPS AUX-4 header
     pins: [17, 18]
     pinlabels: [D17 RX2, D16 TX2]
-  MS3_X:
-    type: X socket MS3 jumper pin (jumper OFF)
+  RX_X:
+    type: X driver, top of its RX pin (4th from EN)
     pins: [1]
     pinlabels: [PDN_UART dial A addr 0]
-  MS3_Y:
-    type: Y socket MS3 jumper pin (jumper OFF)
+  RX_Y:
+    type: Y driver, top of its RX pin (4th from EN)
     pins: [1]
     pinlabels: [PDN_UART dial B addr 1]
-  MS3_Z:
-    type: Z socket MS3 jumper pin (jumper OFF)
+  RX_Z:
+    type: Z driver, top of its RX pin (4th from EN)
     pins: [1]
     pinlabels: [PDN_UART dial C addr 2]
-  MS3_E0:
-    type: E0 socket MS3 jumper pin (jumper OFF)
+  RX_E0:
+    type: E0 driver, top of its RX pin (4th from EN)
     pins: [1]
     pinlabels: [PDN_UART key addr 3]
   SPLICE:
@@ -68,18 +68,18 @@ connections:
     - PIGTAIL: [1, 2]
     - SPLICE
   -
-    - MS3_X: [1]
+    - RX_X: [1]
     - PIGTAIL: [3]
     - SPLICE
   -
-    - MS3_Y: [1]
+    - RX_Y: [1]
     - PIGTAIL: [4]
     - SPLICE
   -
-    - MS3_Z: [1]
+    - RX_Z: [1]
     - PIGTAIL: [5]
     - SPLICE
   -
-    - MS3_E0: [1]
+    - RX_E0: [1]
     - PIGTAIL: [6]
     - SPLICE
