@@ -54,7 +54,8 @@ drivers in.
 ### A3. Jumper wires landing on the RAMPS headers (F–F, ~10 cm)
 
 **Where the headers are** (RAMPS 1.4 KiCad layout, `matt3u/RAMPS-1.4_KiCad`
-`ea33bdf`; check the readings below on your Fasizi board):
+`ea33bdf`; check the readings below on your Fasizi board). Directions are
+with the RAMPS held so the "END STOPS" silkscreen reads normally:
 
 - **Endstop block** — six 3-pin headers side by side along the top edge,
   under the silkscreen "END STOPS". Left to right: **X−, X+, Y−, Y+, Z−, Z+**.
@@ -76,8 +77,8 @@ drivers in.
 3. AUX-4: the pin at the lower end beeps to the endstop 5 V pins (pin 1);
    the next one beeps to GND (pin 2). So pin 18 is the far end.
 
-**Nothing on any +5 V pin** except as listed: every lead in the table goes on
-an **S** pin (the button also uses that header's GND pin).
+**No lead goes on a +5 V pin.** Every lead in the table goes on an **S** pin;
+the button also uses its header's middle (GND) pin.
 
 | From | To (RAMPS) | Mega pin |
 |---|---|---|
