@@ -30,11 +30,11 @@ both at once.)
    `control/firmware/safe_robot/safe_robot.ino`, board "Arduino Mega or Mega
    2560". Upload with only USB connected (RAMPS may be on or off the Mega).
 2. Start the logger and type `status`. You should see
-   `# Fichet safe robot 0.3 (2026-10-07) - type help` and `# state=IDLE run=0 next=0 ...`.
+   `# Fichet safe robot 0.4 (2026-10-08, rev 2026-10-08.1) - type help` and `# state=IDLE run=0 next=0 ...`.
 3. **RAMPS jumpers** (under the sockets): X none; Y **MS1** only; Z **MS2**
    only; **no MS3 jumper anywhere**.
-4. **DIAG mod** on 3 drivers (the dial ones; keep one untouched for the key
-   turner, plus the spare): before fitting the heatsinks, clip the two short
+4. **DIAG mod** on all **four** drivers (the three dials and the key; leave
+   the spare untouched — revision 2026-10-08.1): before fitting the heatsinks, clip the two short
    down-pointing pins at the EN end (INDEX, DIAG) flush with their plastic
    spacer. Then solder half of a female–female jumper to the **top** of the
    pin labelled **DIAG** (`control/wiring.md` §3.3).

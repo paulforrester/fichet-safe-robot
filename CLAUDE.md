@@ -29,9 +29,11 @@ records how far it got, and repeats.
 Two 3D-printed units sit on the steel door (rubber-coated magnets):
 
 - **Dial unit** — 3 NEMA17 motors driving the 3 dials through 2:1 gears,
-  plus the electronics (Arduino Mega 2560 + RAMPS 1.4 + 3 TMC2209 drivers).
+  plus all the electronics (Arduino Mega 2560 + RAMPS 1.4 + **four** TMC2209
+  drivers: three dials and the key — revision 2026-10-08.1).
 - **Key-turner unit** — 1 NEMA17 on the key axis, driving a cap that slips
-  over the key's bow; its own TMC2209 sits locally, cabled to the dial unit.
+  over the key's bow. Its driver is in the RAMPS **E0** socket on the dial
+  unit; only the key motor's own cable runs between the units.
 
 Project phases: mechanical (nearly done, being printed); wiring harness
 designed (`control/wiring.md`, revision 2026-10-08.1: all four drivers on the

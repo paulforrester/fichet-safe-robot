@@ -19,7 +19,8 @@ parts (Amazon.fr / AliExpress / RobotShop-class pricing as of late 2026) —
 **verify at purchase time**, they weren't pulled from a live listing.
 
 Quantities assume the confirmed layout: 3 dial motors + 1 key-turner motor
-= 4 motors total, 4 drivers total (one per motor, co-located — see the
+= 4 motors total, 4 drivers total (all four on the RAMPS since revision
+2026-10-08.1 — see the
 driver-placement rationale in `control/sequence.md`).
 
 ## Order status (as of 2026-09-29)
@@ -91,11 +92,11 @@ and flush cutters (2026-10-07). The harness uses **F–F jumpers only**. The M�
 
 | Status | Ref | Part | Where | Source |
 |---|---|---|---|---|
-| ⚪ on the RAMPS | F1 (RAMPS) | MF-R500 resettable fuse, 5 A | '5A' input → +12 V rail (3 dial drivers, Mega VIN) | RAMPS 1.4 KiCad netlist (`control/wiring.md` log 2026-10-07) |
+| ⚪ on the RAMPS | F1 (RAMPS) | MF-R500 resettable fuse, 5 A | '5A' input → +12 V rail (**all four drivers** incl. E0, + Mega VIN — revision 2026-10-08.1) | RAMPS 1.4 KiCad netlist (`control/wiring.md` log 2026-10-07) |
 | ⚪ on the RAMPS | F2 | MF-R1100 resettable fuse (11 A) | '11A' heated-bed input: not used | same |
 | ⚪ on the RAMPS | D1 | 1N4004 diode | +12 V rail → Mega VIN | same |
 | ⚪ on the RAMPS | C3, C4, C6, C7, C9, C10 | 100 µF electrolytics | +12 V rail, by the driver sockets | same |
-| ⚪ on the RAMPS | R18, R19, R20 (R16, R17) | 10 kΩ pull-ups | EN of sockets X, Y, Z (E0, E1) to 5 V | same |
+| ⚪ on the RAMPS | R18, R19, R20 (R16, R17) | 10 kΩ pull-ups | EN of the driver sockets (X, Y, Z, **E0**; E1 spare) to 5 V — keeps every driver off until the firmware enables it | same |
 | ⚪ on each TMC2209 V1.3 | module's R3, R5 · R4 · C1, C2 · R10 | 0.11 Ω sense resistors · 20 kΩ CLK pull-down · 2 × 10 µF · R10 **not fitted** | the driver module itself | BTT V1.3 schematic (`control/wiring.md` §2, §3.5, §7) |
 | ⚪ on the Mega | — | LED 'L' (D13), 5 V regulator, USB interface | the Mega itself | Arduino Mega 2560 R3 |
 
@@ -125,7 +126,9 @@ are these parts: shown so the circuit can be followed, not to be bought.
 ## Inter-unit cable and connectors
 
 Per `control/sequence.md`'s Mounting section: only logic signals + motor
-power cross the cable, drivers stay local to each motor.
+power cross the cable, drivers stay local to each motor. **(Superseded by
+revision 2026-10-08.1: all four drivers are on the RAMPS; only the key motor's
+own cable runs to the key turner.)**
 
 | Item | Qty | Est. unit price | Est. total | Status | Notes |
 |---|---|---|---|---|---|

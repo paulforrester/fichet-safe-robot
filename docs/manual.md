@@ -610,8 +610,8 @@ them yourself is only needed if you change the code.
 
 1. Start the logger (5.3). Opening the port restarts the Mega.
 2. The first line is
-   `# Fichet safe robot 0.3 (2026-10-07) - type help`. If it says 0.2 or
-   older, the old code is still on the Mega.
+   `# Fichet safe robot 0.4 (2026-10-08, rev 2026-10-08.1) - type help`. If it
+   says 0.3 or older, the old code is still on the Mega.
 3. Type `status`. Expect `# state=IDLE run=… next=…`.
 4. Type `cfg` to see the settings it was built with.
 
