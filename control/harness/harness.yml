@@ -1,17 +1,18 @@
 # Wiring harness for the Fichet safe robot — see control/wiring.md.
 # Render: wireviz control/harness/harness.yml   (WireViz 0.4.1 + Graphviz)
-# Project revision 2026-10-08.1: all four drivers on the RAMPS (key in E0).
+# Project revision 2026-10-08.2: all four drivers on the RAMPS (key in E0);
+# the UART pigtail (six leads, R1 in the TX2 lead, one splice) replaces the hub board.
 # The only wire between the units is the key motor's own cable.
 
 metadata:
-  title: Fichet safe robot — harness (revision 2026-10-08.1)
+  title: Fichet safe robot — harness (revision 2026-10-08.2)
 
 connectors:
   KEYMOT:
     type: key motor 17HE19-2004S
     subtype: supplied 4-wire cable, ~1 m
     pinlabels: [A+, A-, B+, B-]
-    notes: on the key turner (revision 2026-10-08.1)
+    notes: on the key turner
   E0MOT:
     type: RAMPS E0 motor header (4-pin)
     pinlabels: [2B, 2A, 1A, 1B]
@@ -20,26 +21,26 @@ connectors:
     type: RAMPS AUX-4 header
     pins: [17, 18]
     pinlabels: [D17 RX2, D16 TX2]
-  MS3_X:
-    type: X socket MS3 jumper pin (jumper OFF)
+  RX_X:
+    type: X driver, top of its RX pin (4th from EN)
     pins: [1]
     pinlabels: [PDN_UART dial A addr 0]
-  MS3_Y:
-    type: Y socket MS3 jumper pin (jumper OFF)
+  RX_Y:
+    type: Y driver, top of its RX pin (4th from EN)
     pins: [1]
     pinlabels: [PDN_UART dial B addr 1]
-  MS3_Z:
-    type: Z socket MS3 jumper pin (jumper OFF)
+  RX_Z:
+    type: Z driver, top of its RX pin (4th from EN)
     pins: [1]
     pinlabels: [PDN_UART dial C addr 2]
-  MS3_E0:
-    type: E0 socket MS3 jumper pin (jumper OFF)
+  RX_E0:
+    type: E0 driver, top of its RX pin (4th from EN)
     pins: [1]
     pinlabels: [PDN_UART key addr 3]
-  HUB:
-    type: hub board 2.54 mm pins
-    pins: [TX2, RX2, BUS_X, BUS_Y, BUS_Z, BUS_E0]
-    notes: TX2 → 1k → BUS node; RX2 and all four PDN pins sit on the BUS node (revision 2026-10-08.1)
+  SPLICE:
+    type: UART pigtail splice (the bus node)
+    style: simple
+    notes: solder + heat shrink, zip-tied to the deck. R1 1 kΩ sits in line in the TX2 lead (revision 2026-10-08.2)
 
 cables:
   KEYCABLE:
@@ -49,12 +50,13 @@ cables:
     colors: [BK, GN, RD, BU]
     wirelabels: [A+, A-, B+, B-]
     notes: plug it into the E0 motor header. Shorten only if the key's StallGuard reads too dull (bench stage 5).
-  J_UART:
-    type: F-F Dupont jumpers
+  PIGTAIL:
+    type: UART pigtail — 6 F-F jumpers, one end cut off each
     category: bundle
     wirecount: 6
     length: 0.15
-    wirelabels: [TX2, RX2, UART A, UART B, UART C, UART key]
+    wirelabels: [TX2 (R1 1k in line), RX2, A, B, C, KEY]
+    notes: each lead keeps a female Dupont end; cut to measured length + a few cm
 
 connections:
   -
@@ -63,21 +65,21 @@ connections:
     - E0MOT: [1, 2, 3, 4]
   -
     - AUX4: [18, 17]
-    - J_UART: [1, 2]
-    - HUB: [TX2, RX2]
+    - PIGTAIL: [1, 2]
+    - SPLICE
   -
-    - MS3_X: [1]
-    - J_UART: [3]
-    - HUB: [BUS_X]
+    - RX_X: [1]
+    - PIGTAIL: [3]
+    - SPLICE
   -
-    - MS3_Y: [1]
-    - J_UART: [4]
-    - HUB: [BUS_Y]
+    - RX_Y: [1]
+    - PIGTAIL: [4]
+    - SPLICE
   -
-    - MS3_Z: [1]
-    - J_UART: [5]
-    - HUB: [BUS_Z]
+    - RX_Z: [1]
+    - PIGTAIL: [5]
+    - SPLICE
   -
-    - MS3_E0: [1]
-    - J_UART: [6]
-    - HUB: [BUS_E0]
+    - RX_E0: [1]
+    - PIGTAIL: [6]
+    - SPLICE

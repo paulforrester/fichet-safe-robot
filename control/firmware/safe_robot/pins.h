@@ -26,7 +26,7 @@
 #define PIN_K_STEP   26
 #define PIN_K_DIR    28
 #define PIN_K_EN     24
-#define PIN_K_DIAG   19   // Z_MAX header S (lead from the E0 driver's DIAG mod); external interrupt
+#define PIN_K_DIAG   19   // Z_MAX header S (jumper from the top of the E0 driver's DIAG pin); external interrupt
 
 #define PIN_BUTTON   14   // Y_MIN header S, button to GND
 #define PIN_LED      13   // on-board LED

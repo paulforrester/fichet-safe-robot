@@ -1,8 +1,8 @@
 // System overview for the Fichet safe robot wiring — see control/wiring.md.
 // Render: dot -Tsvg control/harness/overview.dot -o control/harness/overview.svg
-// Project revision 2026-10-08.1: all four drivers on the RAMPS (key in E0).
+// Project revision 2026-10-08.2: all four drivers on the RAMPS (key in E0); UART pigtail replaces the hub board.
 digraph overview {
-  graph [rankdir=LR, fontname="Helvetica", fontsize=11, nodesep=0.35, ranksep=0.7, label="Fichet safe robot — wiring overview (control/wiring.md, revision 2026-10-08.1)", labelloc=t];
+  graph [rankdir=LR, fontname="Helvetica", fontsize=11, nodesep=0.35, ranksep=0.7, label="Fichet safe robot — wiring overview (control/wiring.md, revision 2026-10-08.2)", labelloc=t];
   node  [shape=box, style="rounded", fontname="Helvetica", fontsize=10];
   edge  [fontname="Helvetica", fontsize=9];
 
@@ -11,7 +11,7 @@ digraph overview {
 
   subgraph cluster_dial {
     label="Dial unit — all the electronics"; style=dashed; fontsize=10;
-    hub  [label="Hub board\nthe UART junction only:\n1 kΩ TX2 → UART bus,\nRX2 + all 4 PDN on the bus"];
+    uart [label="UART pigtail\n6 leads, one splice:\n1 kΩ in the TX2 lead,\nRX2 + all 4 PDN on the splice"];
     subgraph cluster_ramps {
       label="Mega 2560 + RAMPS 1.4  (5 A fuse feeds all 4 drivers)"; style=solid; fontsize=10;
       mega [label="Mega 2560\nTX2 D16 / RX2 D17 (AUX-4 18/17)\nbutton D14 (Y_MIN)"];
@@ -35,9 +35,9 @@ digraph overview {
   mega -> x [arrowhead=none]; mega -> y [arrowhead=none]; mega -> z [arrowhead=none]; mega -> e0 [arrowhead=none];
   x -> ma; y -> mb; z -> mc;
   e0 -> mk [penwidth=2, label="key motor cable, ~1 m\n(the only wire between the units)"];
-  hub -> x [dir=both, style=dashed, label="UART (MS3 jumper pin)"];
-  hub -> y [dir=both, style=dashed];
-  hub -> z [dir=both, style=dashed];
-  hub -> e0 [dir=both, style=dashed];
-  mega -> hub [dir=both, label="TX2 / RX2 (AUX-4)"];
+  uart -> x [dir=both, style=dashed, label="UART (top of each driver's RX pin)"];
+  uart -> y [dir=both, style=dashed];
+  uart -> z [dir=both, style=dashed];
+  uart -> e0 [dir=both, style=dashed];
+  mega -> uart [dir=both, label="TX2 / RX2 (AUX-4)"];
 }

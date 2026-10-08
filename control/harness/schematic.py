@@ -410,14 +410,14 @@ def sheet_overview(s):
     blk(316, 98, 136, 196, "Drivers x 4", ["BTT TMC2209 V1.3", "in RAMPS X, Y, Z, E0", "",
                                             "X = dial A (top-left)", "Y = dial B (top-right)",
                                             "Z = dial C (bottom)", "E0 = key", "",
-                                            "UART addresses 0,1,2,3", "DIAG mod on all 4",
+                                            "UART addresses 0,1,2,3", "taps on top (RX, DIAG)",
                                             "sheets 3, 4"])
     blk(468, 98, 140, 196, "Motors x 4", ["17HE19-2004S", "plug into the RAMPS", "motor headers", "",
                                            "A,B,C: dial plugs,", "14T -> 28T gears", "",
                                            "key: on the key axis", "", "sheets 3, 4"])
-    blk(150, 306, 294, 70, "Hub board (you build)", ["just the UART junction (revision 2026-10-08.1):",
-                                                      "R1 1 kOhm (the only UART resistor), and the",
-                                                      "bus node where RX2 + all 4 PDN_UART meet",
+    blk(150, 306, 294, 70, "UART pigtail (you build)", ["six leads, one solder splice (rev 2026-10-08.2):",
+                                                      "R1 1 kOhm in line in the TX2 lead; the splice is",
+                                                      "the bus node where RX2 + all 4 PDN_UART meet",
                                                       "sheet 6"], "build")
     blk(648, 150, 164, 90, "Key motor", ["17HE19-2004S", "on the key axis", "", "its own ~1 m cable",
                                           "-> RAMPS E0 motor header", "sheet 4"])
@@ -426,7 +426,8 @@ def sheet_overview(s):
         s.text(x, y, t, 8, True, NETS[net][0])
 
     s.wire([(116, 128), (150, 128)], "5V"); lab(116, 122, "USB", "5V")
-    s.wire([(116, 320), (150, 320)], "12V"); lab(116, 314, "12 V", "12V")
+    # 12 V goes to the RAMPS '5A' terminal (not the pigtail block below it)
+    s.wire([(116, 300), (134, 300), (134, 268), (150, 268)], "12V"); lab(116, 294, "12 V", "12V")
     s.wire([(221, 162), (221, 178)], "CTRL")
     s.wire([(292, 220), (316, 220)], "CTRL"); lab(282, 214, "STEP", "CTRL")
     s.wire([(452, 220), (468, 220)], "MOTOR")
@@ -440,8 +441,8 @@ def sheet_overview(s):
     s.text(24, y, "Sheets", 10, True)
     s.para(24, y + 15, ["1  Overview (this sheet)", "2  Power: 12 V, 5 V, GND",
                         "3  Drivers A and B on the RAMPS", "4  Driver C and the key driver (E0)",
-                        "5  DIAG-mod and UART-tap details",
-                        "6  Mega + RAMPS headers, hub (UART bus)", "7  Pin map, jumpers, currents, parts"], 8)
+                        "5  Driver taps (DIAG, RX), orientation, key cable",
+                        "6  Mega + RAMPS headers, UART pigtail", "7  Pin map, jumpers, currents, parts"], 8)
     s.text(300, y, "Rules", 10, True)
     s.para(300, y + 15, ["Make every connection with power off (USB unplugged, 12 V off).",
                          "Never plug or unplug a motor with 12 V on (the key motor cable included).",
@@ -449,13 +450,13 @@ def sheet_overview(s):
                          "Never fit an MS3 jumper: on the V1.3 that pin is the UART line.",
                          "Emergency stop: pull the 12 V plug.  `!` aborts a move.",
                          "VERIFY = not yet checked on the bench (control/bringup.md).",
-                         "Revision 2026-10-08.1: key driver in E0, no remote board or cable.",
+                         "Rev 2026-10-08.1: key driver in E0. Rev 2026-10-08.2: UART pigtail, no hub.",
                          "If this disagrees with control/wiring.md, wiring.md wins."], 8)
 
 
 # ====================================================================== sheet 2
 def sheet_power(s):
-    # PSU and DC jack straight into the RAMPS "5A" terminal (no hub split)
+    # PSU and DC jack straight into the RAMPS "5A" terminal
     s.rect(24, 112, 94, 72, fill=FILL["ref"], r=3)
     s.para(30, 126, [("PSU", True), "Ledmo HTY-1200500", "12 V, 5 A max", "5.5 x 2.1, centre +"], 8)
     s.rect(136, 116, 72, 64, fill=FILL["module"], r=3)
@@ -468,9 +469,9 @@ def sheet_power(s):
     s.text(380, 165, "20 AWG black ->  RAMPS '5A' -", 8, True, anchor="c")
     s.para(24, 212, [("Revision 2026-10-08.1:", True),
                      "12 V goes straight from the PSU adapter into",
-                     "the RAMPS '5A' terminal. The hub no longer",
-                     "splits 12 V and has no fuse: RAMPS's own 5 A",
-                     "fuse feeds all four drivers.",
+                     "the RAMPS '5A' terminal; RAMPS's own 5 A fuse",
+                     "feeds all four drivers. Nothing else carries",
+                     "12 V (rev 2026-10-08.2: no hub board).",
                      "",
                      ("Not the Mega's own barrel jack: that feeds", True, WARN),
                      ("only the Mega (VIN). The drivers get 12 V", True, WARN),
@@ -533,12 +534,12 @@ def sheet_power(s):
 def driver_column(s, x0, sock, title, motor_name, addr, ms1, ms2, step, dirn, en, diag_hdr, diag_pin):
     """One RAMPS socket with its BTT TMC2209 V1.3 and motor; column ~395 pt wide."""
     s.text(x0, 70, f"Socket {sock} - {title}", 11, True)
-    s.text(x0, 83, f"UART address {addr} - BTT TMC2209 V1.3 with the DIAG mod", 8, color=GREY)
+    s.text(x0, 83, f"UART address {addr} - BTT TMC2209 V1.3 (EN-end pins cut underneath)", 8, color=GREY)
     bx, by, bw = x0 + 150, 140, 116
-    left = [("EN", "EN"), ("MS1", "MS1"), ("MS2", "MS2"), ("PDN", "PDN_UART [MS3]"),
+    left = [("EN", "EN"), ("MS1", "MS1"), ("MS2", "MS2"), ("PDN", "RX [MS3]"),
             ("TX", "TX [RST]"), ("CLK", "CLK [SLP]"), ("STEP", "STEP"), ("DIR", "DIR"),
-            None, ("DIAG", "DIAG *"), ("INDEX", "INDEX *")]
-    right = [("VM", "VM [VMOT]"), ("G1", "GND"), ("A2", "A2 [2B]"), ("A1", "A1 [2A]"),
+            None, ("DIAG", "DIAG *"), ("INDEX", "other pin *")]
+    right = [("VM", "VS [VMOT]"), ("G1", "GND"), ("A2", "A2 [2B]"), ("A1", "A1 [2A]"),
              ("B1", "B1 [1A]"), ("B2", "B2 [1B]"), ("VIO", "VIO [VDD]"), ("G2", "GND")]
     p, h = s.ic(bx, by, bw, left, right, pitch=21, pad=13)
     s.text(bx + bw / 2, by - 6, "BTT TMC2209 V1.3", 9, True, anchor="c")
@@ -571,7 +572,7 @@ def driver_column(s, x0, sock, title, motor_name, addr, ms1, ms2, step, dirn, en
     s.offpage(x0 + 120, y, f"{diag_hdr} S = {diag_pin} (sheet 6)", "DIAG", side="l")
     x, y = p["INDEX"]
     s.nc(x - 3, y)
-    s.text(x - 10, y + 3, "cut off", 8, color=GREY, anchor="r")
+    s.text(x - 10, y + 3, "nothing on it", 8, color=GREY, anchor="r")
     x, y = p["VM"]
     s.tag(x, y, "+12 V", "12V")
     for k in ("G1", "G2"):
@@ -588,10 +589,10 @@ def driver_column(s, x0, sock, title, motor_name, addr, ms1, ms2, step, dirn, en
     s.para(x0, by + h + 22, [
         (f"Jumpers under socket {sock}: MS1 {'ON' if ms1 else 'off'}, MS2 {'ON' if ms2 else 'off'}, "
          "MS3 off (never fit MS3)", True),
-        "UART lead: clipped onto the MS3 jumper pin, signal side (sheet 5).",
+        "UART lead: clipped onto the top of the driver's RX pin (sheet 5).",
         f"STEP {step} - DIR {dirn} - EN {en}. The RAMPS pull-up keeps the driver",
         "off until the firmware pulls EN low.",
-        f"DIAG lead (the mod, sheet 5) -> {diag_hdr} S pin: {diag_pin}, an interrupt pin.",
+        f"DIAG: F-F jumper, top of DIAG pin (sheet 5) -> {diag_hdr} S: {diag_pin}, an interrupt.",
         "Motor 17HE19-2004S: header pins 1-2 = one coil, 3-4 = the other.",
     ], 8)
 
@@ -601,8 +602,8 @@ def sheet_dials_ab(s):
     s.line([(418, 64), (418, 450)], "#BBBBBB", 0.8, dash=[3, 3])
     driver_column(s, 430, "Y", "dial B (top-right)", "Motor B", 1, True, False, "D60", "D61", "D56", "X_MAX", "D2")
     s.para(24, 468, [
-        "[ ] = the RAMPS / StepStick socket name of that pin. Fit each driver with EN, DIR, VM and GND matching the RAMPS silkscreen: a reversed driver is destroyed.",
-        "The BTT V1.3 puts PDN_UART in the socket's MS3 position. TX: R10 is not fitted, so TX connects to nothing. Don't bridge R10.",
+        "[ ] = the RAMPS / StepStick socket name of that pin. VS/GND/motor row in the socket row nearer the motor header (sheet 5): a reversed driver is destroyed.",
+        "The BTT V1.3's RX pin is PDN_UART, in the socket's MS3 position. TX: R10 not fitted (RX-TX measured open), so TX connects to nothing. Don't bridge R10.",
         "CLK: the RAMPS ties the socket's RST and SLP pins (= TX and CLK on the V1.3). With R10 open, CLK sees only its 20 k pull-down -> internal clock.",
         "Motor currents are set over UART: 1.0 A RMS, hold 0.5 A. If a motor buzzes instead of turning, swap the middle two wires in its plug.",
     ], 8)
@@ -616,76 +617,72 @@ def sheet_dial_c_key(s):
         ("Revision 2026-10-08.1: the key driver is an ordinary driver in the RAMPS E0 socket, like the dials.", True),
         "E0 address 3 = MS1 + MS2 jumpers ON. The key's STEP/DIR/EN are D26/D28/D24 (Marlin pins_RAMPS.h E0_STEP/DIR/ENABLE).",
         "The key motor's own ~1 m cable plugs into the E0 motor header. Use it as supplied; shorten it only if the key's StallGuard reads too dull (bench stage 5).",
-        "Key current: 0.6 A RMS to start, hold 0.3 A. E0's MS3 jumper pin and DIAG mod are VERIFY items (bench stages 1, 3) like the dials'.",
+        "Key current: 0.6 A RMS to start, hold 0.3 A. The key's UART (stage 1) and DIAG (stage 3) are bench checks like the dials'.",
     ], 8)
 
 
 def sheet_details(s):
-    # --- DIAG mod detail (top view, not to scale)
+    # --- driver top view: where the DIAG and UART leads clip on (not to scale)
     x0 = 24
-    s.text(x0, 70, "DIAG mod (all four drivers)", 11, True)
-    s.text(x0, 83, "BTT TMC2209 V1.3 seen from above - not to scale", 8, color=GREY)
+    s.text(x0, 70, "Driver taps: DIAG and RX, from the top (all four drivers)", 11, True)
+    s.text(x0, 83, "BTT TMC2209 V1.3 seen from above - not to scale - Paul's drivers, 2026-10-08", 8, color=GREY)
     bx, by, bw, bh = x0 + 66, 146, 112, 170
     s.rect(bx, by, bw, bh, stroke=INK, fill="#3F6E3F", lw=1.2, r=3)
     s.rect(bx + 26, by + 46, 60, 60, stroke="#BBBBBB", fill="#555555", lw=0.8)
     s.text(bx + 56, by + 80, "chip", 8, True, "#FFFFFF", anchor="c")
     lnames = ["EN", "MS1", "MS2", "RX", "TX", "CLK", "STEP", "DIR"]
-    rnames = ["VM", "GND", "A2", "A1", "B1", "B2", "VIO", "GND"]
+    rnames = ["VS", "GND", "A2", "A1", "B1", "B2", "VIO", "GND"]
     for i in range(8):
         py = by + 16 + i * 20
-        s.circle(bx + 9, py, 4, stroke="#DDDDDD", fill="#C9A227", lw=0.8)
+        tall = lnames[i] in ("RX", "TX", "CLK")
+        s.circle(bx + 9, py, 5 if tall else 4, stroke="#FFFFFF" if tall else "#DDDDDD",
+                 fill="#E0E0E0" if tall else "#C9A227", lw=1.2 if tall else 0.8)
         s.circle(bx + bw - 9, py, 4, stroke="#DDDDDD", fill="#C9A227", lw=0.8)
-        s.text(bx - 6, py + 3, lnames[i], 8, anchor="r")
+        s.text(bx - 6, py + (-3 if lnames[i] == "RX" else 3), lnames[i], 8, lnames[i] == "RX", anchor="r")
         s.text(bx + bw + 6, py + 3, rnames[i], 8)
-    s.circle(bx + 72, by + 16, 7, stroke="#DDDDDD", fill="#B0B0B0", lw=0.8)
-    s.text(bx + 72, by + 36, "pot", 8, True, "#FFFFFF", anchor="c")
-    ix, dx_ = bx + 27, bx + 45
-    for px in (ix, dx_):
-        s.circle(px, by + 16, 4, stroke="#DDDDDD", fill="#C9A227", lw=0.8)
-    s.text(ix - 6, by - 6, "INDEX", 8, True, anchor="r")
-    s.line([(ix - 4, by - 4), (ix, by + 12)], GREY, 0.8)
-    s.wire([(dx_, by + 16), (dx_, by - 30), (x0 + 280, by - 30)], "DIAG")
-    s.dot(dx_, by + 16, "DIAG")
-    s.text(dx_ + 4, by - 34, "half an F-F jumper, soldered on top", 8, True, NETS["DIAG"][0])
+    # EN-end top edge, from the EN corner: other pin, empty hole, DIAG pin, pot
+    ox, hx_, dx_ = bx + 24, bx + 38, bx + 52
+    s.circle(ox, by + 10, 4, stroke="#DDDDDD", fill="#C9A227", lw=0.8)
+    s.circle(hx_, by + 16, 3, stroke="#DDDDDD", fill="#3F6E3F", lw=0.8)
+    s.circle(dx_, by + 10, 4, stroke="#DDDDDD", fill="#C9A227", lw=0.8)
+    s.circle(bx + 80, by + 16, 7, stroke="#DDDDDD", fill="#B0B0B0", lw=0.8)
+    s.text(bx + 80, by + 36, "pot", 8, True, "#FFFFFF", anchor="c")
+    s.text(ox - 4, by - 6, "(nothing)", 8, color=GREY, anchor="r")
+    s.line([(ox - 3, by - 4), (ox, by + 6)], GREY, 0.8)
+    s.wire([(dx_, by + 10), (dx_, by - 30), (x0 + 280, by - 30)], "DIAG")
+    s.dot(dx_, by + 10, "DIAG")
+    s.text(dx_ + 4, by - 34, "F-F jumper on the TOP of DIAG", 8, True, NETS["DIAG"][0])
     s.text(x0 + 284, by - 27, "-> endstop S pin", 8, True, NETS["DIAG"][0])
     s.text(dx_ + 4, by - 9, "DIAG", 8, True)
+    rx_y = by + 16 + 3 * 20
+    s.wire([(bx + 9, rx_y), (bx - 40, rx_y), (bx - 40, by + bh + 20), (x0 + 200, by + bh + 20)], "UART")
+    s.dot(bx + 9, rx_y, "UART")
+    s.text(x0 + 204, by + bh + 23, "pigtail lead A/B/C/KEY on the TOP of RX (sheet 6)", 8, True, NETS["UART"][0])
     s.para(x0 + 210, by + 4, [("Steps (before the heatsink):", True),
-                             "1. Cut the two pins that point DOWN",
-                             "   (INDEX, DIAG) flush with their spacer.",
-                             "2. Strip and tin half an F-F jumper.",
-                             "3. Solder it to the TOP joint of DIAG:",
-                             "   2nd pin from the EN corner",
-                             "   (silkscreen 'DIAG').",
-                             "4. Keep the iron off the trimmer pot",
-                             "   next to it.",
-                             ("VERIFY which pin is DIAG: bring-up", True, WARN),
-                             ("stage 3 (`ping` + a hand stall).", True, WARN),
-                             "Revision 2026-10-08.1: all four",
-                             "drivers get this mod (the key too)."], 8)
-    # --- UART tap detail
-    ty = 350
-    s.text(x0, ty, "UART tap: the MS3 jumper pin (each socket)", 11, True)
-    s.text(x0, ty + 13, "RAMPS jumper block under a driver socket - not to scale", 8, color=GREY)
-    jx, jy = x0 + 70, ty + 46
-    s.rect(jx - 14, jy - 12, 64, 84, stroke=GREY, fill=FILL["ref"], lw=0.8, r=3)
-    for i, nm in enumerate(["MS1", "MS2", "MS3"]):
-        py = jy + 8 + i * 24
-        s.rect(jx - 4, py - 4, 8, 8, fill="#C9A227", lw=0.8)
-        s.rect(jx + 26, py - 4, 8, 8, fill="#C9A227", lw=0.8)
-        s.text(jx - 20, py + 3, nm, 8, True, anchor="r")
-    s.text(jx, jy - 16, "signal", 8, anchor="c")
-    s.text(jx + 30, jy - 16, "+5 V", 8, True, NETS["5V"][0], anchor="c")
-    py3 = jy + 8 + 2 * 24
-    s.wire([(jx, py3), (jx, py3 + 30), (jx + 90, py3 + 30)], "UART")
-    s.dot(jx, py3, "UART")
-    s.text(jx + 94, py3 + 33, "F-F jumper -> hub BUS pin (sheet 6)", 8, True, NETS["UART"][0])
-    s.para(jx + 60, jy + 4, ["Pads 1, 3, 5 = MS1, MS2, MS3 of the socket;",
-                             "pads 2, 4, 6 = +5 V (RAMPS KiCad netlist).",
-                             "Signal side = nearer the driver's EN / STEP / DIR row.",
-                             ("VERIFY on your Fasizi board: `ping` (bring-up",
-                              True, WARN), ("stage 1). The wrong pin is +5 V: harmless.", True, WARN),
-                             ("Never fit a jumper on MS3.", True, WARN),
-                             "All four sockets (X, Y, Z, E0) tap here."], 8)
+                             "1. At the EN end, cut the BOTTOM ends of",
+                             "   both through-pins flush underneath.",
+                             "   Leave the top ends.",
+                             "2. DIAG = the EN-end pin next to the pot",
+                             "   ('DIAG' printed under it).",
+                             "3. RX = 4th pin from EN, a tall pin:",
+                             "   PDN_UART. Nothing on TX or CLK.",
+                             "No soldering on the driver (rev 2026-10-08.2).",
+                             "Checked (Paul, 2026-10-08): RX-TX open",
+                             "(R10 not fitted); a Dupont grips RX.",
+                             ("VERIFY DIAG electrically: bring-up", True, WARN),
+                             ("stage 3 (`ping` + a hand stall).", True, WARN)], 8)
+    # --- orientation in the socket
+    ty = 380
+    s.text(x0, ty, "Which way the driver goes (match the EN / GND silkscreen labels)", 11, True)
+    s.para(x0, ty + 16, [
+        "Driver EN and GND pins at the small EN / GND labels on the RAMPS silkscreen (no square pad on top).",
+        "The driver's VS / GND / motor row goes in the socket row NEARER that axis's 4-pin motor",
+        "header; EN sits directly across from VS (RAMPS 1.4 KiCad: EN is the square pad underneath).",
+        ("Cross-check if the labels are unclear (power off, no driver, continuity):", True),
+        "'5A' - to the motor-side row: 2 holes beep (GND, one at each end).",
+        "'5A' + to the end hole beside a GND: beeps through F1 = VS.",
+        ("A reversed driver is destroyed. Manual 2.4 step 2.", True, WARN),
+        ("MS3 jumper OFF on every socket (the MS3 position is RX = UART).", True, WARN)], 8)
     # right column: the key motor cable (the only inter-unit wire)
     kx = 470
     s.text(kx, 70, "Key motor cable (the only wire between the units)", 11, True)
@@ -754,7 +751,7 @@ def sheet_signals(s):
     s.text(mx + mw + 12, row(6) + 3, "RAMPS traces", 8, color=GREY)
     s.nc(hdr[0][0] + 4, hdr[0][1])
     s.text(hdr[0][0] + 11, hdr[0][1] + 3, "spare", 8, color=GREY)
-    # DIAG leads come IN from the drivers (short arrows, left of the hub)
+    # DIAG leads come IN from the drivers (short arrows, left of the pigtail)
     for i, lab in ((8, "key DIAG (sheet 4)"), (10, "dial A DIAG (sheet 3)"),
                    (11, "dial B DIAG (sheet 3)"), (12, "dial C DIAG (sheet 4)")):
         x, y = hdr[i]
@@ -766,14 +763,15 @@ def sheet_signals(s):
     s.wire([(xg, yg), (xg + 12, yg), (xg + 12, yg + 24), (xs + 30, yg + 24)], "GND")
     s.button_v(xs + 30, ys, yg + 24, [("S1", True), "start / stop"])
 
-    # ---- hub board = UART junction only (top-right) ----
+    # ---- UART pigtail (top-right): six leads, R1 in the TX2 lead, one splice ----
     hb_x, hb_y, hb_w, hb_h = 470, 72, 350, 226
-    s.board(hb_x, hb_y, hb_w, hb_h, "Hub board (you build) - the UART junction", "build",
-            "just R1 and the bus node (revision 2026-10-08.1)")
-    px = hb_x + 70                     # male-pin column
+    s.board(hb_x, hb_y, hb_w, hb_h, "UART pigtail (you build) - replaces the hub board", "build",
+            "female Dupont ends, R1 in line, one solder splice (rev 2026-10-08.2)")
+    px = hb_x + 70                     # female-end column (pigtail leads)
     def hy(k): return hb_y + 50 + k * 24
-    labels = ["TX2", "BUS", "BUS", "BUS", "BUS", "BUS"]   # k0 TX2 (via R1), k1 RX2, k2..5 X/Y/Z/E0 PDN
-    s.rect(px, hy(0) - 9, 34, hy(5) - hy(0) + 18, fill="#FFFFFF", lw=1.3)
+    labels = ["TX2", "RX2", "A", "B", "C", "KEY"]   # female ends: k0 TX2 (via R1), k1 RX2, k2..5 X/Y/Z/E0 PDN
+    for k in range(6):                 # one female Dupont housing per lead, not a pin strip
+        s.rect(px, hy(k) - 8, 34, 16, fill="#FFFFFF", lw=1.3, r=2)
     for k, lab in enumerate(labels):
         y = hy(k)
         s.text(px + 17, y + 3, lab, 8, True, anchor="c")
@@ -787,7 +785,7 @@ def sheet_signals(s):
     # the four PDN taps come in from the left as offpage arrows
     for k, (sock, sh) in enumerate([("X", 3), ("Y", 3), ("Z", 4), ("E0", 4)], start=2):
         s.wire([(px - 6, hy(k)), (px - 10, hy(k))], "UART")
-        s.offpage(px - 10, hy(k), f"{sock} MS3 pin (sheet {sh})", "UART", side="l")
+        s.offpage(px - 10, hy(k), f"{sock} driver RX pin (sheet {sh})", "UART", side="l")
     # R1 on TX2 -> bus node; everything else straight to the bus node
     xr, xn = px + 40, hb_x + hb_w - 60
     s.wire([(xr, hy(0)), (xr + 6, hy(0))], "UART")
@@ -798,7 +796,7 @@ def sheet_signals(s):
         s.dot(xn, hy(k), "UART")
     s.wire([(xn, hy(0)), (xn, hy(5))], "UART")
     s.dot(xn, hy(0), "UART")
-    s.text(xn - 4, hy(5) + 18, "bus node", 8, True, NETS["UART"][0], anchor="c")
+    s.text(xn - 4, hy(5) + 18, "splice = bus node", 8, True, NETS["UART"][0], anchor="c")
 
     # ---- notes (lower-right, clear of the DIAG arrows on the left) ----
     s.para(470, 320, [("Notes", True),
@@ -811,8 +809,8 @@ def sheet_signals(s):
         "Inputs use the Mega's internal pull-ups: an unplugged DIAG reads high =",
         "'stalled', so the firmware refuses to move (fail safe).",
         "Button S1 (Y_MIN): pauses a run; resumes or starts one when idle.",
-        ("Revision 2026-10-08.1: the hub is only the UART junction now - no 12 V,", True),
-        ("no fuse, no Phoenix header, no key STEP (key STEP is D26 in E0).", True),
+        ("Rev 2026-10-08.2: the hub board is replaced by this pigtail. It carries", True),
+        ("only the six UART signals - no 12 V, no 5 V, no GND.", True),
         "STEP / DIR / EN of all four drivers: sheets 3, 4."], 8)
 
 
@@ -848,17 +846,17 @@ def sheet_tables(s):
         ("Dial A DIAG", "D3 (interrupt)", "X_MIN header, S"),
         ("Dial B DIAG", "D2 (interrupt)", "X_MAX header, S"),
         ("Dial C DIAG", "D18 (interrupt)", "Z_MIN header, S"),
-        ("Key DIAG", "D19 (interrupt)", "Z_MAX header, S (E0 DIAG mod)"),
-        ("UART TX2", "D16", "AUX-4 pin 18 -> hub R1"),
-        ("UART RX2", "D17", "AUX-4 pin 17 -> hub bus"),
-        ("Drivers' PDN_UART", "-", "MS3 jumper pins X,Y,Z,E0 -> bus"),
+        ("Key DIAG", "D19 (interrupt)", "Z_MAX header, S (E0 driver DIAG pin)"),
+        ("UART TX2", "D16", "AUX-4 pin 18 -> pigtail TX2 (R1)"),
+        ("UART RX2", "D17", "AUX-4 pin 17 -> pigtail RX2"),
+        ("Drivers' PDN_UART", "-", "RX pins X,Y,Z,E0 -> pigtail A,B,C,KEY"),
         ("Start / stop button", "D14 (pull-up)", "Y_MIN header, S and -"),
         ("Status LED", "D13", "on-board LED 'L'"),
         ("Spare", "D15 / D23", "Y_MAX S / AUX-4 16"),
         ("USB serial (the log)", "D0 / D1", "USB: keep free"),
     ]
     table(24, 70, ["Function", "Mega pin", "Where it connects"], [138, 94, 178], pin_rows,
-          "Pin map (control/wiring.md 1; Marlin pins_RAMPS.h) - revision 2026-10-08.1")
+          "Pin map (control/wiring.md 1; Marlin pins_RAMPS.h) - revision 2026-10-08.2")
     jmp = [("X", "A (top-left)", "off", "off", "off", "0"),
            ("Y", "B (top-right)", "ON", "off", "off", "1"),
            ("Z", "C (bottom)", "off", "ON", "off", "2"),
@@ -872,18 +870,19 @@ def sheet_tables(s):
     table(452, 180, ["Driver", "Run", "Hold", "Why"], [78, 58, 38, 178], cur, "Motor currents, set over UART (7)")
     HAVE = ("have", False, GREY)
     ORDERED = ("ordered", False, INK)
-    parts = [("Hub", "R1", "1 kOhm: the only UART resistor (TX2 -> bus)", HAVE),
-             ("Hub", "-", "male pins x 6: 5V BUS TX2 BUS BUS BUS (UART only)", HAVE),
+    parts = [("Pigtail", "R1", "1 kOhm in line in the TX2 lead (the only UART resistor)", HAVE),
+             ("Pigtail", "-", "6 F-F jumpers, one end cut off each; heat shrink", ORDERED),
              ("PSU", "-", "DC jack 5.5 x 2.1 mm -> screw terminal, -> RAMPS 5A", ORDERED),
              ("PSU", "-", "20 AWG red + black, adapter -> RAMPS 5A terminal", ORDERED),
              ("RAMPS", "S1", "7 mm push button (start / stop)", HAVE),
-             ("Wiring", "-", "F-F jumpers, ~20 x 10-20 cm", ORDERED),
+             ("Wiring", "-", "F-F jumpers, ~20 x 10-20 cm (6 of them for the pigtail)", ORDERED),
              ("Key", "-", "the motor's own ~1 m cable -> E0 motor header", HAVE),
-             ("Hub", "-", "perfboard (kit): a few cm square", HAVE)]
+             ("Pigtail", "-", "small zip tie: the splice to the deck", ORDERED)]
     yp = table(452, 262, ["Where", "Ref", "Part", "Status"], [48, 28, 252, 42], parts,
                "Parts you fit (5, 10) - full list: docs/bom.md")
     s.para(452, yp + 13, ["Revision 2026-10-08.1 removed the remote driver board, the 6-conductor",
-                          "cable + Phoenix connectors, the hub 12 V branch + fuse, and C1a/C1b.",
+                          "cable + Phoenix connectors, the hub 12 V branch + fuse, and C1a/C1b;",
+                          "2026-10-08.2 replaced the hub board (perfboard) with the UART pigtail.",
                           "RAMPS F1, F2, D1, the six 100 uF and the 10 k pull-ups are on the RAMPS."], 8, color=GREY)
     s.text(24, 330, "Power order (8)", 10, True)
     s.para(24, 345, ["1. Make every connection with power off (USB unplugged, 12 V off).",
@@ -892,8 +891,8 @@ def sheet_tables(s):
                      "5. Never plug or unplug a motor with 12 V on (the key motor cable too).",
                      "6. Emergency stop: pull the 12 V plug."], 8)
     s.text(24, 426, "VERIFY on the bench (control/bringup.md)", 10, True)
-    s.para(24, 441, ["Which MS3 jumper pin is the signal side (stage 1, `ping`), all four sockets.",
-                     "Which top-edge pin is DIAG (stage 3).   The key answers at address 3 (E0).",
+    s.para(24, 441, ["Driver orientation in each socket (manual 2.4 step 2); all four answer `ping` (stage 1).",
+                     "DIAG is the pin next to the pot (stage 3).   The key answers at address 3 (E0).",
                      "The key's StallGuard through the 1 m motor cable (stage 5); shorten if dull.",
                      "Multimeter: DC-jack + / - before the first power-up.",
                      "Sources: control/wiring.md - Marlin pins_RAMPS.h, TMC2209 datasheet rev 1.09,",
@@ -908,9 +907,9 @@ SHEETS = [
      "the RAMPS or by jumper.", sheet_dials_ab),
     ("Dial driver C and the key driver (E0)", "The key driver is an ordinary driver in the E0 socket "
      "(revision 2026-10-08.1).", sheet_dial_c_key),
-    ("DIAG-mod and UART-tap details; the key motor cable", None, sheet_details),
-    ("Mega + RAMPS headers, hub (UART bus)", "Thin lines = RAMPS traces. Thick lines = your jumper wires "
-     "(F-F, 10-20 cm) and hub-board wiring.", sheet_signals),
+    ("Driver taps (DIAG, RX), orientation; the key motor cable", None, sheet_details),
+    ("Mega + RAMPS headers, UART pigtail", "Thin lines = RAMPS traces. Thick lines = your jumper wires "
+     "(F-F, 10-20 cm) and the UART pigtail.", sheet_signals),
     ("Pin map, jumpers, currents, parts", None, sheet_tables),
 ]
 

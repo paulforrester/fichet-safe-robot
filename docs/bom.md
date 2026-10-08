@@ -1,6 +1,6 @@
 # Bill of materials
 
-> **Revision 2026-10-08.1** · key driver on the RAMPS E0 socket · log: `docs/revisions.md`
+> **Revision 2026-10-08.2** · key driver on the RAMPS E0 socket; UART pigtail replaces the hub board · log: `docs/revisions.md`
 
 **Revision 2026-10-08.1 (2026-10-08):** the key driver moved to the RAMPS
 **E0** socket. Several parts that were ordered are **no longer used** (keep
@@ -8,9 +8,14 @@ them as spares): the 1.1 A PTC fuse and the 1.6 A glass fuse kit + its printed
 holder (no separate key-branch fuse), the two 100 µF capacitors (no remote
 board), the 6-conductor QUARKZMAN cable and the Phoenix 8-pin connectors (no
 inter-unit signal cable), and the female header strips (no driver socket on a
-perfboard). The order records below are kept as history. What is still fitted:
-R1 (1 kΩ) on the hub, the DC-jack adapter + 20 AWG wire (PSU → RAMPS "5A"),
-F–F jumpers, the start/stop button, and the key motor's own cable into E0.
+perfboard). The order records below are kept as history.
+
+**Revision 2026-10-08.2 (2026-10-08):** the hub board is replaced by the UART
+pigtail (`control/wiring.md` §5), so its perfboard and male header pins are
+no longer used either. What is still fitted: R1 (1 kΩ) in the pigtail's TX2
+lead, F–F jumpers (pigtail leads, DIAG leads), heat shrink, a zip tie, the
+DC-jack adapter + 20 AWG wire (PSU → RAMPS "5A"), the start/stop button, and
+the key motor's own cable into E0.
 
 What to buy, based on decisions locked in so far (two-unit architecture,
 StallGuard force feedback on all 4 motors — see `control/sequence.md` and
@@ -58,7 +63,8 @@ has specific picks for amazon.fr and mouser.fr, with prices and stock, and
 lists what neither site has. amazon.fr covers everything in one order.
 **Ordered 2026-10-07** (amazon.fr, Paul): every item that was 🛒 below.
 
-**A. Parts you buy and fit** (the hub board and the wiring). **Revision
+**A. Parts you buy and fit** (the wiring; the UART pigtail since revision
+2026-10-08.2 — the hub perfboard and male header rows are spares now). **Revision
 2026-10-08.1:** the "remote board" rows (fuse, PTC, C1, female headers,
 Phoenix J1/J3, 6-conductor cable, remote perfboard, standoffs) are **no longer
 used** — the key driver is in the RAMPS E0 socket. They stay in the table as a
@@ -70,19 +76,19 @@ record of what was bought; treat them as spares.
 | ✅ ordered (Paul, 2026-10-07): AUKENIEN 120-pc slow-blow kit, **T, 5 × 20 mm, 250 V**, 12 values 0.5–10 A × 10 each (1.6 A among them), €15.99, Prime next day | **hub F1, for now** | **Glass cartridge fuse** | **1.6 A T (slow-blow), 5 × 20 mm** | 1 (+ 9 spare) | in F1's place until the PTC arrives. No clips or holder ordered: Paul prints a holder | `control/wiring.md` log 2026-10-07 |
 | hardware on hand (check washers) | **hub F1 holder** | **Printed 5 × 20 mm fuse holder** (`cad/fuse_holder.stl`) | 2× M3 heat-set inserts, 2× M3x6 socket screws, **2× M3 washers (7mm OD)**, 1 QUARKZMAN spring (dial-unit spare) | 1 | beside the hub board or inline in the 12 V+ wire | `docs/housing_decisions.md`, 2026-10-07 |
 | ✅ ordered (amazon.fr, 2026-10-07): Innfeeltech 100 µF 35 V radial, 50 pcs, €7.49, delivery Friday 9 Oct. **Not sold as low ESR** (the listing doesn't say) | **C1** | **Electrolytic capacitor** | **100 µF, ≥ 25 V** (35 V fine), low ESR | **1 (+1)** | remote board: across VM–GND, right at the key driver. The one ordered isn't sold as low ESR: see `control/wiring.md` log 2026-10-07 | §3.5, §6.1, §10 |
-| ✅ on hand (another order, Paul 2026-10-07) | — | 2.54 mm male header strip (cuttable) | — | **1 strip** | hub: 9 pins (GND, 5V, STEP, TX2, BUS ×4, DIAG); remote: J2, 1 × 4 for the key motor | §5, §6.1, §10 |
+| ✅ on hand (another order, Paul 2026-10-07) | — | 2.54 mm male header strip (cuttable) | — | **1 strip** | *not used from revision 2026-10-08.2 (spare).* Was the hub's jumper pins and the remote board's J2 | §5, §6.1, §10 |
 | ✅ on hand (another order, Paul 2026-10-07) | — | 2.54 mm female header strip (cuttable) | — | **1 strip** | remote: 2 × (1 × 8) + 1 × (1 × 2), the key driver's socket | §6.1, §10 |
-| ✅ ordered (amazon.fr, 2026-10-07) | — | **F–F Dupont jumpers** | 10–20 cm | **~20** | RAMPS headers ↔ hub; hub BUS ↔ X/Y/Z MS3 pins; 3 cut in half for the DIAG mod | §2, §3.3, §5, §10 |
-| ✅ ordered (amazon.fr, 2026-10-07) | — | **DC jack → screw-terminal adapter** | female **5.5 × 2.1 mm** | **1** | PSU → hub 12V IN. **Why:** the PSU ends in a barrel *plug*, and the hub's 12V IN and the RAMPS '5A' input are screw terminals. This is the socket the plug goes into. The alternative is to cut the plug off and screw in the bare leads (find + with the multimeter): free, but it can't be undone. Not the Mega's own jack: that feeds only VIN, and the RAMPS motor rail would get no 12 V (D1 conducts only from that rail to VIN) | §5, §10 |
-| ✅ ordered (amazon.fr, 2026-10-07) | — | **Hook-up wire** | **20 AWG, red + black**, ~1 m each | **1 + 1** | PSU → hub → RAMPS '5A' input | §5, §10 |
+| ✅ ordered (amazon.fr, 2026-10-07) | — | **F–F Dupont jumpers** | 10–20 cm | **~20** | 6 for the UART pigtail (one end cut off each; revision 2026-10-08.2); 4 plain ones from the drivers' DIAG pins to the endstop S pins (no DIAG soldering since 2026-10-08.2) | §2, §3.3, §5, §10 |
+| ✅ ordered (amazon.fr, 2026-10-07) | — | **DC jack → screw-terminal adapter** | female **5.5 × 2.1 mm** | **1** | PSU → RAMPS '5A' terminal (revision 2026-10-08.1; was hub 12V IN). **Why:** the PSU ends in a barrel *plug*, and the RAMPS '5A' input is a screw terminal. This is the socket the plug goes into. The alternative is to cut the plug off and screw in the bare leads (find + with the multimeter): free, but it can't be undone. Not the Mega's own jack: that feeds only VIN, and the RAMPS motor rail would get no 12 V (D1 conducts only from that rail to VIN) | §5, §10 |
+| ✅ ordered (amazon.fr, 2026-10-07) | — | **Hook-up wire** | **20 AWG, red + black**, ~1 m each | **1 + 1** | PSU adapter → RAMPS '5A' input (the hub's 12 V split went in revision 2026-10-08.1) | §5, §10 |
 | ✅ ordered (amazon.fr, 2026-10-07) | — | **Small zip ties** | — | **~6** | cable strain relief, within ~20 mm of each plug | §4 |
-| ✅ ordered (×100) | R1 | Resistor | 1 kΩ | 1 | hub: TX2 → UART bus. The only resistor you fit | §3.2 |
+| ✅ ordered (×100) | R1 | Resistor | 1 kΩ | 1 | in line in the UART pigtail's TX2 lead (revision 2026-10-08.2; was on the hub). The only resistor you fit | §3.2 |
 | ✅ ordered (×12) | S1 | Momentary push button | 7 mm | 1 | start / stop, on the RAMPS Y_MIN S and − pins | §1 |
 | ✅ on hand: **5 headers + 5 plugs** (Paul, 2026-10-07) | J3, J1 | Phoenix-style pluggable screw terminal | 5.08 mm, 8-pin, header + plug | 2 headers + 2 plugs (3 + 3 spare) | J3 on the hub, J1 on the remote board | §4 |
 | ✅ ordered | — | Shielded cable | QUARKZMAN 22 AWG, 6 cores | ~300 mm | dial unit ↔ key turner | §4 |
-| ✅ on hand | — | Perfboard (from the kit) | — | 2 pieces | hub ~50 × 30 mm; remote ~70 × 30 mm | §5, §6.2 |
-| ✅ ordered | — | Heat shrink | — | — | shield fold-back at the key end; joints | §4 |
-| ⬜ later, with the mount CAD | — | Standoffs | 4 mm | 4 | under the remote board (mount not designed yet) | §6.2 |
+| ✅ on hand | — | Perfboard (from the kit) | — | 2 pieces | *not used from revision 2026-10-08.2 (spares).* Were the hub and the remote board | §5, §6.2 |
+| ✅ ordered | — | Heat shrink | — | — | over R1 and the UART pigtail's splice (the shielded cable it was also for is retired) | §4 |
+| ⬜ not needed (revision 2026-10-08.1) | — | Standoffs | 4 mm | 4 | *not needed:* were for under the remote board, which is gone | §6.2 |
 
 Tools: **nothing left to buy**. Paul has a multimeter, solder (with wick)
 and flush cutters (2026-10-07). The harness uses **F–F jumpers only**. The M–F ones in the
