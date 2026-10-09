@@ -156,13 +156,52 @@ beside this block (manual §1.4 step 11).
 - **Leave the Mega's own barrel jack empty.** The drivers get 12 V only through
   the 5A terminal; RAMPS diode D1 feeds the Mega's VIN from there.
 
-### A5. The key motor
+### A5. The four motor cables
 
-- The key motor's own ~1 m cable plugs into the **E0 motor header** (the 4-pin
-  header beside the E0 socket), like a dial motor into X/Y/Z. It is the only
-  wire between the two units.
-- Use the supplied cable as it is; shorten it only if the key's StallGuard
-  reads too dull in bring-up stage 5. Never plug or unplug it with 12 V on.
+Each motor plugs into the **4-pin motor header above its own driver socket**,
+labelled **2B 2A 1A 1B** (board map at the top of this sheet):
+
+| Motor | Header | Where |
+|---|---|---|
+| Dial A (top-left) | **X** | bottom row, left |
+| Dial B (top-right) | **Y** | bottom row, middle |
+| Dial C (bottom) | **Z** | bottom row, right. The Z axis has two headers wired in parallel (for dual-Z printers; RAMPS KiCad Z-MOT1/Z-MOT2 both go to the Z socket): use **either one, not both** |
+| Key | **E0** | top edge, the left one of the two marked "E0/E1" (E1, right, stays empty) |
+
+**Coil pairs, not colours, decide the wiring.** Pins **2B–2A** drive one coil
+and **1A–1B** the other. STEPPERONLINE's manual for the sister motor
+17HS19-2004S1 pairs **black–green** (one coil) and **red–blue** (the other):
+"reverse the connection of one of the coil pairs (e.g., swap Black and Green
+wires, or swap Red and Blue wires)" (manuals.plus, B00PNEQKC0; Paul,
+2026-10-09). So a plug wired Black, Green, Red, Blue already has each coil at
+one end. That page is for a different model and some units have the middle
+two wires swapped (`CLAUDE.md`, vendor note), so check each motor (12 V off,
+motor unplugged):
+
+1. Multimeter on Ω, probes in the plug's sockets: the two wires that read a
+   **few ohms** to each other are one coil; the other two read a few ohms too;
+   between the pairs, **open**. (No meter: the manual's method — spin the
+   shaft by hand, touch two wires together; if it gets noticeably harder to
+   turn, they're one coil.)
+2. If the two wires of a pair sit **side by side at one end of the plug**
+   (positions 1–2 and 3–4), the plug can go on either way round. If a pair is
+   split across the middle, swap the two middle wires in the plug housing
+   (lift the latch, pull, swap) so each pair is at one end.
+3. Plug each cable on the same way for consistency (e.g. **black toward the
+   2B end** on all four) and write it down. Turning a plug round reverses
+   that motor's direction (it swaps which coil is which; reversing *both*
+   pairs' polarity alone would not, as the manual notes). The direction is
+   set in the firmware anyway (bring-up stages 4b and 5).
+
+**Send back:** for each motor, the two resistance readings (one per pair),
+which colours pair up, and which end of the header the black wire is at.
+
+- The key motor's ~1 m cable is the only wire between the two units. Use it
+  as supplied; shorten it only if the key's StallGuard reads too dull in
+  bring-up stage 5.
+- **Never plug or unplug any motor with 12 V on.**
+- A motor that **buzzes or jitters instead of turning** has its coils mixed:
+  12 V off and redo step 1 for that one.
 
 ### Already on the RAMPS — nothing to add
 

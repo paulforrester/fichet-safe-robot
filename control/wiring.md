@@ -316,9 +316,14 @@ GCONF.en_spreadCycle) — StallGuard4 only works in StealthChop (DS §11).
 ## 8. Power-up and power-down order, fusing
 
 1. **All connections with power off** (USB unplugged, 12 V off).
-2. **Before the first power-up, turn every driver's VREF pot to minimum**
+2. **Every driver's VREF pot to minimum before any motor is connected**
    (decision log, 2026-10-07: a driver that resets runs on its pot until the
-   firmware notices). *Revision 2026-10-08.1*: every driver, the key's
+   firmware notices). **Correction (2026-10-09):** this used to say "before
+   the first power-up", but the pot is fed from the driver's own 5VOUT (BTT
+   V1.3 schematic: R8 from 5VOUT, pot R9, wiper → R11 → VREF), so it only
+   reads with 12 V on, and BTT's manual doesn't say which way is minimum. It
+   is set by measurement in bring-up stage 1 (step 3a): 12 V on, driver off
+   (EN pull-up), no motor. *Revision 2026-10-08.1*: every driver, the key's
    included, now has its EN on a Mega pin with RAMPS's 10 kΩ pull-up, so all
    four stay off at power-up until the firmware enables them. (Before, the
    remote key driver's EN was tied low and it came on with 12 V, DS p. 52

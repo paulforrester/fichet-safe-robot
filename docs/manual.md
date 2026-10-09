@@ -432,10 +432,13 @@ Four drivers are used (three dials + the key), plus one spare.
 2. **Heatsinks** on all drivers you'll use. At ≤ 1 A RMS no fan is needed
    (BTT: active cooling above 1.2 A).
 3. **Don't bridge R10** on any driver (`control/wiring.md` §2).
-4. **Turn the VREF pot to minimum on every driver.** The firmware sets the
-   current over UART, but a driver whose 12 V drops out for a moment comes
-   back using its pot, until the firmware notices at the end of that move
-   (`control/wiring.md` §7).
+4. **VREF pot to minimum on every driver**, set by measurement in bring-up
+   stage 1 step 3a (12 V on, no motor, driver off): DC volts from the pot's
+   metal centre to GND, turn the way the reading falls until it stops. The
+   firmware sets the current over UART, but a driver whose 12 V drops out
+   for a moment comes back using its pot, until the firmware notices at the
+   end of that move (`control/wiring.md` §7). BTT's manual doesn't say
+   which way is minimum, so measure rather than turn it to a stop.
 
 ### 2.4 Mega, RAMPS and the four drivers
 
@@ -569,7 +572,14 @@ before the first power-up.
 ### 2.8 Motors
 
 - **Dials**: dial A's motor on the **X** motor header, B on **Y**, C on
-  **Z**.
+  **Z** (Z has two headers in parallel: use either, not both). Each header is
+  the 4-pin one above its socket, labelled 2B 2A 1A 1B.
+- **Before plugging any motor in, check its coil pairs with the multimeter**
+  and make sure each pair sits at one end of the plug
+  (`control/harness/ramps_and_uart.md` A5). Pins 2B–2A take one coil, 1A–1B
+  the other. Which way round the plug goes only sets that motor's direction,
+  which the firmware sets anyway; put them all on the same way (e.g. black
+  toward 2B) and note it.
 - **Key**: the key motor's own ~1 m cable plugs into the **E0** motor header
   (revision 2026-10-08.1 — no remote board). It's the only wire between the
   two units. Use the supplied cable as it is; shorten it only if the key's

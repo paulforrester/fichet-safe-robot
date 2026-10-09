@@ -32,18 +32,22 @@ both at once.)
 2. Start the logger and type `status`. You should see
    `# Fichet safe robot 0.4 (2026-10-08, rev 2026-10-08.1) - type help` and `# state=IDLE run=0 next=0 ...`.
 3. **RAMPS jumpers** (under the sockets): X none; Y **MS1** only; Z **MS2**
-   only; **no MS3 jumper anywhere**.
+   only; **E0 MS1 + MS2** (the key, address 3); E1 none; **no MS3 jumper
+   anywhere**. (Correction, 2026-10-09: E0 was missing from this step.)
 4. **EN-end pins** on all **four** drivers (the three dials and the key;
    leave the spare untouched): before fitting the heatsinks, cut the
    **bottom** ends of the two EN-end pins flush underneath; leave the tops.
    No soldering (revision 2026-10-08.2; `control/wiring.md` §3.3).
-5. Fit heatsinks. **Driver orientation**: do the multimeter check in manual
+5. **VREF pots**: set later, by measurement, in stage 1 (step 3a). (BTT's
+   manual doesn't say which way is minimum, and the pot only has a voltage
+   with 12 V on.)
+6. Fit heatsinks. **Driver orientation**: do the multimeter check in manual
    §2.4 step 2: match the driver's EN and GND pins to the small EN and GND
    labels in the RAMPS silkscreen. The driver's VS/GND/motor side goes in the
    socket row nearer that axis's motor header.
 
 **Send back**: the two lines from step 2; the orientation check results for
-X (manual §2.4 step 2); any surprises in steps 3–5.
+X (manual §2.4 step 2); any surprises in steps 3–6.
 
 ---
 
@@ -62,15 +66,24 @@ the X driver's **DIAG** pin → X_MIN **S** pin. 12 V into RAMPS's **5A** input.
    version 21, MS1 = 0, MS2 = 0, DIAG pin low, DIAG register low. The last two
    fields are status (GSTAT reads 1 right after power-up: that's the
    driver's "I was reset" flag, normal).
+3a. **Set its VREF pot to minimum by measurement** (12 V on; the driver stays
+   off, EN held high by the RAMPS pull-up, and no motor is connected).
+   Multimeter on DC V, black probe on the "5A" − terminal, red probe on the
+   pot's metal centre. Turn the pot slowly, a little at a time, the way that
+   makes the reading **fall**, until it stops falling (near 0 V). Which way
+   that is isn't in BTT's manual, hence measuring. If the centre reads 0 V
+   whichever way you turn, stop and tell me.
 4. If it says `DRV,A,0,0,...`: 12 V off. Check lead A is on **RX** (not TX
    or CLK), the TX2 and RX2 leads aren't swapped on AUX-4 (TX2 is the lead
    with R1), and there's no jumper on X's MS3 position. Then try again.
 5. 12 V off. Add the Y, Z and **E0 (key)** drivers — with their jumpers and
    DIAG jumpers: Y → X_MAX S, Z → Z_MIN S, **E0 → Z_MAX S** — and pigtail
    leads B, C and KEY on the RX pins of the Y, Z and E0 drivers. 12 V on.
-   `set axes 15`, `ping`.
+   `set axes 15`, `ping`. Then set the **Y, Z and E0 pots** to minimum the
+   same way as step 3a.
 
-**Send back**: the `DRV,A` line from step 3, and the four `DRV` lines from
+**Send back**: the `DRV,A` line from step 3; the lowest VREF reading and
+which way you turned (step 3a; and for the other three); the four `DRV` lines from
 step 5. Expect `DRV,B,1,21,1,0,...`, `DRV,C,1,21,0,1,...`
 and **`DRV,K,1,21,1,1,...`** (the key in E0, address 3: MS1 = MS2 = 1). If a
 DIAG field reads 1 at rest, say which.
