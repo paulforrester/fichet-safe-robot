@@ -169,22 +169,29 @@ labelled **2B 2A 1A 1B** (board map at the top of this sheet):
 | Key | **E0** | top edge, the left one of the two marked "E0/E1" (E1, right, stays empty) |
 
 **Coil pairs, not colours, decide the wiring.** Pins **2B–2A** drive one coil
-and **1A–1B** the other. STEPPERONLINE doesn't publish a colour code for the
-17HE19-2004S that we could reach, and some units have the middle two wires
-swapped (`CLAUDE.md`, vendor note), so check each motor (12 V off, motor
-unplugged, multimeter on Ω, probes in the plug's sockets):
+and **1A–1B** the other. STEPPERONLINE's manual for the sister motor
+17HS19-2004S1 pairs **black–green** (one coil) and **red–blue** (the other):
+"reverse the connection of one of the coil pairs (e.g., swap Black and Green
+wires, or swap Red and Blue wires)" (manuals.plus, B00PNEQKC0; Paul,
+2026-10-09). So a plug wired Black, Green, Red, Blue already has each coil at
+one end. That page is for a different model and some units have the middle
+two wires swapped (`CLAUDE.md`, vendor note), so check each motor (12 V off,
+motor unplugged):
 
-1. Find the two wires that read a **few ohms** to each other: one coil. The
-   other two read a few ohms to each other too. Between the pairs: **open**
-   (no reading). Note the pairs, e.g. black–green and red–blue.
+1. Multimeter on Ω, probes in the plug's sockets: the two wires that read a
+   **few ohms** to each other are one coil; the other two read a few ohms too;
+   between the pairs, **open**. (No meter: the manual's method — spin the
+   shaft by hand, touch two wires together; if it gets noticeably harder to
+   turn, they're one coil.)
 2. If the two wires of a pair sit **side by side at one end of the plug**
    (positions 1–2 and 3–4), the plug can go on either way round. If a pair is
    split across the middle, swap the two middle wires in the plug housing
    (lift the latch, pull, swap) so each pair is at one end.
 3. Plug each cable on the same way for consistency (e.g. **black toward the
-   2B end** on all four) and write it down. Turning a plug round only
-   reverses that motor's direction; the direction is set in the firmware
-   anyway (bring-up stages 4b and 5).
+   2B end** on all four) and write it down. Turning a plug round reverses
+   that motor's direction (it swaps which coil is which; reversing *both*
+   pairs' polarity alone would not, as the manual notes). The direction is
+   set in the firmware anyway (bring-up stages 4b and 5).
 
 **Send back:** for each motor, the two resistance readings (one per pair),
 which colours pair up, and which end of the header the black wire is at.
