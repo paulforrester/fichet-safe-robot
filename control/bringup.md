@@ -114,6 +114,9 @@ draw a mark on the bench in line with it.
 4. `jog A 800` (4 turns): smooth? Back on the mark?
 5. If it buzzes or jitters instead of turning, 12 V off and swap the two
    middle wires of the motor plug (`docs/bom.md` note). Then repeat.
+   (Paul, 2026-10-09: needed on the first motor, X; it then jogged. Check
+   the other three before plugging them in: `control/harness/ramps_and_uart.md`
+   A5.)
 
 **Send back**: (a) did 200 steps give exactly one turn — or how far off
 (e.g. "half a turn" means the motor is 0.9°/step); (b) direction of `jog A
