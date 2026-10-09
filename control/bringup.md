@@ -16,19 +16,30 @@ Wiring is in `control/wiring.md`; firmware commands in
 - Power order: USB first, then 12 V. Off: 12 V first.
 - Start at low current, and never put fingers in the gears.
 
-**Logging**: run `python3 control/firmware/tools/logger.py --port <port>`
-(after `python3 -m pip install pyserial`), and type commands in that window.
-It saves everything to `runs/<date>_raw.log`. For any stage you can just send
-me that file. (Or use the Arduino Serial Monitor at 115200, Newline — but not
-both at once.)
+**Software on the Mac** (set up once; details in `docs/manual.md` §3–4):
+- **Arduino IDE 2** (arduino.cc) builds the firmware and uploads it over USB:
+  board package **Arduino AVR Boards**, library **TMCStepper 0.7.3**, board
+  **Arduino Mega or Mega 2560**, port `/dev/cu.usbmodemXXXX` (manual §3.2,
+  §3.3, §4.1).
+- **The logger** talks to the robot: you type commands in it, and it saves
+  everything to `runs/<date>_raw.log` (for any stage you can just send me
+  that file). Once: `python3 -m venv ~/safe-robot-venv` and
+  `~/safe-robot-venv/bin/python -m pip install pyserial` (manual §3.5). Each
+  time, from the repo folder:
+  `~/safe-robot-venv/bin/python control/firmware/tools/logger.py --port /dev/cu.usbmodemXXXX`
+  (`ls /dev/cu.usbmodem*` finds the port; manual §5.3).
+- Or the IDE's Serial Monitor at 115200, "Newline" (it doesn't save). Only one
+  program can have the port open: close the logger before uploading.
 
 ---
 
 ## Stage 0 — Preparation (no power)
 
-1. **Flash**: install TMCStepper 0.7.3 (Library Manager). Open
-   `control/firmware/safe_robot/safe_robot.ino`, board "Arduino Mega or Mega
-   2560". Upload with only USB connected (RAMPS may be on or off the Mega).
+1. **Flash** (manual §3.1–3.3 and §4.1): get the code (`git clone` or
+   GitHub's Download ZIP), install the Arduino IDE, the AVR board package and
+   TMCStepper 0.7.3. Open `control/firmware/safe_robot/safe_robot.ino`,
+   board "Arduino Mega or Mega 2560", **Verify**, then **Upload** with only
+   USB connected (RAMPS may be on or off the Mega).
 2. Start the logger and type `status`. You should see
    `# Fichet safe robot 0.4 (2026-10-08, rev 2026-10-08.1) - type help` and `# state=IDLE run=0 next=0 ...`.
 3. **RAMPS jumpers** (under the sockets): X none; Y **MS1** only; Z **MS2**
