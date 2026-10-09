@@ -84,6 +84,13 @@ the X driver's **DIAG** pin → X_MIN **S** pin. 12 V into RAMPS's **5A** input.
    makes the reading **fall**, until it stops falling (near 0 V). Which way
    that is isn't in BTT's manual, hence measuring. If the centre reads 0 V
    whichever way you turn, stop and tell me.
+   **Careful: the pot sits right beside the VM (12 V, "VS" on the board) and
+   GND pins.** Put heat shrink over the screwdriver's shaft so only the tip
+   is bare, or use a plastic trimmer tool. (Paul, 2026-10-09: a bare
+   screwdriver bridged VM–GND, a spark, and the pot then read 0 V: the 12 V
+   rail had dropped out (RAMPS F1 or the PSU's protection). After 2 minutes
+   with everything off it was back: 12.3 V at the "5A" terminal and at VM,
+   all four drivers answering `ping`, no damage.)
 4. If it says `DRV,A,0,0,...`: 12 V off. Check lead A is on **RX** (not TX
    or CLK), the TX2 and RX2 leads aren't swapped on AUX-4 (TX2 is the lead
    with R1), and there's no jumper on X's MS3 position. Then try again.
