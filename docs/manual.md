@@ -618,6 +618,12 @@ Always build from `main` after I tell you a PR is merged.
 ### 3.2 Arduino IDE (once)
 
 1. Install Arduino IDE 2 from arduino.cc.
+   **Apple Silicon Mac (M1/M2/…): install Rosetta 2 first.** The AVR
+   compiler the board package installs is built for Intel Macs; without
+   Rosetta, Verify fails with "avr-g++: bad CPU type in executable" (Paul,
+   2026-10-09; Arduino forum). Check: `pgrep -q oahd && echo installed ||
+   echo missing`. Install: `softwareupdate --install-rosetta
+   --agree-to-license`. Then restart the IDE.
 2. Tools → Board: if **Arduino Mega or Mega 2560** isn't listed, open
    Boards Manager and install **Arduino AVR Boards**.
 3. Tools → Manage Libraries → search **TMCStepper** (by teemuatlut) → choose
