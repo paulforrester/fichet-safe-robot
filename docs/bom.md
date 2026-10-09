@@ -1,6 +1,6 @@
 # Bill of materials
 
-> **Revision 2026-10-08.2** · key driver on the RAMPS E0 socket; UART pigtail replaces the hub board · log: `docs/revisions.md`
+> **Revision 2026-10-09.1** · key driver on the RAMPS E0 socket; UART pigtail replaces the hub board · log: `docs/revisions.md`
 
 **Revision 2026-10-08.1 (2026-10-08):** the key driver moved to the RAMPS
 **E0** socket. Several parts that were ordered are **no longer used** (keep
@@ -83,7 +83,7 @@ record of what was bought; treat them as spares.
 | ✅ ordered (amazon.fr, 2026-10-07) | — | **Hook-up wire** | **20 AWG, red + black**, ~1 m each | **1 + 1** | PSU adapter → RAMPS '5A' input (the hub's 12 V split went in revision 2026-10-08.1) | §5, §10 |
 | ✅ ordered (amazon.fr, 2026-10-07) | — | **Small zip ties** | — | **~6** | cable strain relief, within ~20 mm of each plug | §4 |
 | ✅ ordered (×100) | R1 | Resistor | 1 kΩ | 1 | in line in the UART pigtail's TX2 lead (revision 2026-10-08.2; was on the hub). The only resistor you fit | §3.2 |
-| ✅ ordered (×12) | S1 | Momentary push button | 7 mm | 1 | start / stop, on the RAMPS Y_MIN S and − pins | §1 |
+| ✅ ordered (×12) | S1 | Momentary push button | 7 mm | 1 | start / stop, on the RAMPS Y_MIN S and − pins; mounts from under the deck (hole + recess, rev 2026-10-09.1) with its own washer and nut | §1 |
 | ✅ on hand: **5 headers + 5 plugs** (Paul, 2026-10-07) | J3, J1 | Phoenix-style pluggable screw terminal | 5.08 mm, 8-pin, header + plug | 2 headers + 2 plugs (3 + 3 spare) | J3 on the hub, J1 on the remote board | §4 |
 | ✅ ordered | — | Shielded cable | QUARKZMAN 22 AWG, 6 cores | ~300 mm | dial unit ↔ key turner | §4 |
 | ✅ on hand | — | Perfboard (from the kit) | — | 2 pieces | *not used from revision 2026-10-08.2 (spares).* Were the hub and the remote board | §5, §6.2 |

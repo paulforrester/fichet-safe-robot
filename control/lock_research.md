@@ -1,6 +1,6 @@
 # Does the Fichet-Bauche "Complice" relock or lock out after wrong tries?
 
-> **Revision 2026-10-08.2** · project revision baseline (this research is unchanged by the wiring changes) · log: `../docs/revisions.md`
+> **Revision 2026-10-09.1** · project revision baseline (this research is unchanged by the wiring changes) · log: `../docs/revisions.md`
 
 
 Researched 2026-10-06 (cloud session), for the `control/sequence.md` open

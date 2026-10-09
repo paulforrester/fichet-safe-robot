@@ -3,11 +3,12 @@
 Context for any Claude session working in this repo. Read this first, then
 the doc that matches your task (table below). Last updated 2026-10-08.
 
-> **Project revision 2026-10-08.2** — all four TMC2209 drivers are on the
+> **Project revision 2026-10-09.1** — all four TMC2209 drivers are on the
 > RAMPS (the key in the **E0** socket); there is no remote driver board or
 > inter-unit signal cable, only the key motor's own cable. The UART junction
 > is a six-lead **UART pigtail** (R1 in the TX2 lead, one splice), not a
-> board (2026-10-08.2). The current
+> board (2026-10-08.2). The start/stop button mounts on the electronics deck
+> (2026-10-09.1). The current
 > revision ID lives in `REVISION`; the log is `docs/revisions.md`. When a
 > design change affects how the robot is built, wired or run, bump `REVISION`,
 > add a `docs/revisions.md` entry, and run `python3 tools/check_revision.py`
@@ -91,7 +92,7 @@ RAMPS, UART pigtail); firmware written and host-tested
 | `docs/photos/` | Door, dial holes, key reference photos |
 | `cad/*.scad` | OpenSCAD sources. `common_mounts.scad` (shared NEMA17, magnet, D-bore), `dial_unit_housing.scad`, `key_turner_housing.scad`; `print_*.scad` export one printable part each; `*_assembled.scad` for checks |
 | `cad/*.stl` | Rendered parts Paul prints |
-| `cad/tools/` | `dial_layout_check.py`, `dial_interference_check.py`, `key_turner_check.py` — run after any CAD change |
+| `cad/tools/` | `dial_layout_check.py`, `dial_interference_check.py`, `key_turner_check.py`, `button_mount_check.py` (deck button mount) — run after any CAD change |
 | `cad/sketchup/` | Build scripts for SketchUp review models (run via the Trimble SketchUp connector, not locally) |
 
 ## Mechanical facts the software and wiring depend on
@@ -210,7 +211,9 @@ labels at each socket (no square pad on top; manual §2.4 step 2); every driver 
 silkscreen says (stage 3); the key answers at address 3 (E0); the key's StallGuard through the 1 m
 motor cable (shorten it if too dull); the pigtail's multimeter check (manual
 §2.5). No board mount is needed any more (the pigtail's splice zip-ties to the
-deck); the start button's place on the deck is still a mechanical to-do.
+deck); the start button mounts from under the deck (7.4mm hole, 10 x 2.5mm
+recess, 4mm wire hole beside the endstop block; revision 2026-10-09.1,
+`docs/housing_decisions.md`): check it on the reprinted deck.
 
 ## Firmware — `control/firmware/` (v0.4, 2026-10-08; read its README)
 
@@ -297,5 +300,5 @@ any change (`make -C control/firmware/test`).
   `python3 -m pytest control/firmware/tools` (logger).
 - CAD checks (only if you touch `cad/`): `openscad` renders, then
   `python3 cad/tools/dial_layout_check.py`, `dial_interference_check.py`,
-  `key_turner_check.py`; check STLs are watertight (trimesh). Paul has no
+  `key_turner_check.py`, `button_mount_check.py`; check STLs are watertight (trimesh). Paul has no
   OpenSCAD; he prints the STLs and reviews SketchUp models.

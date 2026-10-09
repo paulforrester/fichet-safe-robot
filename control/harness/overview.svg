@@ -9,7 +9,7 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 554)">
 <title>overview</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-554 1250.98,-554 1250.98,4 -4,4"/>
-<text text-anchor="middle" x="623.49" y="-537.2" font-family="Helvetica,sans-Serif" font-size="11.00">Fichet safe robot — wiring overview (control/wiring.md, revision 2026&#45;10&#45;08.2)</text>
+<text text-anchor="middle" x="623.49" y="-537.2" font-family="Helvetica,sans-Serif" font-size="11.00">Fichet safe robot — wiring overview (control/wiring.md, revision 2026&#45;10&#45;09.1)</text>
 <g id="clust1" class="cluster">
 <title>cluster_dial</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="264,-109 264,-522 1222.71,-522 1222.71,-109 264,-109"/>

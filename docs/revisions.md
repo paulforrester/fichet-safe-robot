@@ -1,6 +1,6 @@
 # Project revisions
 
-> **Revision 2026-10-08.2** · this file is the revision log · current ID in `REVISION`
+> **Revision 2026-10-09.1** · this file is the revision log · current ID in `REVISION`
 
 Every project document and drawing carries the project revision it was last
 brought up to date in, so a printed or downloaded copy can be told apart from
@@ -21,6 +21,36 @@ a newer one. The ID is the date plus a sequence number for that day:
   which also names the project revision it was built for.
 
 ## Log (most recent first)
+
+### 2026-10-09.1 — start/stop button mount on the electronics deck
+
+**Change.** The 7mm start/stop button gets a place on the electronics deck
+(Paul's design, 2026-10-09): a 7.4mm hole with a 10 x 2.5mm recess in the
+deck's underside for the switch body, left of the Mega next to the deck leg
+that the base plate doesn't cover; and a 4mm wire hole beside the RAMPS
+endstop block, with a small lobe added to the deck outline around it.
+Reasoning and checks: `docs/housing_decisions.md`, 2026-10-09.
+
+**Also recorded** (build notes, no design change): the endstop block's
+connector is one 3-row x 6 female block (three glued 6-pin strips): S row
+DIAG A, DIAG B, button, (empty), DIAG C, DIAG key; the button's GND under
+Y_MIN. Paul's idea of moving the DIAG leads to the X and Y headers was
+checked and **not** taken: D14/D15 have no external interrupt, and the
+pin-change interrupt they do have clashes with Arduino's SoftwareSerial,
+which TMCStepper links in (build fails: "multiple definition of
+`__vector_10`").
+
+**Reprint:** `cad/electronics_deck.stl`.
+
+**Not changed:** wiring, pin map, firmware (still v0.4).
+
+**Documents updated:** `cad/dial_unit_housing.scad` (+ STLs),
+`cad/tools/button_mount_check.py` (new), `docs/housing_decisions.md`,
+`docs/manual.md` (1.4, 1.7, print table, 2.7), the RAMPS bench sheet,
+`docs/bom.md`, `CLAUDE.md`, the drawing title blocks, and the revision
+line of every document.
+
+**Previous state:** `main` at `26d4e3b` plus PR #30 (revision 2026-10-08.2).
 
 ### 2026-10-08.2 — UART pigtail replaces the hub board
 

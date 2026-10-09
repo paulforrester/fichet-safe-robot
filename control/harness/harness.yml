@@ -5,7 +5,7 @@
 # The only wire between the units is the key motor's own cable.
 
 metadata:
-  title: Fichet safe robot — harness (revision 2026-10-08.2)
+  title: Fichet safe robot — harness (revision 2026-10-09.1)
 
 connectors:
   KEYMOT:
@@ -40,7 +40,7 @@ connectors:
   SPLICE:
     type: UART pigtail splice (the bus node)
     style: simple
-    notes: solder + heat shrink, zip-tied to the deck. R1 1 kΩ sits in line in the TX2 lead (revision 2026-10-08.2)
+    notes: solder + heat shrink, zip-tied to the deck. R1 1 kΩ sits in line in the TX2 lead (since revision 2026-10-08.2; drawing revision 2026-10-09.1)
 
 cables:
   KEYCABLE:

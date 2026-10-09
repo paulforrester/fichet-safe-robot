@@ -1,6 +1,6 @@
 # Control (motors, drivers, wiring, firmware)
 
-> **Revision 2026-10-08.2** · key driver on the RAMPS E0 socket; UART pigtail · log: `../docs/revisions.md`
+> **Revision 2026-10-09.1** · key driver on the RAMPS E0 socket; UART pigtail · log: `../docs/revisions.md`
 
 - `sequence.md` — control architecture and the operating sequence (seat,
   home, learn the key's stop angle, the 8,000-combination loop, false sets),

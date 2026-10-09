@@ -1,6 +1,6 @@
 # Control architecture and operating sequence
 
-> **Revision 2026-10-08.2** · key driver on the RAMPS E0 socket; UART pigtail (no change to the sequence) · log: `docs/revisions.md`
+> **Revision 2026-10-09.1** · key driver on the RAMPS E0 socket; UART pigtail (no change to the sequence) · log: `docs/revisions.md`
 
 Working notes on how the robot actually operates the safe, so this
 doesn't only live in chat. Captures the mechanism understanding and
