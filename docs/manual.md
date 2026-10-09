@@ -428,6 +428,17 @@ Four drivers are used (three dials + the key), plus one spare.
 
 ### 2.4 Mega, RAMPS and the four drivers
 
+![RAMPS 1.4 layout](photos/ramps14_layout_reprap_cuevas.png)
+
+*RAMPS 1.4 layout, matching Paul's Fasizi board. Illustration by José L.
+Cuevas, [RepRap wiki, File:Rampsv14_wiring_bed.png](https://reprap.org/wiki/File:Rampsv14_wiring_bed.png),
+used under the [GNU Free Documentation License](https://www.gnu.org/licenses/fdl-1.3.html)
+(the wiki's licence for its content). The bed heater and thermistor wiring
+drawn in it are not used by this robot.* Hold the board as drawn (power terminals on the left): **E0** is
+the top-left socket, X/Y/Z the bottom row, the endstop block (X-MIN …
+Z-MAX; rows S, −, +) top right, and AUX-4 (D16 at the top) down the right
+edge.
+
 *One-sheet summary of everything on the RAMPS, and the pigtail:
 `control/harness/ramps_and_uart.md`.*
 
@@ -466,7 +477,9 @@ Four drivers are used (three dials + the key), plus one spare.
 3. Press the RAMPS onto the Mega.
 4. Plug each driver in: **VS/GND/motor side in the row nearer that socket's
    motor header**, EN across from VS. A reversed driver is destroyed. The
-   key driver goes in **E0**. Leave **E1 empty**.
+   key driver goes in **E0, the top-left socket** (power terminals on the
+   left); **E1, top-right, stays empty**. X, Y, Z are the bottom row, left
+   to right (`control/harness/ramps_and_uart.md` A2).
 5. **Mount the Mega**: four M3 × 6–8 screws through the Mega's own plastic
    base into the electronics deck (three are enough).
 
