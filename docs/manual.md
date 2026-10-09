@@ -432,10 +432,13 @@ Four drivers are used (three dials + the key), plus one spare.
 2. **Heatsinks** on all drivers you'll use. At ≤ 1 A RMS no fan is needed
    (BTT: active cooling above 1.2 A).
 3. **Don't bridge R10** on any driver (`control/wiring.md` §2).
-4. **Turn the VREF pot to minimum on every driver.** The firmware sets the
-   current over UART, but a driver whose 12 V drops out for a moment comes
-   back using its pot, until the firmware notices at the end of that move
-   (`control/wiring.md` §7).
+4. **VREF pot to minimum on every driver**, set by measurement in bring-up
+   stage 1 step 3a (12 V on, no motor, driver off): DC volts from the pot's
+   metal centre to GND, turn the way the reading falls until it stops. The
+   firmware sets the current over UART, but a driver whose 12 V drops out
+   for a moment comes back using its pot, until the firmware notices at the
+   end of that move (`control/wiring.md` §7). BTT's manual doesn't say
+   which way is minimum, so measure rather than turn it to a stop.
 
 ### 2.4 Mega, RAMPS and the four drivers
 
