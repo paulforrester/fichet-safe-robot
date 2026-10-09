@@ -12,6 +12,18 @@ was `ramps_and_hub.md`.)
 Dial naming: **A = top-left, B = top-right, C = bottom**, standing in front of
 the safe.
 
+**Board map.** The Fasizi board's own silkscreen is sparse; this drawing of
+the same layout labels every header. Directions in this sheet are with the
+power screw terminals on the left, as drawn.
+
+![RAMPS 1.4 layout](../../docs/photos/ramps14_layout_reprap_cuevas.png)
+
+*RAMPS 1.4 layout, matching Paul's Fasizi board. Illustration by José L.
+Cuevas, [RepRap wiki, File:Rampsv14_wiring_bed.png](https://reprap.org/wiki/File:Rampsv14_wiring_bed.png),
+used under the [GNU Free Documentation License](https://www.gnu.org/licenses/fdl-1.3.html)
+(the wiki's licence for its content). The bed heater and thermistor wiring
+drawn in it are not used by this robot.*
+
 **Revision 2026-10-08.1:** the key driver is on the RAMPS now (E0 socket), so
 all four drivers are here. There is no remote driver board and no inter-unit
 signal cable; the key motor's own cable plugs into the E0 motor header.

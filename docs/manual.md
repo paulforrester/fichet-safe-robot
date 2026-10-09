@@ -428,6 +428,17 @@ Four drivers are used (three dials + the key), plus one spare.
 
 ### 2.4 Mega, RAMPS and the four drivers
 
+![RAMPS 1.4 layout](photos/ramps14_layout_reprap_cuevas.png)
+
+*RAMPS 1.4 layout, matching Paul's Fasizi board. Illustration by José L.
+Cuevas, [RepRap wiki, File:Rampsv14_wiring_bed.png](https://reprap.org/wiki/File:Rampsv14_wiring_bed.png),
+used under the [GNU Free Documentation License](https://www.gnu.org/licenses/fdl-1.3.html)
+(the wiki's licence for its content). The bed heater and thermistor wiring
+drawn in it are not used by this robot.* Hold the board as drawn (power terminals on the left): **E0** is
+the top-left socket, X/Y/Z the bottom row, the endstop block (X-MIN …
+Z-MAX; rows S, −, +) top right, and AUX-4 (D16 at the top) down the right
+edge.
+
 *One-sheet summary of everything on the RAMPS, and the pigtail:
 `control/harness/ramps_and_uart.md`.*
 
