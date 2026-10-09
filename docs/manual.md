@@ -730,6 +730,12 @@ avrdude with `-D` and only a flash write (Arduino AVR core 1.8.6
   logger or Serial Monitor. Check the port, then retry.
 - No port listed: try another USB cable (some are charge-only) or another
   USB port.
+- **No green ON LED at all on USB**: no 5 V is reaching the Mega. Test the
+  bare Mega (RAMPS off) on the 12 V supply in its own barrel jack, for this
+  test only: if the LED lights, the Mega is fine and the USB cable is bad.
+  Paul's first USB-C → USB-B cable did exactly this (2026-10-09); a USB-A →
+  USB-B printer cable plus a USB-C → USB-A adapter fixed it. (Unplug the 12 V
+  from the Mega's jack afterwards: in the robot it stays empty.)
 
 ---
 
