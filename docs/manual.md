@@ -673,9 +673,13 @@ folder:
 
 ```
 make -C control/firmware/test
-~/safe-robot-venv/bin/python -m pip install pytest        # once
+~/safe-robot-venv/bin/python -m pip install pytest
 ~/safe-robot-venv/bin/python -m pytest control/firmware/tools
 ```
+
+The `pip install pytest` line is needed only the first time. (Correction,
+2026-10-09: it used to carry a `# once` comment on the same line, which the
+Mac's zsh passes to pip as package names, so the install failed.)
 
 Expect `53 tests, 36489 checks, 0 failures` and `3 passed`. I check these
 in every PR (also built with clang, which is the Mac's compiler). Running
@@ -771,10 +775,13 @@ Placing the units is described in more detail in 1.6.
 ### 5.3 Starting the logger
 
 ```
-cd fichet-safe-robot
-ls /dev/cu.usbmodem*                        # find the port
+cd ~/fichet-safe-robot
+ls /dev/cu.usbmodem*
 caffeinate -i ~/safe-robot-venv/bin/python control/firmware/tools/logger.py --port /dev/cu.usbmodemXXXX
 ```
+
+The `ls` line lists the Mega's port; put that name in place of
+`/dev/cu.usbmodemXXXX`.
 
 - **`caffeinate -i`** stops the Mac from sleeping while the logger runs.
   Keep the Mac on its charger with the lid open.
