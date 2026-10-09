@@ -466,7 +466,9 @@ Four drivers are used (three dials + the key), plus one spare.
 3. Press the RAMPS onto the Mega.
 4. Plug each driver in: **VS/GND/motor side in the row nearer that socket's
    motor header**, EN across from VS. A reversed driver is destroyed. The
-   key driver goes in **E0**. Leave **E1 empty**.
+   key driver goes in **E0, the top-left socket** (power terminals on the
+   left); **E1, top-right, stays empty**. X, Y, Z are the bottom row, left
+   to right (`control/harness/ramps_and_uart.md` A2).
 5. **Mount the Mega**: four M3 × 6–8 screws through the Mega's own plastic
    base into the electronics deck (three are enough).
 

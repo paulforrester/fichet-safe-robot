@@ -49,32 +49,41 @@ drivers in.
 - Each of the four has its two EN-end pins **cut flush underneath** (manual
   §2.3). No soldering: the DIAG and UART leads clip onto pins on top.
 - Heatsink on each. **VREF pot to minimum** on every driver first.
-- Leave **E1 empty**. Don't bridge R10 on any driver.
+- **E0 is the top-left socket** (nearer the power terminals), with its
+  motor header (2B 2A 1A 1B) at the top edge above it, labelled "E0/E1"
+  with E1's. **E1 is the top-right socket: leave it empty.** (KiCad: E0
+  socket U5 at the left of the top row, E1 socket U6 to its right; each
+  motor header sits above its own socket.) Don't bridge R10 on any driver.
+- X, Y, Z are the bottom row, left to right, each with its motor header
+  above it.
 
 ### A3. Jumper wires landing on the RAMPS headers (F–F, ~10 cm)
 
-**Where the headers are** (RAMPS 1.4 KiCad layout, `matt3u/RAMPS-1.4_KiCad`
-`ea33bdf`; check the readings below on your Fasizi board). Directions are
-with the RAMPS held so the "END STOPS" silkscreen reads normally:
+**Where the headers are.** Paul's Fasizi board has the layout of the
+RepRap wiki's RAMPS 1.4 illustration ([`Rampsv14_wiring_bed.png`](https://reprap.org/wiki/File:Rampsv14_wiring_bed.png),
+J. L. Cuevas; Paul, 2026-10-09: "this looks like my board"), and it
+agrees with the RAMPS 1.4 KiCad layout (`matt3u/RAMPS-1.4_KiCad` `ea33bdf`).
+The board has no "END STOPS" text. Directions below are with the **power
+screw terminals (11A / 5A) on the left** and the long AUX-4 row on the right:
 
-- **Endstop block** — six 3-pin headers side by side along the top edge,
-  under the silkscreen "END STOPS". Left to right: **X−, X+, Y−, Y+, Z−, Z+**.
-  The KiCad layout names them with **−** for MIN and **+** for MAX
-  (X_MIN = X−, X_MAX = X+, …). **VERIFY** what your board's silkscreen
-  prints; if it says MIN/MAX instead, use those.
-- Each header's 3 pins run from the board edge inward: **S** (signal,
-  nearest the edge), **GND** (middle), **+5 V** (innermost). The "−"/"+"
-  in a header's *name* is MIN/MAX, not the pin.
+- **Endstop block** — top-right corner: six 3-pin headers side by side,
+  labelled **X-MIN, X-MAX, Y-MIN, Y-MAX, Z-MIN, Z-MAX**, left to right. (Two
+  extra columns to their right are D20/D21 (I2C): leave them.)
+- Each header's 3 pins run from the top edge downward, rows labelled at the
+  left end of the block: **S** (signal, top row), **−** (GND, middle), **+**
+  (5 V, bottom row).
 - **AUX-4** — the long single row of 18 pins along the right-hand edge.
   **Pin 1 = 5 V, pin 2 = GND** at its lower end; pin numbers count up
   toward the top edge. **Pin 18 (TX2, D16)** is the top end pin, **pin 17
-  (RX2, D17)** the one just below it.
+  (RX2, D17)** the one just below it. The illustration prints the Mega pin
+  beside each: **D16** at the top, **D17**, D23, D25, … D32, **GND**, **5V**
+  at the bottom. So: TX2 lead on the pin marked D16, RX2 lead on D17.
 
 **Check before fitting** (power off, multimeter on continuity):
 1. The **middle** pins of all six endstop headers beep to each other and to
    the "5A" − terminal (GND).
-2. The **inner** pins beep to each other (5 V). The **edge** pins (S) beep
-   to nothing else in the block.
+2. The **bottom-row (+)** pins beep to each other (5 V). The **top-row (S)**
+   pins beep to nothing else in the block.
 3. AUX-4: the pin at the lower end beeps to the endstop 5 V pins (pin 1);
    the next one beeps to GND (pin 2). So pin 18 is the far end.
 
