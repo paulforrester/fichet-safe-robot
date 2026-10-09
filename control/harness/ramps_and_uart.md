@@ -75,12 +75,18 @@ drivers in.
 RepRap wiki's RAMPS 1.4 illustration ([`Rampsv14_wiring_bed.png`](https://reprap.org/wiki/File:Rampsv14_wiring_bed.png),
 J. L. Cuevas; Paul, 2026-10-09: "this looks like my board"), and it
 agrees with the RAMPS 1.4 KiCad layout (`matt3u/RAMPS-1.4_KiCad` `ea33bdf`).
-The board has no "END STOPS" text. Directions below are with the **power
-screw terminals (11A / 5A) on the left** and the long AUX-4 row on the right:
+Directions below are with the **power screw terminals (11A / 5A) on the
+left** and the long AUX-4 row on the right. (**Correction**, 2026-10-09: an
+earlier version of this sheet said the board has no "END STOPS" text. It
+does, above the block, partly hidden by the header plastic; Paul's photo
+below.)
 
-- **Endstop block** — top-right corner: six 3-pin headers side by side,
-  labelled **X-MIN, X-MAX, Y-MIN, Y-MAX, Z-MIN, Z-MAX**, left to right. (Two
-  extra columns to their right are D20/D21 (I2C): leave them.)
+- **Endstop block** — top-right corner, under "END STOPS": six 3-pin headers
+  side by side, **X-MIN, X-MAX, Y-MIN, Y-MAX, Z-MIN, Z-MAX**, left to right.
+  On Paul's board the silkscreen prints **X, Y, Z** under each pair of
+  columns and **−** (MIN) / **+** (MAX) above each column, mostly hidden by
+  the plastic. The extra column(s) to their right, boxed "I2C", are D20/D21:
+  leave them.
 - Each header's 3 pins run from the top edge downward, rows labelled at the
   left end of the block: **S** (signal, top row), **−** (GND, middle), **+**
   (5 V, bottom row).
@@ -91,7 +97,13 @@ screw terminals (11A / 5A) on the left** and the long AUX-4 row on the right:
   beside each: **D16** at the top, **D17**, D23, D25, … D32, **GND**, **5V**
   at the bottom. So: TX2 lead on the pin marked D16, RX2 lead on D17.
 
-**Check before fitting** (power off, multimeter on continuity):
+![Endstop block on Paul's board](../../docs/photos/ramps_endstops_silkscreen.jpg)
+
+*Paul's board, 2026-10-09: "END STOPS" above, row labels S / − / + at the
+left, X / Y / Z under the column pairs, the I2C column at the right.*
+
+**Check before fitting** (power off, multimeter on continuity) — **done on
+Paul's board, 2026-10-09: all three pass.**
 1. The **middle** pins of all six endstop headers beep to each other and to
    the "5A" − terminal (GND).
 2. The **bottom-row (+)** pins beep to each other (5 V). The **top-row (S)**
