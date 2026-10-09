@@ -1,6 +1,6 @@
 # Housing — design decision log
 
-> **Revision 2026-10-08.2** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
+> **Revision 2026-10-09.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
 
 
 Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
@@ -8,6 +8,58 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `docs/decisions.md` (tube-socket test key geometry) and
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
+
+## 2026-10-09: start/stop button mount on the electronics deck (revision 2026-10-09.1)
+
+**Paul's design** (2026-10-09): the 7mm momentary button goes in from **under**
+the deck. Its body's wide base (measured **9.36mm**) sits in a **10mm x 2.5mm
+recess** in the deck's underside, the thread goes up through a 7mm hole, and
+the 1.05mm washer (OD 10.07mm) and nut (11.3mm across corners) go on top.
+The thread is only ~6mm long and the deck is 5mm thick; the recess leaves a
+2.5mm web, so 3.5mm of thread is above the deck. Its leads (soldered, heat
+shrink) run under the deck and come up through a **4mm wire hole** next to
+the RAMPS endstop block. Where (Paul): left of the Mega/RAMPS, near the deck
+leg that the base plate doesn't cover; the wire hole midway between the
+base plate's edge and the deck's edge, beside the endstop block.
+
+**Placed** (`button_pt`, `wire_hole_pt` in `dial_unit_housing.scad`; top
+view: `docs/photos/deck_button_mount_topview.png`):
+- Button at (-54.4, 28.0): 16mm from `deck_leg_pts[2]` (-50.5, 43.5), the
+  only leg outside the base plate. Searched over the deck for the point
+  nearest that leg that keeps the recess >= 2mm from the deck edge, the nut
+  clear of the leg's M6 head (r 7) and of the base plate, and the body (r 5)
+  >= 6mm from every motor can in plan view: the body hangs below the deck
+  and the cans are only `deck_clearance` = 6mm under it.
+- Hole 7.4mm (7mm thread + 0.4, the same clearance as `m6_clear_d`);
+  recess 10mm (Paul's number) x 2.5mm.
+- Wire hole 4mm at (15.65, -47.06): on the line from the endstop block
+  straight out past the board's digital-header edge, 6mm out from the base
+  plate's edge. **Assumption:** the base plate's outline is only known from
+  its overall size, 114 x 57.5mm (SparkFun community forum, see the
+  2026-10-04 entry), with its end flange at the jack end; good to maybe
+  +/-2mm here. The deck there was only ~7.6mm wider than the plate, too
+  tight for a 4mm hole, so the deck outline gets a small lobe (r 5.5)
+  around the hole.
+- The endstop block's position comes from the RAMPS 1.4 KiCad layout
+  (`matt3u/RAMPS-1.4_KiCad` `ea33bdf`, Mega footprint U1 as the frame).
+
+**Printing:** the deck prints mating face down, so the recess is a 10mm
+pocket on the bed face; its 2.5mm ceiling bridges 10mm around the 7.4mm
+hole (short spans, no supports).
+
+**Checked:** new `cad/tools/button_mount_check.py` (reads the SCAD's LAYOUT
+echo; slices the rendered deck): recess wall to deck edge 3.3mm; nut to the
+nearest M6 head 3.3mm; nut to the base plate ~27mm; body to the motor cans
+5.9mm beyond its radius; wire hole wall to the deck edge 3.5mm and to the
+base plate (estimate) 4.0mm; slices show the 10.0mm recess and the 7.4mm and
+4.0mm holes at the right places; deck STL watertight, 1 body.
+`dial_layout_check.py` ALL PASS, `dial_interference_check.py` NO
+INTERFERENCE; `dial_unit_housing.stl` still 9 watertight bodies.
+
+**VERIFY (Paul):** the switch body's length below the deck clears the motor
+can (plan-view gap 5.9mm beyond the body's radius); the nut and washer
+start on the 3.5mm of thread; the wire hole is clear of the base plate's
+real edge.
 
 ## 2026-10-07 (later): magnet holes now 21.7 mm, from the fit test
 

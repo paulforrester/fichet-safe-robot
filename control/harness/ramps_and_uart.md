@@ -1,6 +1,6 @@
 # RAMPS board + UART pigtail — what goes where
 
-> **Revision 2026-10-08.2** · all four drivers on the RAMPS (key in E0); UART pigtail replaces the hub board · log: `docs/revisions.md`
+> **Revision 2026-10-09.1** · all four drivers on the RAMPS (key in E0); UART pigtail replaces the hub board · log: `docs/revisions.md`
 
 A single bench sheet pulling together everything that gets fitted to the
 RAMPS, plus the UART pigtail, so nothing is missed. It restates
@@ -113,6 +113,14 @@ Paul's board, 2026-10-09: all three pass.**
 
 **No lead goes on a +5 V pin.** Every lead in the table goes on an **S** pin;
 the button also uses its header's middle (GND) pin.
+
+**Connector (Paul, 2026-10-09):** one **3-row x 6** female block (three 6-pin
+strips glued together) over the whole X_MIN … Z_MAX block. S row, left to
+right: DIAG A, DIAG B, **button**, (empty), DIAG C, DIAG key. Middle (GND)
+row: the button's GND lead, under Y_MIN. Bottom (5 V) row: empty. All three
+rows so it can only sit one way up/down; mark the X_MIN end so it isn't
+turned round. The button's leads come up through the deck's wire hole
+beside this block (manual §1.4 step 11).
 
 | From | To (RAMPS) | Mega pin |
 |---|---|---|

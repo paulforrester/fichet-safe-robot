@@ -484,11 +484,33 @@ mega_hole_pts_rot      = [for (p = mega_hole_pts) mega_place(p)];
 mega_base_hole_pts_rot = [for (p = mega_base_hole_pts) mega_place(p)];
 mega_base_pilot_d = set_screw_pilot_d;   // 2.6mm M3 self-tap (bench-checked coupon)
 
+// Start/stop button (7mm momentary, Paul 2026-10-09): body from below, its
+// 9.36mm base in a 10 x 2.5mm recess in the deck's underside, so 3.5mm of
+// its ~6mm thread clears the 2.5mm web on top for the 1.05mm washer + nut.
+// Placed left of the Mega, next to the deck leg that the base plate doesn't
+// cover (deck_leg_pts[2]): >=16mm from that leg (M6 head r7 + nut 11.3mm
+// across corners), >=8mm to the deck edge, ~32mm clear of the base plate,
+// and not above a motor can (body below the deck; cans are 6mm under it).
+button_pt        = [-54.4, 28.0];
+button_hole_d    = 7.4;     // 7mm thread + 0.4 (same clearance as m6_clear_d)
+button_recess_d  = 10;      // Paul's spec: body base 9.36mm
+button_recess_h  = 2.5;     // leaves a 2.5mm web
+// Wire hole for the button's leads, up from under the deck beside the RAMPS
+// endstop block: midway between the base-plate edge and the deck edge, on the
+// line from the endstop block straight out past the board's digital-header
+// edge. The base plate's outline is only known from its overall size
+// (114 x 57.5mm, SparkFun forum; ~+/-2mm here), so the hole centre sits
+// 6mm out from that estimate and the deck gets a small lobe (r 5.5) around it.
+wire_hole_pt     = [15.65, -47.06];
+wire_hole_d      = 4;
+wire_lobe_r      = 5.5;
+
 module deck_outline() {
     hull() {
         for (p = mega_hole_pts_rot)      translate(p) circle(r = 11, $fn = 32);
         for (p = mega_base_hole_pts_rot) translate(p) circle(r = 7.5, $fn = 32);
         for (p = deck_leg_pts)           translate(p) circle(r = 14, $fn = 48);
+        translate(wire_hole_pt) circle(r = wire_lobe_r, $fn = 32);
     }
 }
 module electronics_deck() {
@@ -501,6 +523,14 @@ module electronics_deck() {
         }
         for (p = mega_base_hole_pts_rot) translate([p[0], p[1], -eps_c])
             cylinder(d = mega_base_pilot_d, h = deck_thickness + 2*eps_c, $fn = 24);
+        // start/stop button: through hole + underside recess for its body
+        translate([button_pt[0], button_pt[1], -eps_c]) {
+            cylinder(d = button_hole_d, h = deck_thickness + 2*eps_c, $fn = 48);
+            cylinder(d = button_recess_d, h = button_recess_h + eps_c, $fn = 64);
+        }
+        // the button's leads come up here, beside the RAMPS endstop block
+        translate([wire_hole_pt[0], wire_hole_pt[1], -eps_c])
+            cylinder(d = wire_hole_d, h = deck_thickness + 2*eps_c, $fn = 32);
     }
 }
 
@@ -590,6 +620,7 @@ echo(LAYOUT = [
     ["motor_dir", motor_dir], ["motor_rot", motor_rot], ["motor_pts", motor_pts],
     ["motor_bolt_pts", motor_bolt_pts], ["joint_pts", joint_pts], ["deck_leg_pts", deck_leg_pts],
     ["mega_base_hole_pts_rot", mega_base_hole_pts_rot], ["mega_hole_pts_rot", mega_hole_pts_rot],
+    ["button", [button_pt, button_hole_d, button_recess_d, button_recess_h]], ["wire_hole", [wire_hole_pt, wire_hole_d, wire_lobe_r]], ["deck_thickness", deck_thickness],
     ["gear", [gear_m, gear_teeth, pinion_teeth, gear_x, pinion_x, gear_pa, gear_backlash, gear_cd]],
     ["gear_tip_r", gear_tip_r], ["pinion_tip_r", pinion_tip_r],
     ["z", [boss_h, gear_z0, gear_z1, pinion_z0, pinion_z1, cavity_top, motor_face_z, shaft_tip_z, deck_z, travel, plug_z0, plug_z1]],

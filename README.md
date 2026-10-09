@@ -1,6 +1,6 @@
 # Fichet-Bauche "Complice" Safe — Combination Robot
 
-> **Revision 2026-10-08.2** · all four drivers on the RAMPS (key in E0); UART pigtail replaces the hub board · log: `docs/revisions.md`
+> **Revision 2026-10-09.1** · all four drivers on the RAMPS (key in E0); UART pigtail replaces the hub board · log: `docs/revisions.md`
 
 An automated device to determine the combination of an unmarked
 Fichet-Bauche "Complice" safe found in the house at 6 Rue du Mulet,

@@ -2,7 +2,7 @@
 // Render: dot -Tsvg control/harness/overview.dot -o control/harness/overview.svg
 // Project revision 2026-10-08.2: all four drivers on the RAMPS (key in E0); UART pigtail replaces the hub board.
 digraph overview {
-  graph [rankdir=LR, fontname="Helvetica", fontsize=11, nodesep=0.35, ranksep=0.7, label="Fichet safe robot — wiring overview (control/wiring.md, revision 2026-10-08.2)", labelloc=t];
+  graph [rankdir=LR, fontname="Helvetica", fontsize=11, nodesep=0.35, ranksep=0.7, label="Fichet safe robot — wiring overview (control/wiring.md, revision 2026-10-09.1)", labelloc=t];
   node  [shape=box, style="rounded", fontname="Helvetica", fontsize=10];
   edge  [fontname="Helvetica", fontsize=9];
 

@@ -1,6 +1,6 @@
 # Ordering the remaining parts: amazon.fr vs mouser.fr (2026-10-07)
 
-> **Revision 2026-10-08.2** · order history; key driver on the RAMPS E0 socket, UART pigtail — the hub-board parts here are spares now · log: `docs/revisions.md`
+> **Revision 2026-10-09.1** · order history; key driver on the RAMPS E0 socket, UART pigtail — the hub-board parts here are spares now · log: `docs/revisions.md`
 
 **Revision 2026-10-08.1 (2026-10-08):** a record of the 2026-10-07 order.
 Some of these parts — the PTC fuse, the 100 µF capacitors, and (elsewhere) the

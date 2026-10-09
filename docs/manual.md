@@ -1,6 +1,6 @@
 # Fichet safe robot — build and operating manual
 
-> **Revision 2026-10-08.2** · key driver on the RAMPS E0 socket; UART pigtail replaces the hub board · log: `docs/revisions.md`
+> **Revision 2026-10-09.1** · key driver on the RAMPS E0 socket; UART pigtail replaces the hub board · log: `docs/revisions.md`
 
 For Paul. Covers the robot as of **revision 2026-10-08.2**: dial unit v2, key
 turner v1, wiring with all four drivers on the RAMPS and the UART pigtail
@@ -83,7 +83,7 @@ the print notes in `cad/dial_unit_housing.scad` (end of file) and
 |---|---|---|---|---|
 | `dial_front_assembly.stl` | dial front plate: 6 magnet holes, 3 bearing bosses, 3 legs, pointer tab | 1 | PETG | door face |
 | `dial_motor_sled.stl` | motor sled + 3 deck legs | 1 | PETG | inner face (spring pockets, countersinks); legs up |
-| `electronics_deck.stl` | deck for the Mega | 1 | PETG | flat, mating face down |
+| `electronics_deck.stl` | deck for the Mega, with the button hole + recess and its wire hole (rev 2026-10-09.1) | 1 | PETG | flat, mating face down (the recess bridges: no supports) |
 | `dial_drivetrain.stl` | 3 gear-shafts + 3 pinions, one plate | 1 plate | **PETG-CF** | gear face / pinion hub. **Elephant-foot compensation on**, or the bottom layer of the teeth binds |
 | `magnet_retainers.stl` | 10 retainer discs (9 needed) | 1 plate | PETG | flat |
 | `key_turner_base.stl` | key-turner base + 3 legs | 1 | PETG | door face |
@@ -287,9 +287,20 @@ Tell me if a different order works better, and I'll record it.
     pilot holes ("Jack/USB end faces up-right" in `dial_unit_housing.scad`).
     **VERIFY** that you can reach the USB and RAMPS connectors there; that
     hasn't been checked.
-11. **Not designed yet:** where the start button goes on the deck. Fix it
-    temporarily (double-sided tape) until the CAD has a place (1.7). The
-    UART pigtail's splice (2.5) just zip-ties to the deck.
+11. **Start/stop button** (revision 2026-10-09.1): it goes in from **under**
+    the deck, left of the Mega next to the deck leg you can still see.
+    1. Solder its two leads and heat-shrink them; long enough to reach the
+       RAMPS endstop block (Y_MIN) via the 4mm wire hole beside it.
+    2. Push the button up through the 7.4mm hole from below, so its body's
+       wide base sits in the 10mm recess underneath.
+    3. On top: the washer, then the nut, finger-tight plus a little. If the
+       washer leaves too little thread, use the nut alone.
+    4. Run the leads under the deck, clear of the motor cans, and up through
+       the wire hole. Map: `docs/photos/deck_button_mount_topview.png`.
+
+    **VERIFY:** the body clears the motor can below it, the nut starts, and
+    the wire hole is clear of the base plate. The UART pigtail's splice
+    (2.5) just zip-ties to the deck.
 
 ### 1.5 Key turner
 
@@ -338,9 +349,9 @@ From the notes at the end of `cad/key_turner_housing.scad`:
 
 - Magnet pull test (1.3), and whether the magnets alone hold the units.
 - Reprint the dial front assembly and key-turner base with magnet holes.
-- CAD: a place on the deck for the button, and a zip-tie point for the
-  UART pigtail's splice. (Revision 2026-10-08.1 removed the remote-board
-  mount; 2026-10-08.2 removed the hub board, so it needs no mount either.)
+- Button mount: designed (revision 2026-10-09.1, 1.4 step 11); check it on
+  the reprinted deck. (Revision 2026-10-08.1 removed the remote-board mount;
+  2026-10-08.2 removed the hub board, so it needs no mount either.)
 - Access to the Mega's connectors at its position on the deck.
 - Only if the first full run fails: a key turner that pulls the key out and
   pushes it back in at every attempt (`control/sequence.md`, Open items).
@@ -539,12 +550,21 @@ built in 2.5. The endstop headers are **S** (signal), **−** (GND) and **+**
 | Top of the **key** driver's **DIAG** pin (E0) | **Z_MAX S** (D19) |
 | Pigtail leads **A, B, C, KEY** | top of the **RX** pin of the drivers in X, Y, Z, **E0** |
 | Pigtail leads **TX2 / RX2** | AUX-4 pin 18 / 17 (D16 / D17) |
-| Start/stop button (7 mm) | **Y_MIN S** and **Y_MIN −** (D14) |
+| Start/stop button (7 mm; leads up through the deck's wire hole) | **Y_MIN S** and **Y_MIN −** (D14) |
 
 DIAG leads are plain F–F jumpers (revision 2026-10-08.2; no cut-in-half
 leads). Before unplugging a driver, pull its DIAG and RX leads off. The
-button's mount isn't designed yet; a loose button on its leads is fine for
-the bench.
+button mounts on the deck (1.4 step 11); a loose button on its leads is fine
+for the bench.
+
+**One connector for the endstop block** (Paul, 2026-10-09): three 6-pin
+female header strips glued side by side into one **3-row x 6** block that
+covers X_MIN … Z_MAX on all three rows. S row: DIAG A, DIAG B, button,
+(empty), DIAG C, DIAG key. GND row: the button's second lead under Y_MIN.
+The 5 V row stays empty. Three rows (not two) so it can't sit one row off
+(that would short the button across 5 V). Mark the X_MIN end; glue only the
+touching faces, set it on the header itself; continuity-check every lead
+before the first power-up.
 
 ### 2.8 Motors
 

@@ -1,6 +1,6 @@
 # Wiring harness — Mega 2560 + RAMPS 1.4 + 4 × BTT TMC2209 V1.3
 
-> **Revision 2026-10-08.2** · all four drivers on the RAMPS (key in E0); UART pigtail replaces the hub board · log: `docs/revisions.md`
+> **Revision 2026-10-09.1** · all four drivers on the RAMPS (key in E0); UART pigtail replaces the hub board · log: `docs/revisions.md`
 
 Written 2026-10-06 (cloud session, no hardware). Everything below is from the
 sources listed at the bottom; anything I could not establish is marked
