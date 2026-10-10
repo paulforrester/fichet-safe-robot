@@ -609,7 +609,9 @@ Written for a Mac (Paul, 2026-10-06).
 ### 3.1 Get the code
 
 - With git (it comes with the Mac's command-line tools):
-  `git clone https://github.com/paulforrester/fichet-safe-robot.git`.
+  `cd ~ && git clone https://github.com/paulforrester/fichet-safe-robot.git`
+  makes the project folder `~/fichet-safe-robot`. Every command in this
+  manual that names `control/…` or `cad/…` runs from that folder.
   To update later: `git checkout main`, then `git pull`.
 - Without git: on the repo's GitHub page, Code → Download ZIP.
 
@@ -664,7 +666,17 @@ python3 -m venv ~/safe-robot-venv
 ```
 
 If `python3` asks to install the command-line developer tools, say yes. To
-check: `~/safe-robot-venv/bin/python control/firmware/tools/logger.py --help`.
+check, **from the project folder** (the paths are relative to it; `git
+clone` makes `fichet-safe-robot`, Download ZIP makes
+`fichet-safe-robot-main`):
+
+```
+cd ~/fichet-safe-robot
+~/safe-robot-venv/bin/python control/firmware/tools/logger.py --help
+```
+
+Run from anywhere else, it fails with "can't open file … logger.py" (Paul,
+2026-10-09).
 
 ### 3.6 Host tests (optional)
 
