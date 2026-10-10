@@ -183,10 +183,14 @@ buzzed without turning with their plugs as supplied, and all four ran smooth
 and quiet once the two middle wires in the housing (blue and green, Paul) were
 swapped. All four plugs were wired the same. So the supplied plugs split the
 coil pairs, and the sister model's black–green / red–blue pairing doesn't
-describe this cable as plugged. After the swap each pair sits at one end of
-the plug (positions 1–2 and 3–4). *Which colours pair up: to be confirmed
-from the plug's colour order after the swap.* For a replacement motor (the
-spare), check before plugging it in:
+describe this cable as plugged. After the swap the RAMPS plug reads, from the
+2B pin: **Black, Blue, Green, Red** (Paul, 2026-10-10), so the coil pairs are
+**black–blue** (2B–2A) and **green–red** (1A–1B), deduced from the motors
+running smoothly that way (not measured with the meter). As supplied the
+plugs were Black, Green, Blue, Red. At the motor end the cable has a 6-way
+housing with 4 wires: seen with the motor on its base, shaft up, left to
+right **Red, —, Blue, Green, —, Black** (Paul, 2026-10-10). For a
+replacement motor (the spare), check before plugging it in:
 
 1. Multimeter on Ω, probes in the plug's sockets: the two wires that read a
    **few ohms** to each other are one coil; the other two read a few ohms too;
