@@ -409,7 +409,7 @@ for the hub board (the UART pigtail replaces it).
 - The E0 socket: the key driver answers `ping` at address 3 (MS1 = MS2 = 1).
 - The key's StallGuard through the 1 m motor cable (stage 5); shorten the
   cable if it reads too dull (Paul, 2026-10-08).
-- Motor step angle 1.8° (one commanded revolution returns to a mark).
+- ~~Motor step angle 1.8°~~ confirmed in bring-up stage 2 (Paul, 2026-10-10).
 - Motor direction vs dial numbering and vs key clockwise (firmware config).
 
 ## Sources
@@ -438,7 +438,8 @@ for the hub board (the UART pigtail replaces it).
 6. **Arduino AVR core** 1.8.6, `variants/mega/pins_arduino.h`
    (`digitalPinToInterrupt`).
 7. Motor: STEPPERONLINE 17HE19-2004S (see `docs/housing_decisions.md`,
-   2026-10-03). The step angle is still not confirmed against its data sheet.
+   2026-10-03). Step angle 1.8° confirmed on the bench (bring-up stage 2, Paul,
+   2026-10-10).
 
 ## Decision log (most recent first)
 

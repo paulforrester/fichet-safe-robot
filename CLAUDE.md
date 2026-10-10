@@ -100,10 +100,10 @@ RAMPS, UART pigtail); firmware written and host-tested
 - **Motors:** STEPPERONLINE **17HE19-2004S** NEMA17 (Paul identified the
   exact part 2026-10-03 and checked its drawing with calipers): bipolar,
   4-wire, 2.0 A rated, 59 N·cm holding. 5 on hand (4 used + 1 spare).
-  Step angle: `sequence.md` assumes 1.8° (200 full steps/rev) — **not yet
-  confirmed against this part's data sheet; confirm before relying on it.**
-  Vendor note: on some units the two middle wires of the connector are
-  swapped from the expected colour code.
+  Step angle **1.8° (200 full steps/rev), confirmed on the bench** (one
+  commanded turn = one turn, Paul 2026-10-10). The supplied plugs split the
+  coil pairs on **all four** motors: the two middle wires had to be swapped
+  (Paul, 2026-10-09/10; `control/harness/ramps_and_uart.md` A5).
 - **Dial drive:** 14T pinion on the motor → 28T gear on the dial shaft
   (2:1). Under the 200-step assumption: 400 full steps per dial turn,
   **20 full steps per dial position**. Motor turns opposite to the dial.
@@ -270,7 +270,7 @@ available on the bench (stage 4b.6); the first full run is the real test.
 
 Still open — each has a `config.h` entry and a stage in `control/bringup.md`:
 motor↔dial/key directions (4b, 5), whether the 50 % rule and the click
-ripple hold on the real hardware (3, 4), key current (5), step angle (2),
+ripple hold on the real hardware (3, 4), key current (5),
 the classification bands (5–6).
 
 Safety rules for any motion code: start at low current and low speed;

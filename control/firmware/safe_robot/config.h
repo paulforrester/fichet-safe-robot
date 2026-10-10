@@ -12,8 +12,8 @@
 #pragma once
 
 // ---- Motor and drivetrain --------------------------------------------------
-// ASSUMPTION: 1.8 deg/step (200/rev). Not yet confirmed on the 17HE19-2004S's
-// data sheet. Bench stage 2 checks it (one commanded rev returns to a mark).
+// 1.8 deg/step (200/rev): confirmed in bench stage 2 (one commanded rev = one
+// turn, Paul 2026-10-10).
 #define CFG_FULL_STEPS_PER_REV   200
 #define CFG_MICROSTEPS           16     // MRES over UART; interpolated to 256 by the driver
 #define CFG_DIAL_GEAR            2      // 14T pinion -> 28T dial gear (cad/dial_unit_housing.scad)
