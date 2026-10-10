@@ -294,9 +294,11 @@ again).
 measured from the key's rest stop. `class` is CLEAN / FALSESET / SUCCESS / EARLY. The raw angle is always logged, so classes can be redone afterwards:
 
 ```
-python3 control/firmware/tools/logger.py --port /dev/tty.usbmodemXXXX    # live; type commands here
+python3 control/firmware/tools/logger.py --port /dev/tty.usbmodemXXXX
 python3 control/firmware/tools/logger.py --analyse runs/<stamp>_attempts.csv
 ```
+
+The first is live mode (type commands in it); the second re-analyses a run.
 
 ## Verified here (cloud session, no hardware)
 
