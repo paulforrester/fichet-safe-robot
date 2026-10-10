@@ -165,6 +165,16 @@ turner is not needed yet. 12 V on. `set axes 7`.
    (The dials stop anticlockwise, so the firmware homes anticlockwise and
    treats clockwise as positive. I'll set the invert flags from your answer,
    or use `set invA 1` etc.)
+   **Result (Paul, 2026-10-10):** with invert 0, `jog A/B/C 10` turned every
+   dial **anticlockwise**, all three alike, so `CFG_INVERT_A/B/C` = 1
+   (firmware after this change; until it is uploaded, `set invA 1`,
+   `set invB 1`, `set invC 1` after every reset).
+   Don't look for a stall by jogging a dial into its stop: before
+   `calibrate`, the dial thresholds are 0 (`CFG_SGTHRS_A/B/C`, StallGuard
+   off), and a short jog is mostly ramp, below the speed where StallGuard
+   reads (`CFG_SG_MIN_RPS` 0.4 rev/s) plus the first 2 full steps ignored.
+   `calibrate` sets the thresholds and homes with bounded moves at speed.
+   (Paul, 2026-10-10: short jogs into the stop didn't stop on a stall.)
 2. **Seat**: `seat`. Each dial turns 1/8 turn slowly **clockwise** (the way it
    never meets its stop). Listen and watch: does each plug **drop into its
    star** (a click, the plug moves in)?
