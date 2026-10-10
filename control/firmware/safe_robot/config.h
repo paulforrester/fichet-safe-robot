@@ -24,16 +24,18 @@
 // stages with fewer drivers use `set axes <mask>` instead of editing this.
 #define CFG_AXES_MASK            15
 
-// ---- Directions: motor sense UNKNOWN until bench stages 4b and 5b -----------
+// ---- Directions: dials measured (stage 4b.1, Paul 2026-10-10); key: stage 5 --
 // 1 = flip the motor direction. Dials: set so that a positive jog turns the
 // dial CLOCKWISE seen from the front. That is away from the home stop: every
 // dial turns clockwise without limit and stops only anticlockwise (Paul,
 // 2026-10-06). Key: set so that a positive jog turns the key CLOCKWISE (the
 // way it opens). The dial motors turn opposite to the dials (external
 // gears), so the three dials probably share one value.
-#define CFG_INVERT_A             0
-#define CFG_INVERT_B             0
-#define CFG_INVERT_C             0
+// Bench 4b.1 (Paul, 2026-10-10): with 0, a positive jog turned the motor
+// clockwise and every dial ANTICLOCKWISE (towards its stop), all three alike.
+#define CFG_INVERT_A             1
+#define CFG_INVERT_B             1
+#define CFG_INVERT_C             1
 #define CFG_INVERT_KEY           0
 
 // ---- Currents (control/wiring.md §7) ---------------------------------------
