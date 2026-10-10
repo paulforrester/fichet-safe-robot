@@ -99,10 +99,20 @@ the X driver's **DIAG** pin → X_MIN **S** pin. 12 V into RAMPS's **5A** input.
    leads B, C and KEY on the RX pins of the Y, Z and E0 drivers. 12 V on.
    `set axes 15`, `ping`. Then set the **Y, Z and E0 pots** to minimum the
    same way as step 3a.
+6. **Check each DIAG lead lands on its own input** (the pull test). The 7th
+   field of a `DRV` line is the level the Mega reads on that axis's DIAG
+   input; its pull-up makes it 1 when nothing drives it. Pull the **A** lead
+   off the top of the X driver's DIAG pin (leave the header end), `ping`:
+   only `DRV,A` may show 1 there. Put it back; repeat for B (Y driver),
+   C (Z driver) and K (E0 driver). Another axis going to 1 = crossed leads in
+   the endstop connector; none = the lead isn't on a DIAG input. (Paul,
+   2026-10-10: the A and K leads were crossed in the connector, which showed
+   up only in stage 3 as a stall that never stopped the key; this step catches
+   it before any motor turns.)
 
 **Send back**: the `DRV,A` line from step 3; the lowest VREF reading and
 which way you turned (step 3a; and for the other three); the four `DRV` lines from
-step 5. Expect `DRV,B,1,21,1,0,...`, `DRV,C,1,21,0,1,...`
+step 5; for step 6, which axis went to 1 for each pulled lead. Expect `DRV,B,1,21,1,0,...`, `DRV,C,1,21,0,1,...`
 and **`DRV,K,1,21,1,1,...`** (the key in E0, address 3: MS1 = MS2 = 1). If a
 DIAG field reads 1 at rest, say which.
 
@@ -152,13 +162,34 @@ shaft by hand.
 3. `sg A 800` again. This time pinch the tape flag (or the shaft through a
    rag) with growing force until the motor stalls (it buzzes and stops
    turning). Let go at once. Note the lowest value just before the stall.
-4. Check the rule: `set sgA <free-running lowest ÷ 4>` (that is how the
-   firmware sets it: half of 50 %). `jog A 800` without touching, 3 times:
+4. Check the rule: `set sgA <free-running median ÷ 4>` (that is how the
+   firmware sets it, `sgthrsFromBaseline()`: SGTHRS = median × 50 % ÷ 2,
+   and DIAG fires when SG_RESULT ≤ 2 × SGTHRS). **Correction (2026-10-10):**
+   this said "lowest ÷ 4"; the firmware uses the median. `jog A 800` without touching, 3 times:
    each must end `stalled=0`. Then `jog A 800` and pinch, 3 times: each must
    stop by itself, `stalled=1`, soon after you load it.
 
 **Send back**: the raw log (it has all the SG lines), and whether step 4
 behaved. If 50 % is too tight or too loose, I'll change `CFG_SG_CAL_PCT`.
+
+**Result, key motor (Paul, 2026-10-10).** Run on the key (`K`, E0) instead of
+dial A: the dial motors were already in their housing, the key turner's
+spindle was easy to reach, cap off the key. `set maK 600` (the key's start
+current), 1 rev/s, 1/16 microsteps, StealthChop, 1 m motor cable.
+- Running free (step 3's run outside the grip, 1,147 samples): SG_RESULT
+  median **276**, lowest **248**, highest 350.
+- Gripped: falls steadily while the shaft still turns (230 → 46), crossing
+  the 50 % line (138) about 14 full steps before the shaft stopped; stalled,
+  it swings 0–340 with readings of **0–20** about every 4 full steps.
+- `set sgK 69` (276 × 50 % ÷ 2): 4 of 4 free runs `stalled=0` (800 full
+  steps each); 3 of 3 gripped runs stopped by themselves, `stalled=1`, after
+  156, 200 and 120 full steps.
+- **The 50 % rule holds for the key** at 0.6 A through the 1 m cable, with a
+  wide margin (lowest free 248 against a trip point of 138). The dials get the
+  same check from their own calibration on the door (stage 4).
+- On the way: the first try never stopped because the A and K DIAG leads were
+  crossed in the endstop connector (found with the pull test, now stage 1
+  step 6).
 
 ---
 
