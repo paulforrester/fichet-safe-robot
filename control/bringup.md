@@ -302,7 +302,7 @@ measured spread and start the real run with `resume`.
 |---|---|
 | Driver UART addresses and wiring (UART lead on each driver's RX pin) | 1 |
 | Motor step angle (1.8° assumed) | 2 |
-| StallGuard thresholds — now self-calibrated; the 50 % rule and speeds | 3 (key: holds, Paul 2026-10-10), 4, 5 |
+| StallGuard thresholds — now self-calibrated; the 50 % rule and speeds | 3, 4, 5 |
 | Hard stop and clicks per turn | answered 2026-10-06: stop anticlockwise, unlimited clockwise, 20 clicks |
 | Dials still turn with the key inserted at rest | answered 2026-10-06: yes, at rest and at the key's ~100° stop |
 | Does a combination dialled with the key in count? | weak hint from 4b.6; the real test is the first full run |
