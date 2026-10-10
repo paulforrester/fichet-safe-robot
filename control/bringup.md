@@ -114,9 +114,14 @@ draw a mark on the bench in line with it.
 4. `jog A 800` (4 turns): smooth? Back on the mark?
 5. If it buzzes or jitters instead of turning, 12 V off and swap the two
    middle wires of the motor plug (`docs/bom.md` note). Then repeat.
-   (Paul, 2026-10-09: needed on the first motor, X; it then jogged. Check
-   the other three before plugging them in: `control/harness/ramps_and_uart.md`
-   A5.)
+   (Paul, 2026-10-09/10: needed on **all four** motors, every plug wired the
+   same; after the swap they all run smooth and quiet.
+   `control/harness/ramps_and_uart.md` A5.)
+
+**Result (Paul, 2026-10-10):** `jog A 200` = exactly one turn, so the motor
+is **1.8° per step (200 full steps/rev)**, as `config.h` assumes. `jog A 200`
+turns the shaft **clockwise seen from the shaft end** (motor A, plug black
+toward 2B, `invA` 0). What that means for the dial is settled in stage 4b.
 
 **Send back**: (a) did 200 steps give exactly one turn — or how far off
 (e.g. "half a turn" means the motor is 0.9°/step); (b) direction of `jog A
@@ -273,7 +278,7 @@ measured spread and start the real run with `resume`.
 | Open item | Stage |
 |---|---|
 | Driver UART addresses and wiring (UART lead on each driver's RX pin) | 1 |
-| Motor step angle (1.8° assumed) | 2 |
+| Motor step angle | 2: **1.8° confirmed** (Paul, 2026-10-10) |
 | StallGuard thresholds — now self-calibrated; the 50 % rule and speeds | 3, 4, 5 |
 | Hard stop and clicks per turn | answered 2026-10-06: stop anticlockwise, unlimited clockwise, 20 clicks |
 | Dials still turn with the key inserted at rest | answered 2026-10-06: yes, at rest and at the key's ~100° stop |

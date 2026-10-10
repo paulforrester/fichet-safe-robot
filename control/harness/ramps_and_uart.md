@@ -178,12 +178,15 @@ one end. That page is for a different model and some units have the middle
 two wires swapped (`CLAUDE.md`, vendor note), so check each motor (12 V off,
 motor unplugged).
 
-**Correction (Paul, 2026-10-09, bring-up stage 2):** the first motor tried
-(X, dial A) buzzed without turning with its plug as supplied; swapping the two
-middle wires in the housing fixed it. Only a split pair is fixed by that swap,
-so on that motor the pairs are **black–red** and **green–blue** (deduced from
-the fix, not measured), not black–green / red–blue as the sister model's
-manual says. The other three are probably the same (one pack), but check each:
+**Correction (Paul, 2026-10-09/10, bring-up stage 2):** all four motors
+buzzed without turning with their plugs as supplied, and all four ran smooth
+and quiet once the two middle wires in the housing (blue and green, Paul) were
+swapped. All four plugs were wired the same. So the supplied plugs split the
+coil pairs, and the sister model's black–green / red–blue pairing doesn't
+describe this cable as plugged. After the swap each pair sits at one end of
+the plug (positions 1–2 and 3–4). *Which colours pair up: to be confirmed
+from the plug's colour order after the swap.* For a replacement motor (the
+spare), check before plugging it in:
 
 1. Multimeter on Ω, probes in the plug's sockets: the two wires that read a
    **few ohms** to each other are one coil; the other two read a few ohms too;
