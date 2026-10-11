@@ -47,7 +47,11 @@ button to the wire hole: 3.6mm wide × 2mm deep, with intermittent retention
 lips every 20mm that narrow the mouth to 2.4mm (verified in section). The
 two 1.58mm leads press in between the lips and are held under them. Replaces
 the hot glue. `cad/print_groove_coupon.scad` is a lip-fit test coupon to
-print first. Print the deck top-face down so the lip overhang prints cleanly.
+print first. Print the deck as exported, underside down, so the lips print on
+the bed and the channel roof bridges. (Correction 2026-10-11: this line said
+top-face down; the STL has always been underside down.) Correction 2026-10-11:
+`dial_motor_sled.stl` was not re-exported with the windows when this was
+first built, and `groove_coupon.stl` was missing; both exported now.
 
 **5. Barrel-adapter cradle.** A shallow saddle (2mm) for the adapter's square
 body with a zip-tie slot on each side, on the deck near the standoff corner
