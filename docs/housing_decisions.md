@@ -71,6 +71,18 @@ everything above it still in place, or what's above lifts off as one piece.
    position on it, and every exposed hole) for the next revision. With
    through-bolts the sled's holes would sit at the Mega's published hole
    positions instead, which don't depend on the photo fit.
+   **Measured (Paul, 2026-10-11, assembly left together):** the wire test
+   passes, the three RAMPS holes line up with the Mega's; the gap from the
+   RAMPS board's underside to the Mega board's top is **10.4 mm** (the
+   spacer length; a 10 mm stock spacer would pull the RAMPS down onto its
+   headers). Mega base plate **111 x 57.5 mm** (Correction: the 2026-10-04
+   entry used SparkFun's 114 x 57.5). The plate's own holes can't be reached
+   without taking the assembly apart; with through-bolts they aren't needed.
+   **Open:** the Mega hole nearest the power jack is at x = 15.24 mm in the
+   Mega 1280 Eagle numbers this CAD uses (`mega_hole_pts`, 2026-10-03 entry)
+   but at 13.97 mm in the RAMPS KiCad footprint. Settled on Paul's board by
+   the centre distance of the two RAMPS holes on the same long edge:
+   81.28 mm (Eagle) or 82.55 mm (KiCad).
 
 **2. Start/stop button leads: a groove instead of hot glue** (agreed). An
 open groove in the electronics sled's underside, ~3.5 mm wide x 2 mm deep
