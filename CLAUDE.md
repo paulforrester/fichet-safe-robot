@@ -3,12 +3,14 @@
 Context for any Claude session working in this repo. Read this first, then
 the doc that matches your task (table below). Last updated 2026-10-08.
 
-> **Project revision 2026-10-09.1** — all four TMC2209 drivers are on the
+> **Project revision 2026-10-11.1** — all four TMC2209 drivers are on the
 > RAMPS (the key in the **E0** socket); there is no remote driver board or
 > inter-unit signal cable, only the key motor's own cable. The UART junction
 > is a six-lead **UART pigtail** (R1 in the TX2 lead, one splice), not a
 > board (2026-10-08.2). The start/stop button mounts on the electronics deck
-> (2026-10-09.1). The current
+> (2026-10-09.1). The dial unit is **v3** (2026-10-11.1): the Mega and RAMPS
+> are through-bolted, and the deck gains service access holes, gear inspection
+> windows, a button-lead groove and a barrel-adapter cradle. The current
 > revision ID lives in `REVISION`; the log is `docs/revisions.md`. When a
 > design change affects how the robot is built, wired or run, bump `REVISION`,
 > add a `docs/revisions.md` entry, and run `python3 tools/check_revision.py`

@@ -1,6 +1,6 @@
 # Housing — design decision log
 
-> **Revision 2026-10-09.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
+> **Revision 2026-10-11.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
 
 
 Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
@@ -9,7 +9,65 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
-## 2026-10-11: requirements for the next dial-unit revision (Paul) — not designed yet
+## 2026-10-11: v3 dial unit — serviceability and mounts, BUILT (revision 2026-10-11.1)
+
+Implements the requirements in the entry below, after the bench gear test
+cleared the drivetrain (`control/bringup.md` stage 4b: `jog a 400` turned the
+gear exactly one revolution and a held plug made the motor stall, not slip —
+so the on-door ratcheting was the plug climbing its star, not a gear fault,
+and no drivetrain change is needed). All in `cad/dial_unit_housing.scad`;
+`cad/sketchup/dial_unit_sketchup_build.py` rebuilt to match.
+
+**1. Mega/RAMPS through-bolt mount.** Three M3 screws from the top, down
+through the RAMPS's own mounting holes, a spacer between the boards, the
+Mega's holes and base plate, self-tapping into the deck (`mega_bolt_pts`,
+Ø2.6 pilots). Replaces the four photo-fit base-plate pilots and the single
+nylon screw. Hole positions are the confirmed RAMPS/Mega pattern (centres
+82.55 / 48.28mm). The Mega placement was nudged 1.25mm (`mega_offset`
+[-2.5,-5] → [-1.75,-4], rotation 244 unchanged) so the three bolt pilots
+clear the deck-leg countersinks by 2.5mm (was 1.3mm); board stays within
+r64 (rmax 61.3). Spacer length ≈ 8.8mm (Paul's 10.4mm top-of-RAMPS-to-Mega
+minus a ~1.6mm board — to confirm).
+
+**2. Service access holes.** Two Ø10 holes in the deck over `joint_pts[1]`
+and `[2]`, to undo the motor-plate↔front-leg screws with a long driver from
+above so the motor plate + deck + motors lift off the front plate with the
+wiring still plugged. `joint_pts[0]` is off the deck edge (reached from the
+side). `joint_pts[1]` is under the Mega base plate, so the three through-bolts
+come out first and the stack lifts off to clear it. Clear vertical columns to
+the joints are 15–20mm (cad/tools).
+
+**3. Inspection windows.** One Ø8 window per dial through the motor plate over
+the gear's rim, clear of the cans/bolts/bosses/legs (margins 0.9 / 2.4 /
+5.6mm). See the gear rim and its mesh, mark it, watch it turn — the check that
+would have caught the stage-4b question without a teardown.
+
+**4. Button-lead groove.** A keyhole channel in the deck underside from the
+button to the wire hole: 3.6mm wide × 2mm deep, with intermittent retention
+lips every 20mm that narrow the mouth to 2.4mm (verified in section). The
+two 1.58mm leads press in between the lips and are held under them. Replaces
+the hot glue. `cad/print_groove_coupon.scad` is a lip-fit test coupon to
+print first. Print the deck top-face down so the lip overhang prints cleanly.
+
+**5. Barrel-adapter cradle.** A shallow saddle (2mm) for the adapter's square
+body with a zip-tie slot on each side, on the deck near the standoff corner
+(`barrel_c` [-49,44]); the round socket faces out over the open corner so the
+PSU plug inserts horizontally. The tie loop under the deck clears the cans by
+~20mm.
+
+**Verified:** all parts watertight, one body each; `dial_interference_check`
+NO INTERFERENCE; `dial_layout_check` ALL PASS (incl. the new through-bolt,
+access-hole and window clearances); `button_mount_check` PASS (the recess is
+sliced clear of the groove, which joins it by design). SketchUp geometry
+matches the SCAD echo (bolt / window / access positions) with no degenerate
+faces; the groove and barrel cradle are in the SCAD but omitted from the
+review model (non-circular pockets).
+
+**Still bench, not design:** the spacer length (RAMPS board thickness); the
+groove-lip fit (coupon); and that a screwdriver reaches the two access holes
+past the drivers once built.
+
+## 2026-10-11: requirements for the next dial-unit revision (Paul) — now built (above)
 
 **Why.** Bring-up stage 4b (`control/bringup.md`) hit a fault that couldn't
 be located without a full teardown: dial A's motor ran its full count with

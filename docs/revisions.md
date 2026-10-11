@@ -1,6 +1,6 @@
 # Project revisions
 
-> **Revision 2026-10-09.1** · this file is the revision log · current ID in `REVISION`
+> **Revision 2026-10-11.1** · this file is the revision log · current ID in `REVISION`
 
 Every project document and drawing carries the project revision it was last
 brought up to date in, so a printed or downloaded copy can be told apart from
@@ -21,6 +21,27 @@ a newer one. The ID is the date plus a sequence number for that day:
   which also names the project revision it was built for.
 
 ## Log (most recent first)
+
+### 2026-10-11.1 — dial unit v3: serviceability and mounts
+
+**Change** (`cad/dial_unit_housing.scad`, review model
+`cad/sketchup/dial_unit_sketchup_build.py`). The electronics deck and motor
+plate are reworked for serviceability and a solid Mega/RAMPS mount:
+- **Mega + RAMPS through-bolted** by 3 M3 screws from the top (through the
+  RAMPS's own holes, a spacer, the Mega and base plate, into the deck),
+  replacing the four photo-fit base-plate pilots and the nylon screw; the
+  Mega placement nudged 1.25mm so the bolts clear the deck-leg countersinks.
+- **Service access holes** in the deck over two motor-plate joints, so the
+  motor plate + deck + motors lift off the front plate with the wiring still
+  plugged (the third joint is reached from the deck edge).
+- **Inspection windows**, one per dial, through the motor plate over the gear
+  rim — see/mark/watch the gear without a teardown.
+- **Button-lead groove** (keyhole with retention lips) in the deck underside,
+  replacing hot glue; **barrel-adapter cradle** with tie slots for the 12 V
+  input plug.
+Full reasoning and the verification (all CAD checks pass): `docs/housing_
+decisions.md`, 2026-10-11 (built). Still bench, not design: the spacer length,
+the groove-lip fit (coupon), and driver reach to the access holes once built.
 
 ### 2026-10-09.1 — start/stop button mount on the electronics deck
 
