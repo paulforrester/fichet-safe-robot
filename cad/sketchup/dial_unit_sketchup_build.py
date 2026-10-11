@@ -579,6 +579,7 @@ ga.set_layer(tags['Assembled view'])
 ge = build('Dial unit - exploded', (260, 0, 130),
            {'bearing': 40, 'bearing_step': 12, 'gear': 95, 'spring': 150, 'pinion': 190, 'sled': 235, 'motor': 300, 'deck': 400, 'mega': 440, 'rmag': 30, 'retainer': 20})
 ge.set_layer(tags['Exploded view'])
+result = {'placed': True}
 
 # ======================= PART 3: style, scenes, camera =======================
 # Product-studio look (connector's sketchup-styles skill, AO off). Scene tabs
@@ -646,4 +647,5 @@ mc = Camera()
 mc.set_orientation(SUPoint3D(-8.4, -13.7, 11.2), SUPoint3D(0, -2.2, 5.3), SUVector3D(0, 0, 1))
 mc.enable_perspective(); mc.set_perspective_frustum_fov(35.0)
 model.set_camera(mc)
+result = {'scenes': len(scenes)}
 # then save_model. (Its thumbnail ignores the camera/scenes; open the file to check.)
