@@ -1,6 +1,6 @@
 # Bill of materials
 
-> **Revision 2026-10-09.1** · key driver on the RAMPS E0 socket; UART pigtail replaces the hub board · log: `docs/revisions.md`
+> **Revision 2026-10-11.1** · key driver on the RAMPS E0 socket; UART pigtail replaces the hub board · log: `docs/revisions.md`
 
 **Revision 2026-10-08.1 (2026-10-08):** the key driver moved to the RAMPS
 **E0** socket. Several parts that were ordered are **no longer used** (keep
@@ -230,3 +230,11 @@ gearing, not a different motor class, is the likely fix.
 | M3x3 or M3x4 grub screws (pinion) | 3 (optional) | €0-3 | ⬜ Optional | The pinion is located by the shaft's flat and trapped axially, so these are optional. **Not a cap screw** — the head would hit the gear. |
 | M6 countersunk ~16mm | 6 + 3 | €0 | ✅ On hand | Unchanged from v1 (front-to-sled and sled-to-deck joints). **Added 2026-10-06:** 3 more for the key turner's motor plate to its legs. The CAD note said M6x20; Paul has both and found the 16mm work better (6mm plate + 10mm in the 16mm pilot, as on the dial unit). |
 | PETG-CF | ~25g for 3 gear-shafts + 3 pinions | €0 | ✅ On hand | Wear parts: the spline plug and the gear teeth. |
+
+## Added 2026-10-11: dial unit v3 (serviceability + through-bolt mount)
+
+| Item | Qty | Cost | Status | Notes |
+|---|---|---|---|---|
+| M3 screws, ~20mm, self-tapping into PETG | 3 (+ spares) | €0 | ✅ On hand (Taiss M3 kit has M3x20/x25) | The Mega/RAMPS through-bolt mount: from the top of the RAMPS, through a spacer, the Mega and its base plate, self-tapping into the deck. Replaces the four 2026-10-04 base-plate screws and the single nylon screw. Length = deck grip (~5mm) + base plate + Mega board + spacer + RAMPS board ≈ 18–22mm; confirm against the real stack. |
+| M3 spacers, ~8.8mm, Ø≤6 | 3 | €0–5 | ⬜ To confirm | One per through-bolt, between the RAMPS and the Mega so the screw doesn't pull the RAMPS onto its headers. 8.8mm = Paul's 10.4mm (top-of-RAMPS to top-of-Mega) minus a ~1.6mm board — **measure the RAMPS board first**. Nylon/brass spacer, a cut tube, or a short stack of washers; or print. |
+| M3 screws, ~6–8mm (base-plate mount) | — | — | ⬜ No longer used | The four 2026-10-04 base-plate self-tappers and the single nylon hold-down are replaced by the 3 through-bolts above. Keep as spares. |

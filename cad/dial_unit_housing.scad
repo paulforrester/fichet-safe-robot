@@ -369,6 +369,16 @@ module front_assembly() { union() { front_plate(); front_standoff_legs(); } }
 // 7. MOTOR SLED (rear_assembly)
 // ============================================================
 can_clear = 1.5;  // relief around the 42.3mm can, same as v1
+
+// Inspection windows (v3, Paul 2026-10-11): one hole per dial through the
+// motor plate, over the big gear's rim at a spot clear of the motor cans,
+// the motor bolts/boss, the spring pockets, the joints and the deck legs
+// (cad/tools; margins 0.9/2.4/5.6mm). With the unit assembled you can see
+// the gear rim and its mesh with the pinion below, put a witness mark on the
+// rim, and watch it turn — the check that would have caught the stage-4b
+// drivetrain question without a teardown. [x, y, diameter]:
+inspect_windows = [[-5.67, 9.86, 8], [12.76, 4.6, 8], [-14.75, -20.99, 8]];
+
 module motor_plate_outline() {
     hull() {
         for (i = [0 : 2]) translate(motor_pts[i]) rotate([0, 0, motor_rot[i]])
@@ -401,6 +411,9 @@ module motor_plate() {
             translate([0, 0, motor_plate_h - m6_csk_depth + eps_c])
                 cylinder(d1 = m6_clear_d, d2 = m6_csk_top_d, h = m6_csk_depth + eps_c, $fn = 48);
         }
+        // inspection windows over each gear rim
+        for (w = inspect_windows) translate([w[0], w[1], -eps_c])
+            cylinder(d = w[2], h = motor_plate_h + 2*eps_c, $fn = 48);
     }
 }
 
@@ -472,17 +485,40 @@ module motor_pinion() {
 }
 
 // ============================================================
-// 9. ELECTRONICS DECK (Mega via its own base plate — bench-checked v1 mount)
+// 9. ELECTRONICS DECK (Mega + RAMPS through-bolted as one stack — v3)
 // ============================================================
-mega_hole_pts = [[-35.52, -24.11], [-35.52, 24.15], [39.41, 24.15], [45.76, -24.11]];
-mega_base_hole_pts = [[5.6, -19.3], [5.4, 18.7], [-56.3, -25.0], [-56.1, 24.0]];
-mega_rotation = 244;       // re-searched for the v2 deck legs (2deg x 2.5mm grid): keeps every
-mega_offset   = [-2.5, -5]; // base-plate screw >= 19mm clear of the deck-leg countersinks, and
-                            // the board footprint inside r=64. Jack/USB end faces up-right.
+// v3 (2026-10-11, docs/housing_decisions.md): the Mega + RAMPS are held by 3
+// M3 screws driven from the TOP, down through the RAMPS's own mounting holes,
+// a spacer between the boards, the Mega's PCB holes and its base plate,
+// self-tapping into the deck. This replaces the single nylon screw Paul had
+// to add (insertion alone didn't hold) and the 4 photo-fit base-plate pilot
+// holes that didn't line up with the real plate. The 3 positions are the
+// Mega/RAMPS mounting holes, confirmed on Paul's board by caliper: centres
+// 82.84mm (long edge) and 48.38mm (power end), matching the RAMPS KiCad
+// pattern (matt3u ea33bdf), not the Eagle one the old mega_hole_pts used.
+// Given in the Mega PCB frame (centred on the board centroid) so mega_place()
+// lands them against the deck legs, exactly as the board footprint does.
+mega_hole_pts = [[-36.79, -24.11], [-35.52, 24.15], [39.41, 24.15], [45.76, -24.11]];
+// the 3 holes that pass through the RAMPS (drop the 4th, [39.41,24.15], which
+// the RAMPS has no hole over):
+mega_bolt_pts = [mega_hole_pts[0], mega_hole_pts[1], mega_hole_pts[3]];
+mega_bolt_pilot_d = set_screw_pilot_d;   // 2.6mm M3 self-tap into the deck
+mega_rotation = 244;         // coupon-checked orientation (unchanged); Jack/USB end up-right
+mega_offset   = [-1.75, -4]; // v3: nudged 1.25mm from [-2.5,-5] so the 3 through-bolt pilots
+                             // clear the deck-leg countersinks by 2.5mm (cad/tools); board rmax 61.3
 function mega_place(p) = rot2(p, mega_rotation) + mega_offset;
-mega_hole_pts_rot      = [for (p = mega_hole_pts) mega_place(p)];
-mega_base_hole_pts_rot = [for (p = mega_base_hole_pts) mega_place(p)];
-mega_base_pilot_d = set_screw_pilot_d;   // 2.6mm M3 self-tap (bench-checked coupon)
+mega_hole_pts_rot = [for (p = mega_hole_pts) mega_place(p)];
+mega_bolt_pts_rot = [for (p = mega_bolt_pts) mega_place(p)];
+
+// Service access holes (v3): undo the motor-plate <-> front-leg joint screws
+// (joint_pts) with a long driver straight down through the deck, so the motor
+// plate + deck + motors lift off the front plate with the wiring still
+// plugged. joint_pts[0] is off the deck edge (reached from the side);
+// joint_pts[1] and [2] get a hole. [1] sits under the Mega base plate, so the
+// 3 through-bolts come out first and the whole stack lifts off to clear it.
+// Clear vertical columns to the joint heads are >=15mm (cad/tools).
+joint_access_idx = [1, 2];
+joint_access_d   = 10;
 
 // Start/stop button (7mm momentary, Paul 2026-10-09): body from below, its
 // 9.36mm base in a 10 x 2.5mm recess in the deck's underside, so 3.5mm of
@@ -505,24 +541,112 @@ wire_hole_pt     = [15.65, -47.06];
 wire_hole_d      = 4;
 wire_lobe_r      = 5.5;
 
+// Button-lead groove (v3): an open channel in the deck UNDERSIDE carrying the
+// two button leads from the button to the wire hole, replacing the hot glue
+// Paul had been using. Leads 1.58mm each. 3.6mm wide x 2mm deep, with
+// retention lips that narrow the mouth to 2.4mm so the pair snaps in and
+// stays. Print the deck with its TOP face on the bed (groove facing up) so
+// the lip overhang prints cleanly; a short coupon (print_groove_coupon.scad)
+// checks the lip fit before committing the whole deck.
+groove_w       = 3.6;
+groove_depth   = 2;
+groove_lip_in    = 0.6;   // how far each lip reaches into the mouth
+groove_lip_h     = 0.8;   // lip thickness, measured from the underside surface
+groove_lip_every = 20;    // spacing of the retention lips along the run
+groove_from      = button_pt;
+groove_to        = wire_hole_pt;
+
+// Barrel adapter (12V input) cradle on the deck edge near the standoff corner
+// (Paul, 2026-10-11): a shallow saddle locates the adapter's square body
+// (14.48 wide x 11.71 tall x ~13mm of square section) so it can't rotate, and
+// a zip-tie slot on each side holds it down; the round socket end overhangs
+// the deck edge so the PSU plug pushes in from outside. Ties 2.41 x 1.03mm.
+// Centre and outward direction keep the tie slots clear of the motor cans
+// below (nearest can ~20mm, cad/tools) and clear of the button (>16mm).
+barrel_c        = [-49, 44];
+barrel_dir      = 138;            // outward; the socket points this way, over the edge
+barrel_body_w   = 14.48 + 0.6;    // across the body (+ fit)
+barrel_body_l   = 13;             // the square section that sits in the saddle
+barrel_saddle_d = 2;              // saddle depth into the deck top
+tie_slot_w      = 2.41 + 0.6;     // along the body
+tie_slot_t      = 1.03 + 0.6;     // across (tie thickness)
+tie_slot_gap    = barrel_body_w + 3.0;   // centre-to-centre, one slot each side
+
+// A short test coupon of the groove + lips (print_groove_coupon.scad).
+module groove_coupon() {
+    L = 50; a = [-L/2, 0]; b = [L/2, 0];
+    difference() {
+        union() {
+            cube([L, groove_w + 8, deck_thickness], center = true);
+            // lips every groove_lip_every along the strip
+            for (x = [-L/2 + 10 : groove_lip_every : L/2 - 5])
+                translate([x, 0, -deck_thickness/2])
+                    for (sgn = [-1, 1]) translate([-1.5, sgn*(groove_w/2 - groove_lip_in/2) - groove_lip_in/2, 0])
+                        cube([3, groove_lip_in, groove_lip_h + eps_c]);
+        }
+        translate([0, 0, -deck_thickness/2 - eps_c]) linear_extrude(height = groove_depth + eps_c)
+            hull() { translate(a) circle(d = groove_w, $fn=24); translate(b) circle(d = groove_w, $fn=24); }
+    }
+}
 module deck_outline() {
     hull() {
-        for (p = mega_hole_pts_rot)      translate(p) circle(r = 11, $fn = 32);
-        for (p = mega_base_hole_pts_rot) translate(p) circle(r = 7.5, $fn = 32);
-        for (p = deck_leg_pts)           translate(p) circle(r = 14, $fn = 48);
+        for (p = mega_hole_pts_rot) translate(p) circle(r = 11, $fn = 32);
+        for (p = deck_leg_pts)      translate(p) circle(r = 14, $fn = 48);
         translate(wire_hole_pt) circle(r = wire_lobe_r, $fn = 32);
+        // wall around the two service access holes
+        for (i = joint_access_idx) translate(joint_pts[i]) circle(r = joint_access_d/2 + 3, $fn = 32);
+        // enough deck under the barrel saddle and its two tie slots
+        translate(barrel_c) rotate(barrel_dir)
+            square([barrel_body_l + 4, tie_slot_gap + tie_slot_t + 5], center = true);
+    }
+}
+// groove path as a rounded rectangle channel between two points
+module groove_channel(a, b, w) {
+    hull() { translate(a) circle(d = w, $fn = 24); translate(b) circle(d = w, $fn = 24); }
+}
+// retention lips: short paired bars at the groove mouth every groove_lip_every,
+// each reaching groove_lip_in into the channel, so the wire pair presses in
+// between the lips (full 3.6 mouth there) and is held under them (2.4 mouth).
+module groove_lips() {
+    d = groove_to - groove_from;
+    glen = norm(d);
+    ga = atan2(d[1], d[0]);
+    n = floor(glen / groove_lip_every);
+    for (k = [1 : max(1, n)]) {
+        c = groove_from + (k/(n+1)) * d;
+        translate([c[0], c[1], 0]) rotate(ga)
+            for (s = [-1, 1]) translate([-1.5, s*(groove_w/2 - groove_lip_in/2) - groove_lip_in/2, 0])
+                cube([3, groove_lip_in, groove_lip_h + eps_c]);
     }
 }
 module electronics_deck() {
-    translate([0, 0, deck_z]) difference() {
+    translate([0, 0, deck_z]) union() {
+    // retention lips, added back after the groove is cut (kept inside the deck)
+    intersection() { groove_lips(); linear_extrude(height = deck_thickness) deck_outline(); }
+    difference() {
         linear_extrude(height = deck_thickness) deck_outline();
+        // deck-leg countersinks (top)
         for (p = deck_leg_pts) translate([p[0], p[1], -eps_c]) {
             cylinder(d = m6_clear_d, h = deck_thickness + 2*eps_c, $fn = 24);
             translate([0, 0, deck_thickness - m6_csk_depth + eps_c])
                 cylinder(d1 = m6_clear_d, d2 = m6_csk_top_d, h = m6_csk_depth + eps_c, $fn = 48);
         }
-        for (p = mega_base_hole_pts_rot) translate([p[0], p[1], -eps_c])
-            cylinder(d = mega_base_pilot_d, h = deck_thickness + 2*eps_c, $fn = 24);
+        // Mega/RAMPS through-bolts: M3 self-tap into the deck
+        for (p = mega_bolt_pts_rot) translate([p[0], p[1], -eps_c])
+            cylinder(d = mega_bolt_pilot_d, h = deck_thickness + 2*eps_c, $fn = 24);
+        // service access holes for the motor-plate joint screws
+        for (i = joint_access_idx) translate([joint_pts[i][0], joint_pts[i][1], -eps_c])
+            cylinder(d = joint_access_d, h = deck_thickness + 2*eps_c, $fn = 48);
+        // button-lead groove in the underside (does not break through)
+        translate([0, 0, -eps_c]) linear_extrude(height = groove_depth + eps_c)
+            groove_channel(groove_from, groove_to, groove_w);
+        // barrel cradle: saddle + two tie slots
+        translate(barrel_c) rotate(barrel_dir) {
+            translate([-barrel_body_l/2, -barrel_body_w/2, deck_thickness - barrel_saddle_d])
+                cube([barrel_body_l, barrel_body_w, barrel_saddle_d + eps_c]);
+            for (s = [-1, 1]) translate([-tie_slot_w/2, s*tie_slot_gap/2 - tie_slot_t/2, -eps_c])
+                cube([tie_slot_w, tie_slot_t, deck_thickness + 2*eps_c]);
+        }
         // start/stop button: through hole + underside recess for its body
         translate([button_pt[0], button_pt[1], -eps_c]) {
             cylinder(d = button_hole_d, h = deck_thickness + 2*eps_c, $fn = 48);
@@ -531,6 +655,7 @@ module electronics_deck() {
         // the button's leads come up here, beside the RAMPS endstop block
         translate([wire_hole_pt[0], wire_hole_pt[1], -eps_c])
             cylinder(d = wire_hole_d, h = deck_thickness + 2*eps_c, $fn = 32);
+    }
     }
 }
 
@@ -619,7 +744,11 @@ echo(LAYOUT = [
     ["dial_abc", [dial_ab, dial_ac, dial_bc]], ["hole_pts", hole_pts],
     ["motor_dir", motor_dir], ["motor_rot", motor_rot], ["motor_pts", motor_pts],
     ["motor_bolt_pts", motor_bolt_pts], ["joint_pts", joint_pts], ["deck_leg_pts", deck_leg_pts],
-    ["mega_base_hole_pts_rot", mega_base_hole_pts_rot], ["mega_hole_pts_rot", mega_hole_pts_rot],
+    ["mega_bolt_pts_rot", mega_bolt_pts_rot], ["mega_hole_pts_rot", mega_hole_pts_rot],
+    ["joint_access", [joint_access_idx, joint_access_d]],
+    ["barrel", [barrel_c, barrel_dir, barrel_body_l, barrel_body_w, tie_slot_gap, tie_slot_w, tie_slot_t]],
+    ["groove", [groove_from, groove_to, groove_w, groove_depth]],
+    ["inspect_windows", inspect_windows],
     ["button", [button_pt, button_hole_d, button_recess_d, button_recess_h]], ["wire_hole", [wire_hole_pt, wire_hole_d, wire_lobe_r]], ["deck_thickness", deck_thickness],
     ["gear", [gear_m, gear_teeth, pinion_teeth, gear_x, pinion_x, gear_pa, gear_backlash, gear_cd]],
     ["gear_tip_r", gear_tip_r], ["pinion_tip_r", pinion_tip_r],

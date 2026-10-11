@@ -1,6 +1,6 @@
 # Housing — design decision log
 
-> **Revision 2026-10-09.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
+> **Revision 2026-10-11.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
 
 
 Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
@@ -8,6 +8,179 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `docs/decisions.md` (tube-socket test key geometry) and
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
+
+## 2026-10-11: v3 dial unit — serviceability and mounts, BUILT (revision 2026-10-11.1)
+
+Implements the requirements in the entry below, after the bench gear test
+cleared the drivetrain (`control/bringup.md` stage 4b: `jog a 400` turned the
+gear exactly one revolution and a held plug made the motor stall, not slip —
+so the on-door ratcheting was the plug climbing its star, not a gear fault,
+and no drivetrain change is needed). All in `cad/dial_unit_housing.scad`;
+`cad/sketchup/dial_unit_sketchup_build.py` rebuilt to match.
+
+**1. Mega/RAMPS through-bolt mount.** Three M3 screws from the top, down
+through the RAMPS's own mounting holes, a spacer between the boards, the
+Mega's holes and base plate, self-tapping into the deck (`mega_bolt_pts`,
+Ø2.6 pilots). Replaces the four photo-fit base-plate pilots and the single
+nylon screw. Hole positions are the confirmed RAMPS/Mega pattern (centres
+82.55 / 48.28mm). The Mega placement was nudged 1.25mm (`mega_offset`
+[-2.5,-5] → [-1.75,-4], rotation 244 unchanged) so the three bolt pilots
+clear the deck-leg countersinks by 2.5mm (was 1.3mm); board stays within
+r64 (rmax 61.3). Spacer length ≈ 8.8mm (Paul's 10.4mm top-of-RAMPS-to-Mega
+minus a ~1.6mm board — to confirm).
+
+**2. Service access holes.** Two Ø10 holes in the deck over `joint_pts[1]`
+and `[2]`, to undo the motor-plate↔front-leg screws with a long driver from
+above so the motor plate + deck + motors lift off the front plate with the
+wiring still plugged. `joint_pts[0]` is off the deck edge (reached from the
+side). `joint_pts[1]` is under the Mega base plate, so the three through-bolts
+come out first and the stack lifts off to clear it. Clear vertical columns to
+the joints are 15–20mm (cad/tools).
+
+**3. Inspection windows.** One Ø8 window per dial through the motor plate over
+the gear's rim, clear of the cans/bolts/bosses/legs (margins 0.9 / 2.4 /
+5.6mm). See the gear rim and its mesh, mark it, watch it turn — the check that
+would have caught the stage-4b question without a teardown.
+
+**4. Button-lead groove.** A keyhole channel in the deck underside from the
+button to the wire hole: 3.6mm wide × 2mm deep, with intermittent retention
+lips every 20mm that narrow the mouth to 2.4mm (verified in section). The
+two 1.58mm leads press in between the lips and are held under them. Replaces
+the hot glue. `cad/print_groove_coupon.scad` is a lip-fit test coupon to
+print first. Print the deck top-face down so the lip overhang prints cleanly.
+
+**5. Barrel-adapter cradle.** A shallow saddle (2mm) for the adapter's square
+body with a zip-tie slot on each side, on the deck near the standoff corner
+(`barrel_c` [-49,44]); the round socket faces out over the open corner so the
+PSU plug inserts horizontally. The tie loop under the deck clears the cans by
+~20mm.
+
+**Verified:** all parts watertight, one body each; `dial_interference_check`
+NO INTERFERENCE; `dial_layout_check` ALL PASS (incl. the new through-bolt,
+access-hole and window clearances); `button_mount_check` PASS (the recess is
+sliced clear of the groove, which joins it by design). SketchUp geometry
+matches the SCAD echo (bolt / window / access positions) with no degenerate
+faces; the groove and barrel cradle are in the SCAD but omitted from the
+review model (non-circular pockets).
+
+**Still bench, not design:** the spacer length (RAMPS board thickness); the
+groove-lip fit (coupon); and that a screwdriver reaches the two access holes
+past the drivers once built.
+
+## 2026-10-11: requirements for the next dial-unit revision (Paul) — now built (above)
+
+**Why.** Bring-up stage 4b (`control/bringup.md`) hit a fault that couldn't
+be located without a full teardown: dial A's motor ran its full count with
+a load that built and released about every 46 full steps, and nothing
+inside the unit can be seen or marked while it's assembled (Paul,
+2026-10-10/11). Paul is testing the gears on the bench with the unit off the
+door first; **the CAD waits for that result**, so any drivetrain fix goes
+into the same revision. When the CAD changes, the SketchUp review models
+(`cad/sketchup/`) are updated with it (Paul).
+
+Terms below: *base plate* = the front (door) plate with the legs, magnets
+and bearings; *motor plate* = the motor sled; *electronics sled* = the deck;
+*Mega base plate* = the clear plastic plate the Mega sits in.
+
+**1. Serviceability: a service ladder** (agreed, Paul 2026-10-11). The
+rule: every screw is driven from the top (the rear) and is reachable with
+everything above it still in place, or what's above lifts off as one piece.
+1. *No teardown:* **inspection windows**, one per dial, showing the pinion,
+   its set screw and the rim of the big gear, so witness marks can be put on
+   and watched.
+2. *Gear / pinion service, all wiring left connected:* unscrew the three M6
+   that hold the motor plate to the base plate's legs, through access holes
+   in the electronics sled; the motor plate, motors, electronics sled and
+   electronics lift off the base plate together. Where those three screws
+   are now (`joint_pts`, from the CAD's LAYOUT echo):
+   - (59.5, -8.3): outside the electronics sled: already reachable.
+   - (-18.7, 60.6): under the electronics sled, 1.1 mm inside its edge, clear
+     of the Mega base plate: an access hole or notch works.
+   - (-25.8, -50.5): under the electronics sled **and** 1.7 mm inside the Mega
+     base plate's (estimated) outline: no access hole possible. This one
+     joint, its leg and the motor plate's lobe move outward, clear of the
+     Mega base plate. Paul asked whether to make the motor plate bigger:
+     only around this joint, so far as this check shows. To be checked in
+     CAD against the motor cans, magnets and gears.
+   The access holes are ~55 mm deep (motor length + deck clearance): a long
+   driver is needed.
+3. *Last resort:* the Mega + RAMPS come off as one piece **without
+   separating them**. Today the Mega is held in the Mega base plate by
+   insertion alone, which didn't hold when the robot was deployed; Paul added
+   one nylon screw and nut ("kludgy"), and taking the Mega off its base plate
+   means removing the RAMPS. Paul suggested a raised pocket or standoffs
+   around the assembly with a top plate screwed on. A full top plate would
+   cover the driver pots, the DIAG and RX leads on the drivers, AUX-4 and
+   the endstop block. Candidate instead: **screws from the top through the
+   RAMPS's own mounting holes.** The RAMPS 1.4 KiCad conversion (matt3u,
+   `ea33bdf`) has three 3.2 mm holes, at the Arduino Mega's hole positions
+   (13.97, 2.54), (15.24, 50.8) and (96.52, 2.54) in shield coordinates. A
+   long M3 through each RAMPS hole, a spacer between the boards, the Mega
+   hole and the Mega base plate, into the electronics sled, would hold the
+   whole stack from above. **VERIFY on Paul's Fasizi board:** the holes
+   exist, line up with the Mega's, and a screw head and driver fit past the
+   drivers and heatsinks; and the gap between the two boards (spacer
+   length). Paul's photos of the assembly (2026-10-11) show one RAMPS hole
+   near the D8–D10 LEDs.
+   **Correction (Paul, 2026-10-11):** the electronics sled's four pilot
+   holes for the Mega base plate (`mega_base_hole_pts`, fitted from a photo
+   on 2026-10-04, when 3 of 4 screws went in) do not line up with the real
+   plate. Paul will measure the plate with calipers (outline, the Mega's
+   position on it, and every exposed hole) for the next revision. With
+   through-bolts the sled's holes would sit at the Mega's published hole
+   positions instead, which don't depend on the photo fit.
+   **Measured (Paul, 2026-10-11, assembly left together):** the wire test
+   passes, the three RAMPS holes line up with the Mega's, and a screwdriver
+   reaches all three. The **10.4 mm** is from the **top of the RAMPS** to the
+   top of the Mega (depth rod down a hole). Correction: an earlier line here
+   called it the gap between the boards. So the spacer is 10.4 mm minus the
+   RAMPS board's thickness (~1.6 mm if standard: to measure), about 8.8 mm;
+   one that is short would pull the RAMPS down onto its headers. Mega base
+   plate **111 x 57.5 mm** (Correction: the 2026-10-04 entry used SparkFun's
+   114 x 57.5; the tab that bumps out on one edge, Paul's photo, probably
+   explains the difference). The plate's own holes can't be reached without
+   taking the assembly apart; with through-bolts they aren't needed.
+   **Hole pattern settled.** The Mega hole nearest the power jack is at
+   x = 15.24 mm in the Mega 1280 Eagle numbers this CAD uses
+   (`mega_hole_pts`, 2026-10-03 entry) but at 13.97 mm in the RAMPS KiCad
+   footprint. Paul's RAMPS: 3 holes, Ø3.1 mm, two at the power end and one
+   at the AUX-4 end; **79.74 mm** between the two on the same long edge and
+   **45.28 mm** between the two at the power end, read edge to edge
+   (ASSUMPTION: inside edges, as asked). Centre distances = reading + 3.1:
+   82.84 and 48.38 mm. KiCad predicts 82.55 and 48.28 (residuals 0.29 and
+   0.10); Eagle predicts 81.28 for the first (residual 1.56). **So the KiCad
+   positions are right: (13.97, 2.54), (15.24, 50.8), (96.52, 2.54) mm from
+   the Mega's power-jack corner.** Correction: `mega_hole_pts[0]` is 1.3 mm
+   off in x; it should be (-36.83, -24.13) in the CAD's centred frame. It
+   only sized the deck outline, but it was also a reference in the
+   2026-10-04 photo fit of the base-plate holes, which may be part of why
+   those holes don't line up.
+
+**2. Start/stop button leads: a groove instead of hot glue** (agreed). An
+open groove in the electronics sled's underside, ~3.5 mm wide x 2 mm deep
+(sled 5 mm thick), with small snap-in lips every ~20 mm. Two leads,
+**1.58 mm** over insulation each (Paul). It starts 12–25 mm from the button
+and comes up at the current 4 mm wire hole. The straight line from the
+button to the wire hole is ~103 mm and clears the deck legs (nearest
+~16 mm); it must also clear the Mega base plate's pilot holes. The lip fit
+is a guess: a short test coupon first. As built (Paul, 2026-10-11): the
+leads now end in a 2-pin male header where they come up through the sled,
+and the harness has a mating 2-pin female, so the Mega/RAMPS assembly
+unplugs from the sled.
+
+**3. Barrel adapter (12 V input) on the electronics sled** (agreed). The
+5.5 x 2.1 mm female DC-jack-to-screw-terminal adapter already in the power
+path (`control/wiring.md`), mounted so the PSU plug can be pulled easily. A
+shallow cradle for its square body plus a zip-tie slot on each side. Paul's
+caliper numbers: square body **14.48 mm wide x 11.71 mm tall**, **36 mm**
+overall, ribs start **13 mm** from the start of the square body (the ribbed
+part is conical, so the tie goes round the square body). Zip ties **2.41 mm
+wide x 1.03 mm thick** x 100 mm. Where (Paul): on the electronics sled,
+centred between the corner by the standoff and the start of the Mega base
+plate. **To confirm:** the corner by deck leg (-50.5, 43.5), the one the
+start button is near; barrel opening facing out over the edge, screw
+terminals up; and that the tie loop under the sled clears the motor cans
+(6 mm clearance).
 
 ## 2026-10-09: start/stop button mount on the electronics deck (revision 2026-10-09.1)
 

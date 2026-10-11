@@ -33,7 +33,7 @@ P = dict(
     motor_dir=[216.4, 114.1, 337.1], motor_rot=[36.3, 36.3, 56.2],
     joint_pts=[[59.5, -8.3], [-25.8, -50.5], [-18.7, 60.6]],
     deck_leg_pts=[[-4.5, -59.4], [29.7, 8.2], [-50.5, 43.5]],
-    mega_rotation=244.0, mega_offset=[-2.5, -5.0],
+    mega_rotation=244.0, mega_offset=[-1.75, -4.0],   # v3 nudge (through-bolt mount)
 )
 
 # ---------------- derived constants (same formulas as the SCAD) ----------------
@@ -62,8 +62,18 @@ RMAG_RET_R, RMAG_RET_T, RMAG_SCREW_R = 27.0 / 2, 3.0, 4.5 / 2
 RMAG_POS_R, RMAG_ROT = 53.5, 26.75
 FRONT_R = 75.0; PTR_LEN, PTR_W = 10.0, 16.0
 MEGA_PILOT_R = 2.6 / 2
-MEGA_HOLES = [[-35.52, -24.11], [-35.52, 24.15], [39.41, 24.15], [45.76, -24.11]]
-MEGA_BASE_HOLES = [[5.6, -19.3], [5.4, 18.7], [-56.3, -25.0], [-56.1, 24.0]]
+MEGA_HOLES = [[-36.79, -24.11], [-35.52, 24.15], [39.41, 24.15], [45.76, -24.11]]
+MEGA_BOLT = [MEGA_HOLES[0], MEGA_HOLES[1], MEGA_HOLES[3]]   # v3: 3 through-bolts
+# v3 deck/plate features
+GEAR_TIP_R = 14.8
+INSPECT_WINDOWS = [[-5.67, 9.86, 8.0], [12.76, 4.6, 8.0], [-14.75, -20.99, 8.0]]
+JOINT_ACCESS_IDX = [1, 2]; JOINT_ACCESS_R = 10.0 / 2
+BUTTON = [-54.4, 28.0]; BUTTON_HOLE_R = 7.4 / 2; BUTTON_REC_R = 10.0 / 2; BUTTON_REC_H = 2.5
+WIRE = [15.65, -47.06]; WIRE_R = 4.0 / 2
+GROOVE_W = 3.6; GROOVE_D = 2.0
+BARREL_C = [-49.0, 44.0]; BARREL_DIR = 138.0; BARREL_BODY_W = 14.48 + 0.6
+BARREL_BODY_L = 13.0; BARREL_SADDLE_D = 2.0; TIE_W = 2.41 + 0.6; TIE_T = 1.03 + 0.6
+TIE_GAP = BARREL_BODY_W + 3.0
 STAR_TIP_D = 7.73 - 0.35; STAR_ROOT_D = (7.73 - 2 * 2.00) - 0.35; STAR_W = 1.04
 
 
@@ -89,8 +99,10 @@ MOT = [[H[i][0] + CD * math.cos(math.radians(P['motor_dir'][i])),
 BOLTS = [[[MOT[i][0] + q[0], MOT[i][1] + q[1]] for q in
           [rot2([BOLT_SQ / 2 * (1 if k < 2 else -1), BOLT_SQ / 2 * (1 if k % 2 == 0 else -1)], P['motor_rot'][i]) for k in range(4)]]
          for i in range(3)]
-MEGA_BASE_ROT = [[rot2(p, P['mega_rotation'])[0] + P['mega_offset'][0], rot2(p, P['mega_rotation'])[1] + P['mega_offset'][1]] for p in MEGA_BASE_HOLES]
-MEGA_HOLES_ROT = [[rot2(p, P['mega_rotation'])[0] + P['mega_offset'][0], rot2(p, P['mega_rotation'])[1] + P['mega_offset'][1]] for p in MEGA_HOLES]
+def _mplace(p): return [rot2(p, P['mega_rotation'])[0] + P['mega_offset'][0], rot2(p, P['mega_rotation'])[1] + P['mega_offset'][1]]
+MEGA_BOLT_ROT = [_mplace(p) for p in MEGA_BOLT]
+MEGA_HOLES_ROT = [_mplace(p) for p in MEGA_HOLES]
+JOINT_ACCESS = [P['joint_pts'][i] for i in JOINT_ACCESS_IDX]
 
 
 # ---------------- 2D helpers ----------------
@@ -195,8 +207,13 @@ def sled_outline():
 def deck_outline():
     pts = []
     for p in MEGA_HOLES_ROT: pts += circle(p[0], p[1], 11, 32)
-    for p in MEGA_BASE_ROT: pts += circle(p[0], p[1], 7.5, 32)
     for p in P['deck_leg_pts']: pts += circle(p[0], p[1], 14, 48)
+    pts += circle(WIRE[0], WIRE[1], 5.5, 32)
+    for p in JOINT_ACCESS: pts += circle(p[0], p[1], JOINT_ACCESS_R + 3, 32)
+    # barrel-cradle lobe: a rectangle around the saddle + tie slots
+    bl, bw = BARREL_BODY_L + 4, TIE_GAP + TIE_T + 5
+    for q in [[-bl/2, -bw/2], [bl/2, -bw/2], [bl/2, bw/2], [-bl/2, bw/2]]:
+        r = rot2(q, BARREL_DIR); pts.append([BARREL_C[0] + r[0], BARREL_C[1] + r[1]])
     return ccw(hull(pts))
 
 
@@ -291,7 +308,9 @@ def motor_sled():
     jc = [circle(p[0], p[1], M6_CLR_R, 24) for p in P['joint_pts']]
     jk = [circle(p[0], p[1], CSK_R, 24) for p in P['joint_pts']]
     dl = [circle(p[0], p[1], LEG_R, 24) for p in P['deck_leg_pts']]
-    F = [hface(out, z0, False, shaft + cb + spr + jc), hface(out, z1, True, rec + bh + jk + dl)]
+    iw = [circle(w[0], w[1], w[2] / 2, 32) for w in INSPECT_WINDOWS]   # v3 inspection windows
+    F = [hface(out, z0, False, shaft + cb + spr + jc + iw), hface(out, z1, True, rec + bh + jk + dl + iw)]
+    for w in iw: F += wall(w, z0, z1, outward=False)
     F += wall(out, z0, z1, outward=True)
     zr = z1 - BOSS_REC_H
     for i in range(3):
@@ -314,18 +333,26 @@ def motor_sled():
 
 
 def deck():
+    # v3: Mega/RAMPS through-bolts (replace the base-plate pilots), 2 service
+    # access holes, the start/stop button + its wire hole. The button-lead
+    # groove and the barrel cradle are in the SCAD (cad/dial_unit_housing.scad)
+    # but omitted from this review model (non-circular pockets).
     z0, z1 = DECK_Z, DECK_Z + DECK_T
     out = deck_outline()
     jc = [circle(p[0], p[1], M6_CLR_R, 24) for p in P['deck_leg_pts']]
     jk = [circle(p[0], p[1], CSK_R, 24) for p in P['deck_leg_pts']]
-    mp = [circle(p[0], p[1], MEGA_PILOT_R, 12) for p in MEGA_BASE_ROT]
-    F = [hface(out, z0, False, jc + mp), hface(out, z1, True, jk + mp)]
+    mp = [circle(p[0], p[1], MEGA_PILOT_R, 12) for p in MEGA_BOLT_ROT]
+    acc = [circle(p[0], p[1], JOINT_ACCESS_R, 32) for p in JOINT_ACCESS]
+    btn = circle(BUTTON[0], BUTTON[1], BUTTON_HOLE_R, 32)
+    wir = circle(WIRE[0], WIRE[1], WIRE_R, 24)
+    thru = mp + acc + [btn, wir]
+    F = [hface(out, z0, False, jc + thru), hface(out, z1, True, jk + thru)]
     F += wall(out, z0, z1, outward=True)
     zc = z1 - CSK_D
     for i in range(3):
         F += wall(jc[i], z0, zc, outward=False)
         F += wall(jc[i], zc, z1, outward=False, loop2_top=jk[i])
-    for c in mp: F += wall(c, z0, z1, outward=False)
+    for c in thru: F += wall(c, z0, z1, outward=False)
     return F
 
 
