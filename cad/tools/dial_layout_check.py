@@ -215,10 +215,27 @@ def main():
         fails += not ok; print(f'  {"ok  " if ok else "FAIL"} {txt}')
 
     print('\nelectronics deck:')
-    mb = np.array(L['mega_base_hole_pts_rot'])
+    mb = np.array(L['mega_bolt_pts_rot'])
     dm = min(np.linalg.norm(p - q) for p in mb for q in D) - CSK_R - 1.3
     ok = dm >= 2; fails += not ok
-    print(f'  {"ok  " if ok else "FAIL"} {dm:7.2f}  Mega base screw pilots vs deck-leg countersinks (margin, need >= 2)')
+    print(f'  {"ok  " if ok else "FAIL"} {dm:7.2f}  Mega/RAMPS through-bolt pilots vs deck-leg countersinks (margin, need >= 2)')
+    # service access holes must clear the deck-leg countersinks and the bolt pilots
+    JA_idx, JA_d = L['joint_access']
+    J_all = np.array(L['joint_pts'])
+    acc = [J_all[i] for i in JA_idx]
+    da = min([np.linalg.norm(a - q) - JA_d/2 - CSK_R for a in acc for q in D]
+             + [np.linalg.norm(a - b) - JA_d/2 - 1.3 for a in acc for b in mb])
+    ok = da >= 2; fails += not ok
+    print(f'  {"ok  " if ok else "FAIL"} {da:7.2f}  service access holes vs deck-leg csk / bolt pilots (need >= 2)')
+    # inspection windows vs the motor-plate features they must miss
+    IW = L['inspect_windows']
+    Mp = np.array(L['motor_pts']); Hp = np.array(L['hole_pts'])
+    BOLT = np.array([b for grp in L['motor_bolt_pts'] for b in grp])
+    dw = min([np.linalg.norm(np.array(w[:2]) - m) - w[2]/2 - (L['boss_recess_d']/2) for w in IW for m in Mp]
+             + [np.linalg.norm(np.array(w[:2]) - b) - w[2]/2 - 3.4/2 for w in IW for b in BOLT]
+             + [np.linalg.norm(np.array(w[:2]) - h) - w[2]/2 - L['spring'][2]/2 for w in IW for h in Hp])
+    ok = dw >= 0.5; fails += not ok
+    print(f'  {"ok  " if ok else "FAIL"} {dw:7.2f}  inspection windows vs boss recess / motor bolts / spring pockets (need >= 0.5)')
     print('\ndoor magnets (22mm rubber pot magnets, seat ring OD 29):')
     E = openscad_echo()
     M = np.array(E['MAGNET_PTS']); RING_R = 29 / 2

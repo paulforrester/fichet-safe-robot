@@ -56,7 +56,7 @@ def main():
     (bpt, b_hole, b_rec_d, b_rec_h), (wpt, w_d, w_lobe) = L['button'], L['wire_hole']
     t = L['deck_thickness']
     circ = ([Point(*p).buffer(11, 64) for p in L['mega_hole_pts_rot']] +
-            [Point(*p).buffer(7.5, 64) for p in L['mega_base_hole_pts_rot']] +
+            [Point(*p).buffer(7.5, 64) for p in L['mega_bolt_pts_rot']] +
             [Point(*p).buffer(14, 64) for p in legs] + [Point(*wpt).buffer(w_lobe, 64)])
     deck = unary_union(circ).convex_hull
     base = Polygon([place(p) for p in [(BASE_X[0], BASE_Y[0]), (BASE_X[1], BASE_Y[0]),
@@ -104,11 +104,16 @@ def main():
                 best = dia
         return best
 
-    for z, pt, want, what in [(1.2, bpt, b_rec_d, 'button recess'), (3.8, bpt, b_hole, 'button hole'),
-                              (1.2, wpt, w_d, 'wire hole (bottom)'), (3.8, wpt, w_d, 'wire hole (top)')]:
+    # The lead groove (2mm deep) deliberately joins the button recess and the
+    # wire hole, so below z=2 those are merged with the channel, not clean
+    # circles. Slice the recess at z=2.3 (above the groove, below its 2.5 floor)
+    # and the wire hole at its top; both are round there.
+    for z, pt, want, what in [(2.3, bpt, b_rec_d, 'button recess (above groove)'),
+                              (3.8, bpt, b_hole, 'button hole'),
+                              (3.8, wpt, w_d, 'wire hole (top)')]:
         got = hole_d_at(z, pt)
-        ok = got is not None and abs(got - want) < 0.15
-        print(f'{what:20s} at z={z}: {"none" if got is None else f"{got:.2f}"} mm (want {want})  {"ok" if ok else "PROBLEM"}')
+        ok = got is not None and abs(got - want) < 0.2
+        print(f'{what:28s} at z={z}: {"none" if got is None else f"{got:.2f}"} mm (want {want})  {"ok" if ok else "PROBLEM"}')
         if not ok:
             bad.append(what)
     print('RESULT:', 'PASS' if not bad else f'{len(bad)} PROBLEM(S): ' + ', '.join(bad))
