@@ -72,17 +72,31 @@ everything above it still in place, or what's above lifts off as one piece.
    through-bolts the sled's holes would sit at the Mega's published hole
    positions instead, which don't depend on the photo fit.
    **Measured (Paul, 2026-10-11, assembly left together):** the wire test
-   passes, the three RAMPS holes line up with the Mega's; the gap from the
-   RAMPS board's underside to the Mega board's top is **10.4 mm** (the
-   spacer length; a 10 mm stock spacer would pull the RAMPS down onto its
-   headers). Mega base plate **111 x 57.5 mm** (Correction: the 2026-10-04
-   entry used SparkFun's 114 x 57.5). The plate's own holes can't be reached
-   without taking the assembly apart; with through-bolts they aren't needed.
-   **Open:** the Mega hole nearest the power jack is at x = 15.24 mm in the
-   Mega 1280 Eagle numbers this CAD uses (`mega_hole_pts`, 2026-10-03 entry)
-   but at 13.97 mm in the RAMPS KiCad footprint. Settled on Paul's board by
-   the centre distance of the two RAMPS holes on the same long edge:
-   81.28 mm (Eagle) or 82.55 mm (KiCad).
+   passes, the three RAMPS holes line up with the Mega's, and a screwdriver
+   reaches all three. The **10.4 mm** is from the **top of the RAMPS** to the
+   top of the Mega (depth rod down a hole). Correction: an earlier line here
+   called it the gap between the boards. So the spacer is 10.4 mm minus the
+   RAMPS board's thickness (~1.6 mm if standard: to measure), about 8.8 mm;
+   one that is short would pull the RAMPS down onto its headers. Mega base
+   plate **111 x 57.5 mm** (Correction: the 2026-10-04 entry used SparkFun's
+   114 x 57.5; the tab that bumps out on one edge, Paul's photo, probably
+   explains the difference). The plate's own holes can't be reached without
+   taking the assembly apart; with through-bolts they aren't needed.
+   **Hole pattern settled.** The Mega hole nearest the power jack is at
+   x = 15.24 mm in the Mega 1280 Eagle numbers this CAD uses
+   (`mega_hole_pts`, 2026-10-03 entry) but at 13.97 mm in the RAMPS KiCad
+   footprint. Paul's RAMPS: 3 holes, Ø3.1 mm, two at the power end and one
+   at the AUX-4 end; **79.74 mm** between the two on the same long edge and
+   **45.28 mm** between the two at the power end, read edge to edge
+   (ASSUMPTION: inside edges, as asked). Centre distances = reading + 3.1:
+   82.84 and 48.38 mm. KiCad predicts 82.55 and 48.28 (residuals 0.29 and
+   0.10); Eagle predicts 81.28 for the first (residual 1.56). **So the KiCad
+   positions are right: (13.97, 2.54), (15.24, 50.8), (96.52, 2.54) mm from
+   the Mega's power-jack corner.** Correction: `mega_hole_pts[0]` is 1.3 mm
+   off in x; it should be (-36.83, -24.13) in the CAD's centred frame. It
+   only sized the deck outline, but it was also a reference in the
+   2026-10-04 photo fit of the base-plate holes, which may be part of why
+   those holes don't line up.
 
 **2. Start/stop button leads: a groove instead of hot glue** (agreed). An
 open groove in the electronics sled's underside, ~3.5 mm wide x 2 mm deep
