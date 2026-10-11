@@ -64,6 +64,13 @@ everything above it still in place, or what's above lifts off as one piece.
    drivers and heatsinks; and the gap between the two boards (spacer
    length). Paul's photos of the assembly (2026-10-11) show one RAMPS hole
    near the D8–D10 LEDs.
+   **Correction (Paul, 2026-10-11):** the electronics sled's four pilot
+   holes for the Mega base plate (`mega_base_hole_pts`, fitted from a photo
+   on 2026-10-04, when 3 of 4 screws went in) do not line up with the real
+   plate. Paul will measure the plate with calipers (outline, the Mega's
+   position on it, and every exposed hole) for the next revision. With
+   through-bolts the sled's holes would sit at the Mega's published hole
+   positions instead, which don't depend on the photo fit.
 
 **2. Start/stop button leads: a groove instead of hot glue** (agreed). An
 open groove in the electronics sled's underside, ~3.5 mm wide x 2 mm deep
