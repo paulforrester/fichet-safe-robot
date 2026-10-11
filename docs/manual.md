@@ -82,7 +82,7 @@ the print notes in `cad/dial_unit_housing.scad` (end of file) and
 | STL | Part | Qty | Material | Bed side |
 |---|---|---|---|---|
 | `dial_front_assembly.stl` | dial front plate: 6 magnet holes, 3 bearing bosses, 3 legs, pointer tab | 1 | PETG | door face |
-| `dial_motor_sled.stl` | motor sled + 3 deck legs | 1 | PETG | inner face (spring pockets, countersinks); legs up |
+| `dial_motor_sled.stl` | motor sled + 3 deck legs, with the 3 gear inspection windows (rev 2026-10-11.1) | 1 | PETG | inner face (spring pockets, countersinks); legs up |
 | `electronics_deck.stl` | deck for the Mega, with the button hole + recess and its wire hole (rev 2026-10-11.1) | 1 | PETG | flat, mating face down (the recess bridges: no supports) |
 | `dial_drivetrain.stl` | 3 gear-shafts + 3 pinions, one plate | 1 plate | **PETG-CF** | gear face / pinion hub. **Elephant-foot compensation on**, or the bottom layer of the teeth binds |
 | `magnet_retainers.stl` | 10 retainer discs (9 needed) | 1 plate | PETG | flat |
@@ -282,9 +282,11 @@ Tell me if a different order works better, and I'll record it.
    - Look through the three **inspection windows** (one per dial) from the
      rear: you should see the big gear's rim and its mesh with the pinion.
 9. **Deck.** Three M6 countersunk (~16 mm) through the deck's top face into
-   the deck legs. Do this *before* fitting the Mega. The deck prints with its
-   **top face down** so the button recess, the lead groove and its lips print
-   cleanly; the three deck-leg countersinks are on the top face.
+   the deck legs. Do this *before* fitting the Mega. The deck prints as
+   exported, **underside (motor side) down**: the button recess, the lead
+   groove and its lips are on that face, so the lips print on the bed and the
+   groove roof bridges; the three deck-leg countersinks are on the top face,
+   facing up. (Correction 2026-10-11: this step said "top face down".)
 10. **Mega + RAMPS, through-bolted** (revision 2026-10-11.1). The Mega
     (in its plastic base plate) and the RAMPS are held by **3 long M3 screws
     from the top**:
@@ -315,7 +317,7 @@ Tell me if a different order works better, and I'll record it.
     **VERIFY:** the body clears the motor can below it, the nut starts, and
     the wire hole is clear of the base plate. The UART pigtail's splice
     (2.5) just zip-ties to the deck.
-    - Print the **groove coupon** (`cad/print_groove_coupon.scad`) first and
+    - Print the **groove coupon** (`cad/groove_coupon.stl`) first and
       check the two leads press in and stay before committing the whole deck.
 12. **12 V barrel adapter** (revision 2026-10-11.1). Wire the 5.5 × 2.1 mm
     female DC-jack-to-screw-terminal adapter into the power path (its screw
