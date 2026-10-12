@@ -68,7 +68,7 @@ MEGA_PILOT_R = 2.6 / 2
 MEGA_HOLES = [[-36.79, -24.11], [-35.52, 24.15], [39.41, 24.15], [45.76, -24.11]]
 MEGA_BOLT = [MEGA_HOLES[0], MEGA_HOLES[1], MEGA_HOLES[3]]   # the 3 insert posts
 MEGA_REST = MEGA_HOLES[2]                                    # plain rest post
-POST_H, POST_R, REST_R, INSERT_R, INSERT_DEPTH = 6.0, [4.5, 4.5, 3.7], 2.3, 4.33 / 2, 5.5   # 4.33 bore (insert spec)
+POST_H, POST_R, REST_R, INSERT_R, INSERT_DEPTH = 6.0, [4.5, 4.5, 3.75], 2.3, 4.45 / 2, 5.5   # 4.45 drawn = 4.33 spec + 0.12 hole shortfall
 RAMPS_BOX = [[-50.8, -33.655], [50.8, 26.67]]
 # v3 deck/plate features
 GEAR_TIP_R = 14.8
@@ -457,7 +457,7 @@ def mega_envelope():
 PARTS = dict(front=front_assembly, sled=motor_sled, deck=deck, gearshaft=gear_shaft, pinion=pinion,
              motor=motor_dummy, bearing=bearing_608, door=door_reference, mega=mega_envelope,
              rmag=rmag_magnet, retainer=rmag_retainer,
-             post9=lambda: mega_post(4.5), post74=lambda: mega_post(3.7), rest=rest_post)
+             post9=lambda: mega_post(4.5), post74=lambda: mega_post(3.75), rest=rest_post)
 
 # ================= SketchUp adapter (runs inside build_model) =================
 S = 1.0 / 25.4   # mm -> inch
@@ -529,7 +529,7 @@ names = {
     'front': 'Front plate (base) + bosses + legs', 'sled': 'Motor sled + deck legs', 'deck': 'Electronics deck',
     'gearshaft': 'Dial gear-shaft (28T)', 'pinion': 'Motor pinion (14T)', 'motor': 'NEMA17 17HE19-2004S (dummy)',
     'bearing': '608 bearing', 'rmag': 'Rubber pot magnet 22x6 (Wukong)', 'retainer': 'Magnet retainer', 'door': 'Safe door (reference, dial holes)', 'mega': 'Arduino Mega + RAMPS envelope (placeholder)',
-    'post9': 'Mega insert post 9mm', 'post74': 'Mega insert post 7.4mm', 'rest': 'Mega rest post',
+    'post9': 'Mega insert post 9mm', 'post74': 'Mega insert post 7.5mm', 'rest': 'Mega rest post',
 }
 report = {}
 for key, fn in PARTS.items():
@@ -596,7 +596,7 @@ def build(wrapper_name, offset_su, explode):
         place(g, D('Magnet retainer'), 'Magnet retainer ' + str(k + 1), T(t=(m[0], m[1], 5.8 + e('retainer'))), 'Door magnets')
     zt = Z['DECK_Z'] + Z['DECK_T']
     for k, p in enumerate(L['posts']):
-        place(g, D('Mega insert post ' + ('9mm' if L['post_r'][k] > 4.0 else '7.4mm')), 'Mega insert post ' + str(k + 1), T(t=(p[0], p[1], zt + e('deck'))), 'Electronics deck')
+        place(g, D('Mega insert post ' + ('9mm' if L['post_r'][k] > 4.0 else '7.5mm')), 'Mega insert post ' + str(k + 1), T(t=(p[0], p[1], zt + e('deck'))), 'Electronics deck')
     place(g, D('Mega rest post'), 'Mega rest post', T(t=(L['rest'][0], L['rest'][1], zt + e('deck'))), 'Electronics deck')
     mo = L['mega_offset']
     place(g, D('Arduino Mega'), 'Mega + RAMPS envelope', T(L['mega_rotation'], False, (mo[0], mo[1], zt + L['POST_H'] + e('mega'))), 'Mega envelope (placeholder)')

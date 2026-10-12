@@ -235,7 +235,7 @@ gearing, not a different motor class, is the likely fix.
 
 | Item | Qty | Cost | Status | Notes |
 |---|---|---|---|---|
-| M3 brass heat-set inserts (HANGLIFE kit, 4.2mm OD, ~5mm) | 3 (+ coupon) | €0 | ✅ On hand (the 100-pc kit, row above) | One per Mega post. Bore **4.33mm**, from the insert spec's 4.31–4.35mm (Paul, 2026-10-12); optional coupon `cad/insert_coupon.stl` brackets it (4.25 / 4.33 / 4.41). |
+| M3 brass heat-set inserts (HANGLIFE kit, 4.2mm OD, ~5mm) | 3 (+ coupon) | €0 | ✅ On hand (the 100-pc kit, row above) | One per Mega post. Bore **4.33mm** printed, from the insert spec's 4.31–4.35mm (Paul, 2026-10-12); drawn 4.45mm because the H2D printed 4.0mm holes at 3.88. Optional coupon `cad/insert_coupon.stl`. |
 | M3 nylon screws, 16–20mm | 3 | €0 | ✅ On hand (Paul) | From the top of the RAMPS, through a spacer and the Mega, into the inserts. 16mm = 4mm in the insert; over 21mm bottoms in the post. Paul's choice (2026-10-12). |
 | Board spacers, printed | 3 (9 printed) | €0 | ⬜ Print | `cad/board_spacers.stl`: 3 each of 8.4 / 8.8 / 9.2mm (6 OD, 3.4 ID); use the length that seats the RAMPS fully. Replaces the "M3 spacers ~8.8mm" row above. |
 | Mega clear base plate | — | — | ⬜ No longer used | Its holes are ~2.53–2.55mm (Paul), too small for M3; the posts replace it. Keep. |

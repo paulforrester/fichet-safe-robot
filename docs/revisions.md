@@ -41,8 +41,9 @@ holes (~2.54 mm) too small for the planned M3 through-bolts. So:
 - **Wire hole** beside the endstop block's real position; lead groove
   re-routed straight from the button.
 - New prints: `board_spacers.stl`, and an optional `insert_coupon.stl`.
-- Insert bores **4.33 mm** (the inserts' spec: 4.31–4.35 mm), posts 9 / 9 /
-  7.4 mm for a ≥ 1.5 mm wall.
+- Insert bores **4.33 mm** as printed (the inserts' spec: 4.31–4.35 mm),
+  drawn 4.45 mm because the printer made the first deck's 4.0 mm holes 3.88;
+  posts 9 / 9 / 7.5 mm for a ≥ 1.5 mm wall.
 - Correction: the motor plate's inspection windows can't be seen through
   once assembled; inspect from the side instead. No motor-plate reprint.
 

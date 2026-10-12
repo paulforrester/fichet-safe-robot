@@ -538,10 +538,10 @@ mega_rest_pt_rot  = mega_place(mega_hole_pts[mega_rest_idx]);
 // Diameter per bolt post, limited by the nearest Mega header pad in the
 // KiCad footprint (pad edge 18.3 / 7.9 / 4.4mm from the hole centre for
 // bolt holes 0 / 1 / 3; 3.1mm for the rest hole): keep >= 0.6mm off the pads.
-// v3.1 (2026-10-12, 4.33mm insert bore): 9 / 9 / 7.4mm leaves a wall of
-// 2.3 / 2.3 / 1.5mm; the 7.4mm post is 0.67mm off its nearest pad.
+// v3.1 (2026-10-12): with the 4.45mm drawn bore below, 9 / 9 / 7.5mm leaves a
+// drawn wall of 2.3 / 2.3 / 1.5mm; the 7.5mm post is 0.62mm off its nearest pad.
 post_h        = 6;
-post_d        = [9, 9, 7.4];     // bolt posts, in mega_bolt_idx order
+post_d        = [9, 9, 7.5];     // bolt posts, in mega_bolt_idx order
 rest_post_d   = 4.6;             // 3.1 - 0.8 = 2.3 radius
 // M3 heat-set insert (HANGLIFE kit, ~5mm long per its listing). Bore 4.33mm:
 // the insert's own spec recommends a 4.31-4.35mm hole (Paul, 2026-10-12).
@@ -553,7 +553,14 @@ rest_post_d   = 4.6;             // 3.1 - 0.8 = 2.3 radius
 // breaks through. Screws: M3 nylon, 16-20mm (top of RAMPS to underside of the
 // Mega is 10.4 + 1.6 = 12.0mm; 16mm gives 4mm in the insert, 20mm reaches 8mm
 // below the post top, max allowed 21.5).
-insert_bore_d     = 4.33;
+// Hole compensation (Paul, 2026-10-12): the first v3.1 deck, drawn with 4.0mm
+// bores, measured ~3.88mm on all three posts (calipers), so this printer
+// makes these holes ~0.12mm small. The bore is drawn 0.12mm over the spec so
+// it prints at ~4.33. ASSUMPTION: the same shortfall at 4.33 as at 4.0 (one
+// measurement); the coupon brackets it.
+insert_bore_spec  = 4.33;
+hole_comp         = 0.12;
+insert_bore_d     = insert_bore_spec + hole_comp;   // 4.45 drawn
 insert_bore_depth = 5.5;
 post_clear_d      = 3.4;
 post_floor        = 1.5;
@@ -728,11 +735,12 @@ module electronics_deck() {
 }
 
 // Insert-fit coupon (print_insert_coupon.scad, optional): three posts like
-// the deck's, bores 4.25 / 4.33 / 4.41mm (1 / 2 / 3 notches on the base edge in
-// front of each), bracketing the insert spec's 4.31-4.35mm for this printer.
+// the deck's, drawn bores 4.37 / 4.45 / 4.53mm (1 / 2 / 3 notches on the base
+// edge in front of each): the deck's drawn bore -/+ 0.08, so after this
+// printer's ~0.12mm shortfall they should measure ~4.25 / 4.33 / 4.41.
 // Melt one HANGLIFE insert into each, then screw an M3 in and out: pick the
 // bore where the insert went in straight and doesn't turn or pull.
-insert_coupon_bores = [4.25, 4.33, 4.41];
+insert_coupon_bores = [insert_bore_d - 0.08, insert_bore_d, insert_bore_d + 0.08];
 module insert_coupon() {
     pitch = 14; base_t = deck_thickness;
     difference() {

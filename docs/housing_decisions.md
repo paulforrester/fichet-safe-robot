@@ -99,6 +99,18 @@ the flats in the STL. The insert coupon now brackets the spec at 4.25 / 4.33 /
 to confirm from the same spec. Re-checked: deck_check PASS, layout ALL PASS,
 interference NONE, STLs ALL CURRENT.
 
+**Hole compensation** (Paul, 2026-10-12, 18:23): the first v3.1 deck (drawn
+4.0mm bores, posts 8 / 8 / 7mm) measured **~3.88mm** on all three bores with
+calipers: this printer makes these holes ~0.12mm small. The bore is now drawn
+**4.45mm** (`insert_bore_spec` 4.33 + `hole_comp` 0.12) so it prints at ~4.33.
+ASSUMPTION: the same shortfall at 4.33 as at 4.0, from one measurement (it is
+usual for printed holes to come out short by a roughly constant amount, but
+not established here). The 7.4mm post becomes 7.5mm to keep a 1.5mm drawn wall
+(pad clearance 0.62mm). The coupon is now drawn 4.37 / 4.45 / 4.53, which
+should measure ~4.25 / 4.33 / 4.41. Small holes read a little low with caliper
+jaws; a 4.3mm drill-bit shank as a plug gauge is a cross-check. Re-checked:
+deck_check PASS, layout ALL PASS, interference NONE, STLs ALL CURRENT.
+
 **Still bench:** the insert length vs the 5.5mm bore depth; the Mega's pin
 length vs the 6mm posts; the spacer length; that the PSU plug goes into the
 ribbed end.
