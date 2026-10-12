@@ -1,6 +1,6 @@
 # Fichet safe robot — build and operating manual
 
-> **Revision 2026-10-11.1** · key driver on the RAMPS E0 socket; UART pigtail replaces the hub board · log: `docs/revisions.md`
+> **Revision 2026-10-12.1** · key driver on the RAMPS E0 socket; UART pigtail replaces the hub board · log: `docs/revisions.md`
 
 For Paul. Covers the robot as of **revision 2026-10-08.2**: dial unit v2, key
 turner v1, wiring with all four drivers on the RAMPS and the UART pigtail
@@ -83,7 +83,10 @@ the print notes in `cad/dial_unit_housing.scad` (end of file) and
 |---|---|---|---|---|
 | `dial_front_assembly.stl` | dial front plate: 6 magnet holes, 3 bearing bosses, 3 legs, pointer tab | 1 | PETG | door face |
 | `dial_motor_sled.stl` | motor sled + 3 deck legs, with the 3 gear inspection windows (rev 2026-10-11.1) | 1 | PETG | inner face (spring pockets, countersinks); legs up |
-| `electronics_deck.stl` | deck for the Mega, with the button hole + recess and its wire hole (rev 2026-10-11.1) | 1 | PETG | flat, mating face down (the recess bridges: no supports) |
+| `insert_coupon.stl` | optional: 3 insert posts, drawn 4.37 / 4.45 / 4.53 mm, should print ~4.25 / 4.33 / 4.41 (1 / 2 / 3 notches) (rev 2026-10-12.1) | 1 | PETG | flat base down |
+| `groove_coupon.stl` | **print first**: a 50 mm strip of the button-lead groove | 1 | PETG | groove side down |
+| `electronics_deck.stl` | deck v3.1: 3 M3 insert posts + 1 rest post for the Mega, 3 access holes, button, wire hole, lead groove, barrel cradle (rev 2026-10-12.1) | 1 | PETG | underside (motor side) down, as exported; posts up |
+| `board_spacers.stl` | 9 spacers for between the RAMPS and the Mega: 3 each of 8.4 / 8.8 / 9.2 mm (1 / 2 / 3 notches) | 1 plate | PETG | flat |
 | `dial_drivetrain.stl` | 3 gear-shafts + 3 pinions, one plate | 1 plate | **PETG-CF** | gear face / pinion hub. **Elephant-foot compensation on**, or the bottom layer of the teeth binds |
 | `magnet_retainers.stl` | 10 retainer discs (9 needed) | 1 plate | PETG | flat |
 | `key_turner_base.stl` | key-turner base + 3 legs | 1 | PETG | door face |
@@ -110,6 +113,7 @@ where the table says so.
 - the key fit test (2026-10-06: the cap slides on and turns the key to its
   stop);
 - the Mega base coupon (2026-10-04: 3 of 4 screws go in; 3 are enough).
+  No longer relevant: from revision 2026-10-12.1 the base plate isn't used.
 
 **Magnet holes:** the dial front assembly and key-turner base you already
 printed (22.4 mm holes) stay in use, with a 2-layer wrap strip on each
@@ -124,7 +128,8 @@ magnet (§1.3a). The current STLs have 21.7 mm holes, for any future reprint
 | Compression springs ≤ 8 mm OD, ~18–20 mm free, solid < 10 mm | 3 | — | ordered: QUARKZMAN 0.5 × 7 × 20 mm, 304 stainless, arriving 2026-10-07 (Paul). Count the coils on arrival |
 | M3 × 10 countersunk, hex socket (motor screws; the length includes the head) | 12 | 4 | on hand (kit has 55) |
 | M6 countersunk self-tapping, 16 mm | 6 | 3 | on hand. On the key turner, 16 mm works better than the 20 mm the CAD notes listed (Paul, 2026-10-06) |
-| M3 × 6–8, self-tapping into PETG (Mega base plate to deck) | 4 (3 go in) | — | on hand |
+| M3 brass heat-set inserts (HANGLIFE, 4.2 mm OD, ~5 mm) | 3 | — | on hand |
+| M3 nylon screws, **16–20 mm** (Mega + RAMPS to the posts) | 3 | — | on hand (Paul). 16 mm gives 4 mm in the insert; longer than 21 mm would bottom in the post |
 | M3 × 3 or × 4 **grub** screws (pinion / hub), optional | 3 | 1 | optional. **Never a cap screw**: its head would hit the gear |
 | 22 mm rubber pot magnets, M4 back (Wukong) | 6 | 3 | ordered |
 | M4 screws for the magnets | 6 | 3 | the ones in the magnet pack, if any. Otherwise **pan, button or socket head — not countersunk** (the retainer is flat). Length: see §1.3a. Any head up to 9 mm across and 6 mm tall clears the other parts on both units (CAD check, 2026-10-07) |
@@ -279,30 +284,44 @@ Tell me if a different order works better, and I'll record it.
    - Turn each plug by hand from the door side, a full turn. It turns its
      motor through the gears, so expect the motor's slight notchiness, but
      no tight spot.
-   - Look through the three **inspection windows** (one per dial) from the
-     rear: you should see the big gear's rim and its mesh with the pinion.
-9. **Deck.** Three M6 countersunk (~16 mm) through the deck's top face into
-   the deck legs. Do this *before* fitting the Mega. The deck prints as
-   exported, **underside (motor side) down**: the button recess, the lead
-   groove and its lips are on that face, so the lips print on the bed and the
-   groove roof bridges; the three deck-leg countersinks are on the top face,
-   facing up. (Correction 2026-10-11: this step said "top face down".)
-10. **Mega + RAMPS, through-bolted** (revision 2026-10-11.1). The Mega
-    (in its plastic base plate) and the RAMPS are held by **3 long M3 screws
-    from the top**:
-    1. Set the Mega's base plate on the deck over the three bolt pilots, the
-       jack/USB end up-right. The RAMPS is on the Mega as usual.
-    2. Through each of the RAMPS's own three mounting holes, drop an M3 screw
-       with a ~8.8 mm spacer on it (so it holds the RAMPS off its headers),
-       down through the Mega's hole and base plate, and self-tap it into the
-       deck. The three holes are by the D8–D10 LEDs, at the AUX-4 end, and at
-       the power/USB end. Snug, not forced.
-    3. The old single nylon screw is no longer used.
-    **VERIFY** the spacer length against the real board (10.4 mm from the top
-    of the RAMPS to the top of the Mega, less the RAMPS board thickness), and
-    that a driver reaches all three holes.
+   - Look at the gears and pinions **from the side**, through the open gap
+     between the front plate and the sled (only the three legs are in the
+     way). Put a paint-pen mark on a pinion tooth and on the gear tooth it
+     meshes with if you want to watch for slip. (Correction 2026-10-12: this
+     step said to look through the sled's "inspection windows"; once the
+     deck is on, they can't be seen through.)
+9. **Deck** (revision 2026-10-12.1). Before it goes on the sled:
+   1. **Inserts.** Melt an M3 heat-set insert into each of the three tall
+      posts with the soldering iron, square to the post and flush with its
+      top. The bores should print at about 4.33 mm, the inserts' own spec
+      (4.31–4.35 mm): they are drawn 4.45 mm because your H2D printed the
+      first deck's 4.0 mm holes at 3.88. Measure one before melting an insert
+      in. The insert coupon is optional: drawn 4.37 / 4.45 / 4.53 mm, it should
+      measure about 4.25 / 4.33 / 4.41.
+   2. Three M6 countersunk (~16 mm) through the deck's top face into the deck
+      legs. **Deck screw B**, the one in the middle, ends up under the board:
+      it has to go in before the Mega does. A and C stay reachable.
+   The deck prints as exported, **underside (motor side) down**: the button
+   recess, the lead groove and its lips are on that face, so the lips print
+   on the bed and the groove roof bridges. The posts and the countersinks
+   are on the top face.
+10. **Mega + RAMPS on the posts** (revision 2026-10-12.1). No base plate any
+    more: the Mega sits straight on the deck's three insert posts and the
+    shorter rest post, its USB/power-jack end pointing right.
+    Map: `docs/photos/deck_v3_1_layout.png`.
+    1. With the RAMPS on the Mega as usual, slide a spacer between the boards
+       at each of the RAMPS's three mounting holes (by the D8–D10 LEDs, at the
+       AUX-4 end and at the power/USB end). Pick the length (8.4 / 8.8 / 9.2,
+       1 / 2 / 3 notches) that sits snug with the RAMPS fully down on its
+       headers: not loose, not lifting it.
+    2. Set the stack on the posts. Through each RAMPS hole, an M3 nylon
+       screw, 16–20 mm, down through the spacer and the Mega's hole into the
+       insert. Snug, not forced.
+    **VERIFY:** nothing on the Mega's underside touches the deck (posts are
+    6 mm), and a long driver goes straight down all three access holes to
+    the motor-plate screws with the boards in place.
 11. **Start/stop button** (revision 2026-10-09.1): it goes in from **under**
-    the deck, left of the Mega next to the deck leg you can still see.
+    the deck, left of the board next to deck screw C.
     1. Solder its two leads and heat-shrink them; long enough to reach the
        RAMPS endstop block (Y_MIN) via the 4mm wire hole beside it.
     2. Push the button up through the 7.4mm hole from below, so its body's
@@ -310,20 +329,20 @@ Tell me if a different order works better, and I'll record it.
     3. On top: the washer, then the nut, finger-tight plus a little. If the
        washer leaves too little thread, use the nut alone.
     4. Press the two leads into the **groove** on the deck underside (it runs
-       from the button to the wire hole): push them past the retention lips
-       into the channel, and bring them up through the wire hole. No hot glue.
-       Map: `docs/photos/deck_button_mount_topview.png`.
+       straight from the button to the wire hole, revision 2026-10-12.1):
+       push them past the retention lips into the channel, and bring them up
+       through the wire hole. No hot glue.
 
-    **VERIFY:** the body clears the motor can below it, the nut starts, and
-    the wire hole is clear of the base plate. The UART pigtail's splice
-    (2.5) just zip-ties to the deck.
+    **VERIFY:** the body clears the motor can below it and the nut starts.
+    The UART pigtail's splice (2.5) just zip-ties to the deck.
     - Print the **groove coupon** (`cad/groove_coupon.stl`) first and
       check the two leads press in and stay before committing the whole deck.
-12. **12 V barrel adapter** (revision 2026-10-11.1). Wire the 5.5 × 2.1 mm
+12. **12 V barrel adapter** (revision 2026-10-12.1). Wire the 5.5 × 2.1 mm
     female DC-jack-to-screw-terminal adapter into the power path (its screw
-    terminals to the lead that goes to the RAMPS "5A" input). Sit its square
-    body in the **cradle** on the deck near the standoff corner, the socket
-    facing out over the edge, and hold it down with a small zip tie through
+    terminals to the lead that goes to the RAMPS "5A" input, at the
+    power/USB end of the board). Sit its square body in the **cradle** at the
+    deck's left edge, beside deck screw C, with the socket end pointing out
+    and up-left over the edge, and hold it down with a small zip tie through
     the two slots. The PSU plug then pushes in from outside.
 
 ### 1.5 Key turner

@@ -1,6 +1,6 @@
 # Housing — design decision log
 
-> **Revision 2026-10-11.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
+> **Revision 2026-10-12.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
 
 
 Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
@@ -8,6 +8,118 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `docs/decisions.md` (tube-socket test key geometry) and
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
+
+## 2026-10-12: deck v3.1 — Mega on insert posts, every hole cleared (revision 2026-10-12.1)
+
+**What Paul found on the printed v3 deck** (2026-10-12):
+1. The barrel cradle sits directly over a deck-screw hole. Confirmed in CAD:
+   `barrel_c` [-49, 44] was 1.6mm from deck leg C [-50.5, 43.5], on top of its
+   countersink. Nothing checked the cradle against the screw holes.
+2. The Mega still covers screw holes. Confirmed in CAD: deck screws A (~2/3)
+   and B (all) and access hole 1 (~1/2). Two causes: the v3 entry below left
+   joint 1 under the base plate ("through-bolts come out first"), which the
+   agreed plan said to move clear of it; and the check used the base plate's
+   outline only, missing the RAMPS's 6.985mm overhang past the Mega on its
+   power/analog edge (RAMPS 1.4 KiCad, `matt3u/RAMPS-1.4_KiCad` `ea33bdf`,
+   Edge.Cuts 101.59 x 60.32mm vs the Mega footprint's 101.6 x 53.34).
+3. No inspection windows to be seen. They are in the motor plate, 28-41mm
+   inside the deck's edge with the motor cans around them, so the deck hides
+   them once assembled. Only plan-view clearance was checked, never line of
+   sight. **Correction:** the v3 entry's "the check that would have caught the
+   stage-4b question without a teardown" is wrong. The gear cavity is open at
+   the sides (only the 3 legs, rendered STL sections at z = 20-30), so pinions
+   and gear rims are inspected from the side. The holes stay (harmless); no
+   motor-plate reprint.
+4. The base plate's holes are ~2.53-2.55mm (Paul, calipers): an M3 won't go
+   through, so the v3 through-bolt mount can't be built as drawn. A nylon
+   M2.5 can't self-tap the PETG either.
+
+**Paul's decision** (2026-10-12): drop the base plate; printed posts on the
+deck sized for M3 heat-set inserts; long M3 nylon screws from the top of the
+RAMPS down into them.
+
+**Built:**
+- **Posts.** 3 insert posts at the RAMPS/Mega holes (KiCad positions, Paul
+  confirmed they line up on the printed v3 deck) + 1 plain rest post under the
+  Mega's 4th hole. Height 6mm (**ASSUMPTION**: clearance for the Mega's pin
+  tails; Paul to measure the longest). Diameters 8 / 8 / 7mm and the rest post
+  4.6mm (9 / 9 / 7.4 after the bore change below), each >= 0.6mm off the nearest Mega header pad in the KiCad footprint
+  (pad edges 18.3 / 7.9 / 4.4 / 3.1mm from the hole centres). Insert bore 4.0mm
+  x 5.5mm (**ASSUMPTION**: HANGLIFE gives 4.2mm OD, ~5mm; no hole size found,
+  so `print_insert_coupon.scad` tests 3.8 / 4.0 / 4.2), then a 3.4mm clearance
+  bore to 9.5mm below the post top, leaving a 1.5mm floor: two posts stand
+  over motor cans 6mm below the deck, so the bores never break through.
+  Screws 16-20mm (top of RAMPS to underside of Mega = 10.4 + 1.6 = 12.0mm;
+  16mm puts 4mm in the insert; over 21mm bottoms).
+- **Spacers** between the boards, printed in 8.4 / 8.8 / 9.2mm
+  (`print_board_spacers.scad`), so the one that seats the RAMPS fully can be
+  picked without measuring the board.
+- **Board placement** found by search over rotation and offset with the true
+  outline (Mega + RAMPS + a generous 6.4mm USB/jack allowance): rotation
+  244 -> 206 deg, offset [-1.75,-4] -> [-2.5, 5.0]. All 3 motor-plate joints get
+  access holes (the deck now covers joint 0 too), clear of the board by 7.5 /
+  8.0 / 18.4mm; deck screws A and C clear by 23 / 15mm. Screw B, in the middle
+  of the deck, can't be cleared without moving its leg (motor-plate reprint):
+  it goes in before the board and is reached by lifting the board off. The
+  USB/jack end now points right (26 deg), away from the key turner.
+- **Barrel cradle** at the left edge beside screw C, [-69, 33.5], socket
+  pointing up-left (135 deg), 21mm from both screw C and the board (Paul:
+  "centred between the corner by the standoff and the start of the Mega"; the
+  gap straight between them is 11mm after clearances, less than the 13mm
+  saddle). Tie slots moved out (`tie_slot_gap` +3 -> +6mm): the new check
+  found v3 left a 0.7mm wall between each slot and the saddle. The deck now
+  reaches 84mm left of the dial centre (v3: 64); the key-turner motor is about
+  104mm left, so ~20mm, and the plug points above it. **ASSUMPTION** carried
+  from v3, to confirm with Paul: the PSU plug goes into the ribbed end.
+- **Wire hole** 5.5mm outside the board's digital-header edge, level with the
+  endstop headers (X/Y/Z min/max at [29.8, 17.0] in the Mega frame, KiCad);
+  the lead groove runs straight from the button, >= 4.9mm from every leg, post
+  bore and slot.
+
+**Verified:** `cad/tools/deck_check.py` (new; replaces `button_mount_check.py`,
+whose board position was hard-coded): every pair of features on each face,
+the board outline against every access hole and deck screw, posts against the
+header pads, cradle on the edge with the socket overhanging, the rendered STL
+(watertight, one body, insert bores at the post tops, bores blind, access
+holes through) — PASS. `dial_layout_check` ALL PASS, `dial_interference_check`
+NO INTERFERENCE, `cad/tools/stl_freshness_check.py` (new) ALL CURRENT.
+SketchUp review model rebuilt; its positions match the SCAD echo.
+
+**Insert bore set from the insert spec** (Paul, 2026-10-12, same day): the
+HANGLIFE inserts' spec recommends a **4.31-4.35mm** hole, so the bore is
+4.33mm. Correction: the 4.0mm above was an assumption, and the kit's "4.2mm
+OD" listing is not the hole size. To keep a >= 1.5mm wall round the bigger
+bore, the posts grow from 8 / 8 / 7 to **9 / 9 / 7.4mm**. The 7.4mm post is
+the one under the Mega hole beside the A15 and 22-53 header pins (pad edge
+4.37mm away), so it now clears that pad by 0.67mm (was 0.87); deck_check's pad
+margin goes from 0.8 to 0.6mm. A plastic post near a solder joint is only a
+fit question (PETG doesn't conduct). Bore polygons are 64-sided: 4.33mm across
+the flats in the STL. The insert coupon now brackets the spec at 4.25 / 4.33 /
+4.41 and is optional. Bore depth 5.5mm is still an assumption (insert ~5mm):
+to confirm from the same spec. Re-checked: deck_check PASS, layout ALL PASS,
+interference NONE, STLs ALL CURRENT.
+
+**Hole compensation** (Paul, 2026-10-12, 18:23): the first v3.1 deck (drawn
+4.0mm bores, posts 8 / 8 / 7mm) measured **~3.88mm** on all three bores with
+calipers: this printer makes these holes ~0.12mm small. The bore is now drawn
+**4.45mm** (`insert_bore_spec` 4.33 + `hole_comp` 0.12) so it prints at ~4.33.
+ASSUMPTION: the same shortfall at 4.33 as at 4.0, from one measurement (it is
+usual for printed holes to come out short by a roughly constant amount, but
+not established here). The 7.4mm post becomes 7.5mm to keep a 1.5mm drawn wall
+(pad clearance 0.62mm). The coupon is now drawn 4.37 / 4.45 / 4.53, which
+should measure ~4.25 / 4.33 / 4.41. Small holes read a little low with caliper
+jaws; a 4.3mm drill-bit shank as a plug gauge is a cross-check. The same deck's 8mm
+posts measure **7.88mm** outside (Paul, 18:38): the outsides also print
+~0.12mm small, so the walls came out at the drawn 2.0mm, and the part isn't
+scaled (the v3 deck's hole pattern lined up with the Mega). Every other deck
+feature has more than 0.12mm of slack (button hole 7.4 for a 7mm thread, M6
+clearance 6.4, tie slots 1.63 x 3.01 for 1.03 x 2.41 ties, saddle 15.08 for a
+14.48 body), so only the insert bores are compensated. Re-checked:
+deck_check PASS, layout ALL PASS, interference NONE, STLs ALL CURRENT.
+
+**Still bench:** the insert length vs the 5.5mm bore depth; the Mega's pin
+length vs the 6mm posts; the spacer length; that the PSU plug goes into the
+ribbed end.
 
 ## 2026-10-11: v3 dial unit — serviceability and mounts, BUILT (revision 2026-10-11.1)
 
@@ -18,7 +130,7 @@ so the on-door ratcheting was the plug climbing its star, not a gear fault,
 and no drivetrain change is needed). All in `cad/dial_unit_housing.scad`;
 `cad/sketchup/dial_unit_sketchup_build.py` rebuilt to match.
 
-**1. Mega/RAMPS through-bolt mount.** Three M3 screws from the top, down
+**1. Mega/RAMPS through-bolt mount.** (Superseded 2026-10-12: the base plate's holes are too small for M3; the Mega now sits on insert posts, entry above.) Three M3 screws from the top, down
 through the RAMPS's own mounting holes, a spacer between the boards, the
 Mega's holes and base plate, self-tapping into the deck (`mega_bolt_pts`,
 Ø2.6 pilots). Replaces the four photo-fit base-plate pilots and the single
@@ -37,7 +149,7 @@ side). `joint_pts[1]` is under the Mega base plate, so the three through-bolts
 come out first and the stack lifts off to clear it. Clear vertical columns to
 the joints are 15–20mm (cad/tools).
 
-**3. Inspection windows.** One Ø8 window per dial through the motor plate over
+**3. Inspection windows.** (Correction 2026-10-12: they can't be seen through once assembled; see the entry above.) One Ø8 window per dial through the motor plate over
 the gear's rim, clear of the cans/bolts/bosses/legs (margins 0.9 / 2.4 /
 5.6mm). See the gear rim and its mesh, mark it, watch it turn — the check that
 would have caught the stage-4b question without a teardown.

@@ -1,6 +1,6 @@
 # Bill of materials
 
-> **Revision 2026-10-11.1** · key driver on the RAMPS E0 socket; UART pigtail replaces the hub board · log: `docs/revisions.md`
+> **Revision 2026-10-12.1** · key driver on the RAMPS E0 socket; UART pigtail replaces the hub board · log: `docs/revisions.md`
 
 **Revision 2026-10-08.1 (2026-10-08):** the key driver moved to the RAMPS
 **E0** socket. Several parts that were ordered are **no longer used** (keep
@@ -231,10 +231,19 @@ gearing, not a different motor class, is the likely fix.
 | M6 countersunk ~16mm | 6 + 3 | €0 | ✅ On hand | Unchanged from v1 (front-to-sled and sled-to-deck joints). **Added 2026-10-06:** 3 more for the key turner's motor plate to its legs. The CAD note said M6x20; Paul has both and found the 16mm work better (6mm plate + 10mm in the 16mm pilot, as on the dial unit). |
 | PETG-CF | ~25g for 3 gear-shafts + 3 pinions | €0 | ✅ On hand | Wear parts: the spline plug and the gear teeth. |
 
+## Added 2026-10-12: deck v3.1 (Mega on insert posts, no base plate)
+
+| Item | Qty | Cost | Status | Notes |
+|---|---|---|---|---|
+| M3 brass heat-set inserts (HANGLIFE kit, 4.2mm OD, ~5mm) | 3 (+ coupon) | €0 | ✅ On hand (the 100-pc kit, row above) | One per Mega post. Bore **4.33mm** printed, from the insert spec's 4.31–4.35mm (Paul, 2026-10-12); drawn 4.45mm because the H2D printed 4.0mm holes at 3.88. Optional coupon `cad/insert_coupon.stl`. |
+| M3 nylon screws, 16–20mm | 3 | €0 | ✅ On hand (Paul) | From the top of the RAMPS, through a spacer and the Mega, into the inserts. 16mm = 4mm in the insert; over 21mm bottoms in the post. Paul's choice (2026-10-12). |
+| Board spacers, printed | 3 (9 printed) | €0 | ⬜ Print | `cad/board_spacers.stl`: 3 each of 8.4 / 8.8 / 9.2mm (6 OD, 3.4 ID); use the length that seats the RAMPS fully. Replaces the "M3 spacers ~8.8mm" row above. |
+| Mega clear base plate | — | — | ⬜ No longer used | Its holes are ~2.53–2.55mm (Paul), too small for M3; the posts replace it. Keep. |
+
 ## Added 2026-10-11: dial unit v3 (serviceability + through-bolt mount)
 
 | Item | Qty | Cost | Status | Notes |
 |---|---|---|---|---|
-| M3 screws, ~20mm, self-tapping into PETG | 3 (+ spares) | €0 | ✅ On hand (Taiss M3 kit has M3x20/x25) | The Mega/RAMPS through-bolt mount: from the top of the RAMPS, through a spacer, the Mega and its base plate, self-tapping into the deck. Replaces the four 2026-10-04 base-plate screws and the single nylon screw. Length = deck grip (~5mm) + base plate + Mega board + spacer + RAMPS board ≈ 18–22mm; confirm against the real stack. |
-| M3 spacers, ~8.8mm, Ø≤6 | 3 | €0–5 | ⬜ To confirm | One per through-bolt, between the RAMPS and the Mega so the screw doesn't pull the RAMPS onto its headers. 8.8mm = Paul's 10.4mm (top-of-RAMPS to top-of-Mega) minus a ~1.6mm board — **measure the RAMPS board first**. Nylon/brass spacer, a cut tube, or a short stack of washers; or print. |
+| M3 screws, ~20mm, self-tapping into PETG | — | €0 | ⬜ No longer used (2026-10-12: replaced by nylon screws into inserts, above) | The Mega/RAMPS through-bolt mount: from the top of the RAMPS, through a spacer, the Mega and its base plate, self-tapping into the deck. Replaces the four 2026-10-04 base-plate screws and the single nylon screw. Length = deck grip (~5mm) + base plate + Mega board + spacer + RAMPS board ≈ 18–22mm; confirm against the real stack. |
+| M3 spacers, ~8.8mm, Ø≤6 | 3 | €0–5 | ⬜ Replaced by the printed spacers (2026-10-12) | One per through-bolt, between the RAMPS and the Mega so the screw doesn't pull the RAMPS onto its headers. 8.8mm = Paul's 10.4mm (top-of-RAMPS to top-of-Mega) minus a ~1.6mm board — **measure the RAMPS board first**. Nylon/brass spacer, a cut tube, or a short stack of washers; or print. |
 | M3 screws, ~6–8mm (base-plate mount) | — | — | ⬜ No longer used | The four 2026-10-04 base-plate self-tappers and the single nylon hold-down are replaced by the 3 through-bolts above. Keep as spares. |

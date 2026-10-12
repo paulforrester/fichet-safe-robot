@@ -214,19 +214,8 @@ def main():
     for ok, txt in rows:
         fails += not ok; print(f'  {"ok  " if ok else "FAIL"} {txt}')
 
-    print('\nelectronics deck:')
-    mb = np.array(L['mega_bolt_pts_rot'])
-    dm = min(np.linalg.norm(p - q) for p in mb for q in D) - CSK_R - 1.3
-    ok = dm >= 2; fails += not ok
-    print(f'  {"ok  " if ok else "FAIL"} {dm:7.2f}  Mega/RAMPS through-bolt pilots vs deck-leg countersinks (margin, need >= 2)')
-    # service access holes must clear the deck-leg countersinks and the bolt pilots
-    JA_idx, JA_d = L['joint_access']
-    J_all = np.array(L['joint_pts'])
-    acc = [J_all[i] for i in JA_idx]
-    da = min([np.linalg.norm(a - q) - JA_d/2 - CSK_R for a in acc for q in D]
-             + [np.linalg.norm(a - b) - JA_d/2 - 1.3 for a in acc for b in mb])
-    ok = da >= 2; fails += not ok
-    print(f'  {"ok  " if ok else "FAIL"} {da:7.2f}  service access holes vs deck-leg csk / bolt pilots (need >= 2)')
+    print('\nelectronics deck: see cad/tools/deck_check.py (every deck feature, the board outline, the STL)')
+    print('\nmotor plate:')
     # inspection windows vs the motor-plate features they must miss
     IW = L['inspect_windows']
     Mp = np.array(L['motor_pts']); Hp = np.array(L['hole_pts'])
