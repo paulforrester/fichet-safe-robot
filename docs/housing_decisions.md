@@ -108,7 +108,13 @@ usual for printed holes to come out short by a roughly constant amount, but
 not established here). The 7.4mm post becomes 7.5mm to keep a 1.5mm drawn wall
 (pad clearance 0.62mm). The coupon is now drawn 4.37 / 4.45 / 4.53, which
 should measure ~4.25 / 4.33 / 4.41. Small holes read a little low with caliper
-jaws; a 4.3mm drill-bit shank as a plug gauge is a cross-check. Re-checked:
+jaws; a 4.3mm drill-bit shank as a plug gauge is a cross-check. The same deck's 8mm
+posts measure **7.88mm** outside (Paul, 18:38): the outsides also print
+~0.12mm small, so the walls came out at the drawn 2.0mm, and the part isn't
+scaled (the v3 deck's hole pattern lined up with the Mega). Every other deck
+feature has more than 0.12mm of slack (button hole 7.4 for a 7mm thread, M6
+clearance 6.4, tie slots 1.63 x 3.01 for 1.03 x 2.41 ties, saddle 15.08 for a
+14.48 body), so only the insert bores are compensated. Re-checked:
 deck_check PASS, layout ALL PASS, interference NONE, STLs ALL CURRENT.
 
 **Still bench:** the insert length vs the 5.5mm bore depth; the Mega's pin
