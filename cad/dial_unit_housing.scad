@@ -537,19 +537,23 @@ mega_rest_pt_rot  = mega_place(mega_hole_pts[mega_rest_idx]);
 // until Paul measures the longest pin below the board (+2mm margin).
 // Diameter per bolt post, limited by the nearest Mega header pad in the
 // KiCad footprint (pad edge 18.3 / 7.9 / 4.4mm from the hole centre for
-// bolt holes 0 / 1 / 3; 3.1mm for the rest hole): keep >= 0.8mm off the pads.
+// bolt holes 0 / 1 / 3; 3.1mm for the rest hole): keep >= 0.6mm off the pads.
+// v3.1 (2026-10-12, 4.33mm insert bore): 9 / 9 / 7.4mm leaves a wall of
+// 2.3 / 2.3 / 1.5mm; the 7.4mm post is 0.67mm off its nearest pad.
 post_h        = 6;
-post_d        = [8, 8, 7];       // bolt posts, in mega_bolt_idx order
+post_d        = [9, 9, 7.4];     // bolt posts, in mega_bolt_idx order
 rest_post_d   = 4.6;             // 3.1 - 0.8 = 2.3 radius
-// M3 heat-set insert (HANGLIFE kit, 4.2mm OD, ~5mm long per its listing).
-// Bore: ASSUMPTION 4.0mm until the insert coupon (print_insert_coupon.scad,
-// 3.8 / 4.0 / 4.2) picks one. Below the insert a 3.4mm clearance bore
+// M3 heat-set insert (HANGLIFE kit, ~5mm long per its listing). Bore 4.33mm:
+// the insert's own spec recommends a 4.31-4.35mm hole (Paul, 2026-10-12).
+// Correction: the earlier 4.0mm was an assumption, and the kit's "4.2mm OD"
+// listing is not the hole size. Bore depth 5.5mm is still an ASSUMPTION
+// (insert ~5mm long; to confirm from the same spec). Below the insert a 3.4mm clearance bore
 // continues so a longer screw doesn't bottom; it stops 1.5mm above the deck's
 // underside (two posts stand over motor cans, 6mm below the deck), so it never
 // breaks through. Screws: M3 nylon, 16-20mm (top of RAMPS to underside of the
 // Mega is 10.4 + 1.6 = 12.0mm; 16mm gives 4mm in the insert, 20mm reaches 8mm
 // below the post top, max allowed 21.5).
-insert_bore_d     = 4.0;
+insert_bore_d     = 4.33;
 insert_bore_depth = 5.5;
 post_clear_d      = 3.4;
 post_floor        = 1.5;
@@ -678,7 +682,7 @@ module mega_posts() {
 }
 // insert bore + clearance bore below it, opening at the post top (z_top)
 module insert_bore(z_top) {
-    translate([0, 0, z_top - insert_bore_depth]) cylinder(d = insert_bore_d, h = insert_bore_depth + eps_c, $fn = 40);
+    translate([0, 0, z_top - insert_bore_depth]) cylinder(d = insert_bore_d, h = insert_bore_depth + eps_c, $fn = 64);
     translate([0, 0, z_top - post_hole_depth]) cylinder(d = post_clear_d, h = post_hole_depth + eps_c, $fn = 32);
 }
 module electronics_deck() {
@@ -723,20 +727,21 @@ module electronics_deck() {
     }
 }
 
-// Insert-fit coupon (print_insert_coupon.scad): three posts like the deck's,
-// bores 3.8 / 4.0 / 4.2mm (1 / 2 / 3 notches on the base edge in front of
-// each). Melt one HANGLIFE insert into each, then screw an M3 in and out:
-// pick the bore where the insert went in straight and doesn't turn or pull.
-insert_coupon_bores = [3.8, 4.0, 4.2];
+// Insert-fit coupon (print_insert_coupon.scad, optional): three posts like
+// the deck's, bores 4.25 / 4.33 / 4.41mm (1 / 2 / 3 notches on the base edge in
+// front of each), bracketing the insert spec's 4.31-4.35mm for this printer.
+// Melt one HANGLIFE insert into each, then screw an M3 in and out: pick the
+// bore where the insert went in straight and doesn't turn or pull.
+insert_coupon_bores = [4.25, 4.33, 4.41];
 module insert_coupon() {
     pitch = 14; base_t = deck_thickness;
     difference() {
         union() {
             translate([-pitch*1.5, -7, 0]) cube([pitch*3, 14, base_t]);
-            for (k = [0 : 2]) translate([(k - 1)*pitch, 0, base_t - eps_c]) cylinder(d = 8, h = post_h + eps_c, $fn = 48);
+            for (k = [0 : 2]) translate([(k - 1)*pitch, 0, base_t - eps_c]) cylinder(d = 9, h = post_h + eps_c, $fn = 48);
         }
         for (k = [0 : 2]) translate([(k - 1)*pitch, 0, 0]) {
-            translate([0, 0, base_t + post_h - insert_bore_depth]) cylinder(d = insert_coupon_bores[k], h = insert_bore_depth + eps_c, $fn = 40);
+            translate([0, 0, base_t + post_h - insert_bore_depth]) cylinder(d = insert_coupon_bores[k], h = insert_bore_depth + eps_c, $fn = 64);
             translate([0, 0, base_t + post_h - post_hole_depth]) cylinder(d = post_clear_d, h = post_hole_depth + eps_c, $fn = 32);
             for (n = [0 : k]) translate([(n - k/2)*2.5 - 0.6, -7 - eps_c, base_t - 1]) cube([1.2, 1.6, 1 + eps_c]);
         }

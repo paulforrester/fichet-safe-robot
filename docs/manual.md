@@ -83,7 +83,7 @@ the print notes in `cad/dial_unit_housing.scad` (end of file) and
 |---|---|---|---|---|
 | `dial_front_assembly.stl` | dial front plate: 6 magnet holes, 3 bearing bosses, 3 legs, pointer tab | 1 | PETG | door face |
 | `dial_motor_sled.stl` | motor sled + 3 deck legs, with the 3 gear inspection windows (rev 2026-10-11.1) | 1 | PETG | inner face (spring pockets, countersinks); legs up |
-| `insert_coupon.stl` | **print first**: 3 insert posts, bores 3.8 / 4.0 / 4.2 mm (1 / 2 / 3 notches) (rev 2026-10-12.1) | 1 | PETG | flat base down |
+| `insert_coupon.stl` | optional: 3 insert posts, bores 4.25 / 4.33 / 4.41 mm (1 / 2 / 3 notches) (rev 2026-10-12.1) | 1 | PETG | flat base down |
 | `groove_coupon.stl` | **print first**: a 50 mm strip of the button-lead groove | 1 | PETG | groove side down |
 | `electronics_deck.stl` | deck v3.1: 3 M3 insert posts + 1 rest post for the Mega, 3 access holes, button, wire hole, lead groove, barrel cradle (rev 2026-10-12.1) | 1 | PETG | underside (motor side) down, as exported; posts up |
 | `board_spacers.stl` | 9 spacers for between the RAMPS and the Mega: 3 each of 8.4 / 8.8 / 9.2 mm (1 / 2 / 3 notches) | 1 plate | PETG | flat |
@@ -293,9 +293,9 @@ Tell me if a different order works better, and I'll record it.
 9. **Deck** (revision 2026-10-12.1). Before it goes on the sled:
    1. **Inserts.** Melt an M3 heat-set insert into each of the three tall
       posts with the soldering iron, square to the post and flush with its
-      top. Use the bore size the insert coupon picked (the deck as exported
-      has 4.0 mm; tell Claude if the coupon says otherwise and the deck gets
-      re-exported).
+      top. The bores are 4.33 mm, from the inserts' own spec (4.31–4.35 mm).
+      The insert coupon is optional: it brackets that at 4.25 / 4.33 / 4.41 mm
+      if you want to see how your printer's holes come out first.
    2. Three M6 countersunk (~16 mm) through the deck's top face into the deck
       legs. **Deck screw B**, the one in the middle, ends up under the board:
       it has to go in before the Mega does. A and C stay reachable.

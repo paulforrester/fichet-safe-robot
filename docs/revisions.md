@@ -40,12 +40,14 @@ holes (~2.54 mm) too small for the planned M3 through-bolts. So:
   of its countersink); tie slots 1.5 mm further out (thin wall fixed).
 - **Wire hole** beside the endstop block's real position; lead groove
   re-routed straight from the button.
-- New prints: `insert_coupon.stl` (3 bore sizes), `board_spacers.stl`.
+- New prints: `board_spacers.stl`, and an optional `insert_coupon.stl`.
+- Insert bores **4.33 mm** (the inserts' spec: 4.31–4.35 mm), posts 9 / 9 /
+  7.4 mm for a ≥ 1.5 mm wall.
 - Correction: the motor plate's inspection windows can't be seen through
   once assembled; inspect from the side instead. No motor-plate reprint.
 
-**What to do:** print the insert coupon and pick the bore; check the
-Mega's pin length (posts are 6 mm); then print the deck and spacers.
+**What to do:** check the Mega's pin length (posts are 6 mm) and the
+insert length (bores are 5.5 mm deep); then print the deck and spacers.
 
 ### 2026-10-11.1 — dial unit v3: serviceability and mounts
 

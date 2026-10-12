@@ -29,7 +29,7 @@ PRINT = os.path.join(CAD, 'print_electronics_deck.scad')
 # Nearest Mega header pad EDGE to each mounting hole centre, mm, from the
 # Mega shield footprint U1 in matt3u/RAMPS-1.4_KiCad ea33bdf (index = mega_hole_pts)
 PAD_EDGE = [18.34, 7.92, 3.10, 4.37]
-PAD_MARGIN = 0.8
+PAD_MARGIN = 0.6   # post edge to the nearest header pad (2026-10-12: 0.8 -> 0.6 for the 4.33mm bore)
 NEMA_HALF = 42.3 / 2
 M6_HEAD_R, BUTTON_NUT_R, BUTTON_BODY_R = 7.0, 11.3 / 2, 5.0
 LEG_R = 6.0          # deck legs (on the motor plate) touching the deck underside

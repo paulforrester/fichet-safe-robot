@@ -43,7 +43,7 @@ RAMPS down into them.
   confirmed they line up on the printed v3 deck) + 1 plain rest post under the
   Mega's 4th hole. Height 6mm (**ASSUMPTION**: clearance for the Mega's pin
   tails; Paul to measure the longest). Diameters 8 / 8 / 7mm and the rest post
-  4.6mm, each >= 0.8mm off the nearest Mega header pad in the KiCad footprint
+  4.6mm (9 / 9 / 7.4 after the bore change below), each >= 0.6mm off the nearest Mega header pad in the KiCad footprint
   (pad edges 18.3 / 7.9 / 4.4 / 3.1mm from the hole centres). Insert bore 4.0mm
   x 5.5mm (**ASSUMPTION**: HANGLIFE gives 4.2mm OD, ~5mm; no hole size found,
   so `print_insert_coupon.scad` tests 3.8 / 4.0 / 4.2), then a 3.4mm clearance
@@ -85,8 +85,23 @@ holes through) — PASS. `dial_layout_check` ALL PASS, `dial_interference_check`
 NO INTERFERENCE, `cad/tools/stl_freshness_check.py` (new) ALL CURRENT.
 SketchUp review model rebuilt; its positions match the SCAD echo.
 
-**Still bench:** the insert coupon (bore); the Mega's pin length vs the 6mm
-posts; the spacer length; that the PSU plug goes into the ribbed end.
+**Insert bore set from the insert spec** (Paul, 2026-10-12, same day): the
+HANGLIFE inserts' spec recommends a **4.31-4.35mm** hole, so the bore is
+4.33mm. Correction: the 4.0mm above was an assumption, and the kit's "4.2mm
+OD" listing is not the hole size. To keep a >= 1.5mm wall round the bigger
+bore, the posts grow from 8 / 8 / 7 to **9 / 9 / 7.4mm**. The 7.4mm post is
+the one under the Mega hole beside the A15 and 22-53 header pins (pad edge
+4.37mm away), so it now clears that pad by 0.67mm (was 0.87); deck_check's pad
+margin goes from 0.8 to 0.6mm. A plastic post near a solder joint is only a
+fit question (PETG doesn't conduct). Bore polygons are 64-sided: 4.33mm across
+the flats in the STL. The insert coupon now brackets the spec at 4.25 / 4.33 /
+4.41 and is optional. Bore depth 5.5mm is still an assumption (insert ~5mm):
+to confirm from the same spec. Re-checked: deck_check PASS, layout ALL PASS,
+interference NONE, STLs ALL CURRENT.
+
+**Still bench:** the insert length vs the 5.5mm bore depth; the Mega's pin
+length vs the 6mm posts; the spacer length; that the PSU plug goes into the
+ribbed end.
 
 ## 2026-10-11: v3 dial unit — serviceability and mounts, BUILT (revision 2026-10-11.1)
 
