@@ -3,14 +3,17 @@
 Context for any Claude session working in this repo. Read this first, then
 the doc that matches your task (table below). Last updated 2026-10-08.
 
-> **Project revision 2026-10-11.1** — all four TMC2209 drivers are on the
+> **Project revision 2026-10-12.1** — all four TMC2209 drivers are on the
 > RAMPS (the key in the **E0** socket); there is no remote driver board or
 > inter-unit signal cable, only the key motor's own cable. The UART junction
 > is a six-lead **UART pigtail** (R1 in the TX2 lead, one splice), not a
 > board (2026-10-08.2). The start/stop button mounts on the electronics deck
-> (2026-10-09.1). The dial unit is **v3** (2026-10-11.1): the Mega and RAMPS
-> are through-bolted, and the deck gains service access holes, gear inspection
-> windows, a button-lead groove and a barrel-adapter cradle. The current
+> (2026-10-09.1). The dial unit is **v3** (2026-10-11.1), with the **v3.1 deck**
+> (2026-10-12.1): no Mega base plate; the Mega + RAMPS sit on 3 M3 heat-set
+> insert posts (+1 rest post), M3 nylon screws from the top; access holes over
+> all 3 motor-plate joints, clear of the board; lead groove; barrel cradle at
+> the left edge. The motor plate's inspection windows can't be seen through
+> once assembled: inspect the gears from the side. The current
 > revision ID lives in `REVISION`; the log is `docs/revisions.md`. When a
 > design change affects how the robot is built, wired or run, bump `REVISION`,
 > add a `docs/revisions.md` entry, and run `python3 tools/check_revision.py`
@@ -94,7 +97,7 @@ RAMPS, UART pigtail); firmware written and host-tested
 | `docs/photos/` | Door, dial holes, key reference photos |
 | `cad/*.scad` | OpenSCAD sources. `common_mounts.scad` (shared NEMA17, magnet, D-bore), `dial_unit_housing.scad`, `key_turner_housing.scad`; `print_*.scad` export one printable part each; `*_assembled.scad` for checks |
 | `cad/*.stl` | Rendered parts Paul prints |
-| `cad/tools/` | `dial_layout_check.py`, `dial_interference_check.py`, `key_turner_check.py`, `button_mount_check.py` (deck button mount) — run after any CAD change |
+| `cad/tools/` | `dial_layout_check.py`, `dial_interference_check.py`, `key_turner_check.py`, `deck_check.py` (every deck feature vs every other, board outline vs access holes, STL), `stl_freshness_check.py` (every STL matches its source) — run after any CAD change |
 | `cad/sketchup/` | Build scripts for SketchUp review models (run via the Trimble SketchUp connector, not locally) |
 
 ## Mechanical facts the software and wiring depend on
@@ -302,5 +305,6 @@ any change (`make -C control/firmware/test`).
   `python3 -m pytest control/firmware/tools` (logger).
 - CAD checks (only if you touch `cad/`): `openscad` renders, then
   `python3 cad/tools/dial_layout_check.py`, `dial_interference_check.py`,
-  `key_turner_check.py`, `button_mount_check.py`; check STLs are watertight (trimesh). Paul has no
+  `key_turner_check.py`, `deck_check.py`, then `stl_freshness_check.py` after
+  re-exporting; check STLs are watertight (trimesh). Paul has no
   OpenSCAD; he prints the STLs and reviews SketchUp models.

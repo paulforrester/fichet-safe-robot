@@ -15,6 +15,9 @@
 # PART 3, then save_model. Units are set to mm in PART 1.
 # Rebuilt 2026-10-06 (countersunk motor-screw holes in the sled, scene 6 added;
 # then 6 rubber pot magnets + retainers replacing the 147 disc pockets).
+# v3.1 deck (2026-10-12): no Mega base plate; the Mega + RAMPS sit on 3 M3
+# insert posts + 1 rest post (separate components here), board turned to 206 deg,
+# access holes over all 3 motor-plate joints, cradle moved off deck screw C.
 # ============================================================
 
 # ======================= PART 1: geometry + definitions =======================
@@ -33,7 +36,7 @@ P = dict(
     motor_dir=[216.4, 114.1, 337.1], motor_rot=[36.3, 36.3, 56.2],
     joint_pts=[[59.5, -8.3], [-25.8, -50.5], [-18.7, 60.6]],
     deck_leg_pts=[[-4.5, -59.4], [29.7, 8.2], [-50.5, 43.5]],
-    mega_rotation=244.0, mega_offset=[-1.75, -4.0],   # v3 nudge (through-bolt mount)
+    mega_rotation=206.0, mega_offset=[-2.5, 5.0],     # v3.1 (insert posts; access holes clear)
 )
 
 # ---------------- derived constants (same formulas as the SCAD) ----------------
@@ -63,17 +66,20 @@ RMAG_POS_R, RMAG_ROT = 53.5, 26.75
 FRONT_R = 75.0; PTR_LEN, PTR_W = 10.0, 16.0
 MEGA_PILOT_R = 2.6 / 2
 MEGA_HOLES = [[-36.79, -24.11], [-35.52, 24.15], [39.41, 24.15], [45.76, -24.11]]
-MEGA_BOLT = [MEGA_HOLES[0], MEGA_HOLES[1], MEGA_HOLES[3]]   # v3: 3 through-bolts
+MEGA_BOLT = [MEGA_HOLES[0], MEGA_HOLES[1], MEGA_HOLES[3]]   # the 3 insert posts
+MEGA_REST = MEGA_HOLES[2]                                    # plain rest post
+POST_H, POST_R, REST_R, INSERT_R, INSERT_DEPTH = 6.0, [4.0, 4.0, 3.5], 2.3, 2.0, 5.5
+RAMPS_BOX = [[-50.8, -33.655], [50.8, 26.67]]
 # v3 deck/plate features
 GEAR_TIP_R = 14.8
 INSPECT_WINDOWS = [[-5.67, 9.86, 8.0], [12.76, 4.6, 8.0], [-14.75, -20.99, 8.0]]
-JOINT_ACCESS_IDX = [1, 2]; JOINT_ACCESS_R = 10.0 / 2
+JOINT_ACCESS_IDX = [0, 1, 2]; JOINT_ACCESS_R = 10.0 / 2
 BUTTON = [-54.4, 28.0]; BUTTON_HOLE_R = 7.4 / 2; BUTTON_REC_R = 10.0 / 2; BUTTON_REC_H = 2.5
-WIRE = [15.65, -47.06]; WIRE_R = 4.0 / 2
+WIRE_R = 4.0 / 2   # WIRE itself is placed off the board, after _mplace below
 GROOVE_W = 3.6; GROOVE_D = 2.0
-BARREL_C = [-49.0, 44.0]; BARREL_DIR = 138.0; BARREL_BODY_W = 14.48 + 0.6
+BARREL_C = [-69.0, 33.5]; BARREL_DIR = 135.0; BARREL_BODY_W = 14.48 + 0.6
 BARREL_BODY_L = 13.0; BARREL_SADDLE_D = 2.0; TIE_W = 2.41 + 0.6; TIE_T = 1.03 + 0.6
-TIE_GAP = BARREL_BODY_W + 3.0
+TIE_GAP = BARREL_BODY_W + 6.0
 STAR_TIP_D = 7.73 - 0.35; STAR_ROOT_D = (7.73 - 2 * 2.00) - 0.35; STAR_W = 1.04
 
 
@@ -101,6 +107,8 @@ BOLTS = [[[MOT[i][0] + q[0], MOT[i][1] + q[1]] for q in
          for i in range(3)]
 def _mplace(p): return [rot2(p, P['mega_rotation'])[0] + P['mega_offset'][0], rot2(p, P['mega_rotation'])[1] + P['mega_offset'][1]]
 MEGA_BOLT_ROT = [_mplace(p) for p in MEGA_BOLT]
+MEGA_REST_ROT = _mplace(MEGA_REST)
+WIRE = _mplace([29.8, 26.67 + 5.5])   # beside the RAMPS endstop block (KiCad)
 MEGA_HOLES_ROT = [_mplace(p) for p in MEGA_HOLES]
 JOINT_ACCESS = [P['joint_pts'][i] for i in JOINT_ACCESS_IDX]
 
@@ -341,11 +349,10 @@ def deck():
     out = deck_outline()
     jc = [circle(p[0], p[1], M6_CLR_R, 24) for p in P['deck_leg_pts']]
     jk = [circle(p[0], p[1], CSK_R, 24) for p in P['deck_leg_pts']]
-    mp = [circle(p[0], p[1], MEGA_PILOT_R, 12) for p in MEGA_BOLT_ROT]
     acc = [circle(p[0], p[1], JOINT_ACCESS_R, 32) for p in JOINT_ACCESS]
     btn = circle(BUTTON[0], BUTTON[1], BUTTON_HOLE_R, 32)
     wir = circle(WIRE[0], WIRE[1], WIRE_R, 24)
-    thru = mp + acc + [btn, wir]
+    thru = acc + [btn, wir]
     F = [hface(out, z0, False, jc + thru), hface(out, z1, True, jk + thru)]
     F += wall(out, z0, z1, outward=True)
     zc = z1 - CSK_D
@@ -430,14 +437,27 @@ def door_reference(size=170.0, thick=8.0):
     return F
 
 
+def mega_post(r):
+    # insert post standing on the deck (the bore's last 3.5mm, inside the deck, is not modelled)
+    o = circle(0, 0, r, 48)
+    return [hface(o, 0.0, False), hface(o, POST_H, True, [circle(0, 0, INSERT_R, 24)])] + wall(o, 0.0, POST_H, True) \
+        + blind_hole_from_top([0, 0], INSERT_R, 24, POST_H, INSERT_DEPTH)
+
+
+def rest_post():
+    o = circle(0, 0, REST_R, 32)
+    return [hface(o, 0.0, False), hface(o, POST_H, True)] + wall(o, 0.0, POST_H, True)
+
+
 def mega_envelope():
-    hx, hy = 101.52 / 2, 53.3 / 2; sq = [[-hx, -hy], [hx, -hy], [hx, hy], [-hx, hy]]
+    (x0, y0), (x1, y1) = RAMPS_BOX; sq = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]
     return [hface(sq, 0.0, False), hface(sq, 30.0, True)] + wall(sq, 0.0, 30.0, True)
 
 
 PARTS = dict(front=front_assembly, sled=motor_sled, deck=deck, gearshaft=gear_shaft, pinion=pinion,
              motor=motor_dummy, bearing=bearing_608, door=door_reference, mega=mega_envelope,
-             rmag=rmag_magnet, retainer=rmag_retainer)
+             rmag=rmag_magnet, retainer=rmag_retainer,
+             post8=lambda: mega_post(4.0), post7=lambda: mega_post(3.5), rest=rest_post)
 
 # ================= SketchUp adapter (runs inside build_model) =================
 S = 1.0 / 25.4   # mm -> inch
@@ -502,11 +522,14 @@ mats = {
     'spring': get_mat('Spring placeholder', 200, 40, 40),
     'rmag': get_mat('Rubber magnet (black)', 30, 30, 32),
     'retainer': get_mat('Magnet retainer PETG', 160, 172, 184),
+    'post8': get_mat('Electronics deck PETG', 160, 172, 184), 'post7': get_mat('Electronics deck PETG', 160, 172, 184),
+    'rest': get_mat('Electronics deck PETG', 160, 172, 184),
 }
 names = {
     'front': 'Front plate (base) + bosses + legs', 'sled': 'Motor sled + deck legs', 'deck': 'Electronics deck',
     'gearshaft': 'Dial gear-shaft (28T)', 'pinion': 'Motor pinion (14T)', 'motor': 'NEMA17 17HE19-2004S (dummy)',
     'bearing': '608 bearing', 'rmag': 'Rubber pot magnet 22x6 (Wukong)', 'retainer': 'Magnet retainer', 'door': 'Safe door (reference, dial holes)', 'mega': 'Arduino Mega + RAMPS envelope (placeholder)',
+    'post8': 'Mega insert post 8mm', 'post7': 'Mega insert post 7mm', 'rest': 'Mega rest post',
 }
 report = {}
 for key, fn in PARTS.items():
@@ -516,7 +539,8 @@ spr_len = (CAVITY_TOP + SLED_SPRING_D) - (GEAR_Z1 - GEAR_SPRING_D)
 cd, ns = make_def('Spring (placeholder, 17mm installed)', spring_placeholder(spr_len), mats['spring'])
 report['spring'] = {'faces': len(cd.get_entities().get_faces()), 'manifold': cd.is_manifold()}
 session_state['layout'] = {'H': H, 'MOT': MOT, 'MAGS': magnet_pts(), 'motor_dir': P['motor_dir'], 'motor_rot': P['motor_rot'],
-                           'mega_rotation': P['mega_rotation'], 'mega_offset': P['mega_offset']}
+                           'mega_rotation': P['mega_rotation'], 'mega_offset': P['mega_offset'],
+                           'posts': MEGA_BOLT_ROT, 'post_r': POST_R, 'rest': MEGA_REST_ROT, 'POST_H': POST_H}
 session_state['z'] = {'GEAR_Z1': GEAR_Z1, 'CAVITY_TOP': CAVITY_TOP, 'MOTOR_FACE': MOTOR_FACE, 'DECK_Z': DECK_Z,
                       'DECK_T': DECK_T, 'LIP_H': LIP_H, 'BW': BW, 'NB': NB, 'NG': NG, 'NP': NP,
                       'spring_z0': GEAR_Z1 - GEAR_SPRING_D}
@@ -570,8 +594,12 @@ def build(wrapper_name, offset_su, explode):
     for k, m in enumerate(L['MAGS']):
         place(g, D('Rubber pot magnet'), 'Door magnet ' + str(k + 1), T(t=(m[0], m[1], -0.2 - e('rmag'))), 'Door magnets')
         place(g, D('Magnet retainer'), 'Magnet retainer ' + str(k + 1), T(t=(m[0], m[1], 5.8 + e('retainer'))), 'Door magnets')
+    zt = Z['DECK_Z'] + Z['DECK_T']
+    for k, p in enumerate(L['posts']):
+        place(g, D('Mega insert post ' + ('8mm' if L['post_r'][k] > 3.75 else '7mm')), 'Mega insert post ' + str(k + 1), T(t=(p[0], p[1], zt + e('deck'))), 'Electronics deck')
+    place(g, D('Mega rest post'), 'Mega rest post', T(t=(L['rest'][0], L['rest'][1], zt + e('deck'))), 'Electronics deck')
     mo = L['mega_offset']
-    place(g, D('Arduino Mega'), 'Mega + RAMPS envelope', T(L['mega_rotation'], False, (mo[0], mo[1], Z['DECK_Z'] + Z['DECK_T'] + 3 + e('mega'))), 'Mega envelope (placeholder)')
+    place(g, D('Arduino Mega'), 'Mega + RAMPS envelope', T(L['mega_rotation'], False, (mo[0], mo[1], zt + L['POST_H'] + e('mega'))), 'Mega envelope (placeholder)')
     return g
 ga = build('Dial unit - assembled', (0, 0, 130), {})
 place(ga, D('Safe door'), 'Safe door (reference)', T(), 'Safe door (reference)')

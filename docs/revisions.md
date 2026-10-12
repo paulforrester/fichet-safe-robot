@@ -1,6 +1,6 @@
 # Project revisions
 
-> **Revision 2026-10-11.1** · this file is the revision log · current ID in `REVISION`
+> **Revision 2026-10-12.1** · this file is the revision log · current ID in `REVISION`
 
 Every project document and drawing carries the project revision it was last
 brought up to date in, so a printed or downloaded copy can be told apart from
@@ -21,6 +21,31 @@ a newer one. The ID is the date plus a sequence number for that day:
   which also names the project revision it was built for.
 
 ## Log (most recent first)
+
+### 2026-10-12.1 — electronics deck v3.1: Mega on insert posts, holes cleared
+
+**Change** (`cad/dial_unit_housing.scad` section 9, review model
+`cad/sketchup/dial_unit_sketchup_build.py`, check `cad/tools/deck_check.py`).
+Paul printed the v3 deck and found the barrel cradle on top of a deck-screw
+countersink, the board still covering screw holes, and the base plate's
+holes (~2.54 mm) too small for the planned M3 through-bolts. So:
+- **No Mega base plate.** The Mega sits on 3 printed posts with M3 brass
+  heat-set inserts (+1 plain rest post), held by 3 M3 nylon screws (16–20 mm)
+  from the top through the RAMPS, a printed spacer and the Mega.
+- **Board turned 244 → 206 deg and moved** so all 3 motor-plate joint screws
+  are reachable through access holes with the boards on (hole edge ≥ 7.5 mm
+  from the Mega + RAMPS outline, taken from the RAMPS KiCad file) and deck
+  screws A and C are clear. Deck screw B stays under the board.
+- **Barrel cradle** moved to the left edge beside deck screw C (2.9 mm clear
+  of its countersink); tie slots 1.5 mm further out (thin wall fixed).
+- **Wire hole** beside the endstop block's real position; lead groove
+  re-routed straight from the button.
+- New prints: `insert_coupon.stl` (3 bore sizes), `board_spacers.stl`.
+- Correction: the motor plate's inspection windows can't be seen through
+  once assembled; inspect from the side instead. No motor-plate reprint.
+
+**What to do:** print the insert coupon and pick the bore; check the
+Mega's pin length (posts are 6 mm); then print the deck and spacers.
 
 ### 2026-10-11.1 — dial unit v3: serviceability and mounts
 
