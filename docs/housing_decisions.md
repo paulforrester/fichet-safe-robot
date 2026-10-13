@@ -50,14 +50,37 @@ assembled deck):
   caught item 3. Its deck outline is sliced at z = 2.5 (below the open
   pocket).
 
-**Not changed, pending Paul:** the posts and bores (item 1 and 2). If "the
-largest hole" is the coupon Paul measured on 2026-10-12 (drawn 3.8 / 4.0 /
-4.2, read 3.6 / 3.8 / 4.0), the best was drawn 4.2, and the deck's 4.45 may be
-loose for an insert; if it is the later coupon (drawn 4.37 / 4.45 / 4.53), the
-best was 4.53. Since inserts aren't needed, the alternative is plain pilot
-holes for metal M3 screws to self-tap.
+**Posts and bores, settled** (Paul, 2026-10-13, 10:08): the test was on the
+coupon drawn 3.8 / 4.0 / 4.2mm (read 3.6 / 3.8 / 4.0). The insert went into
+all three; the smaller holes bulged a little; Paul judges a hole that
+measures **~4.25mm** ideal. That coupon read 0.2mm under drawn at every size,
+so 4.25 measured = **4.45mm drawn**, which the deck already has: no geometry
+change (STL checksum unchanged). **Inserts stay** (Paul): with metal screws
+self-tapping into plastic, the driving torque hides how hard the screw is
+pressing the board stack; a metal screw in a brass insert gives a clear
+"snug". He uses metal M3 screws with a nylon washer top and bottom (no long
+enough nylon screws on hand). ASSUMPTION carried: the 0.2mm shortfall holds
+at 4.45 as it did at 3.8-4.2; measure a deck bore before melting in.
 
-**Verified:** deck_check PASS, dial_layout_check ALL PASS,
+**Start button beside the wire hole, groove removed** (Paul, 2026-10-13,
+10:12-10:20). With the board at 206 deg the RAMPS endstop block (Y_MIN) is on
+the board's lower edge, next to the wire hole, so Paul proposed moving the
+button there and dropping the groove (keeping the through hole for the
+leads). Searched every spot on a 0.5mm grid that clears all deck features
+(nut >= 2mm from countersinks, access holes, posts, wire hole; recess wall >=
+2mm to the edge; body >= 3mm from the motor cans in plan view, since the
+button hangs below the deck and the cans are 6mm under it; nut >= 6mm from the
+board for a finger): about 25 positions pass, all in one small patch.
+**[-12.5, -46.5]** chosen (Paul): recess 2.9mm from the wire hole, so the
+leads cross 2.9mm of underside; nut 9.6mm from the board, 2.5mm from deck
+screw A's countersink, 3.2mm from access hole 1; body 4.3mm from the nearest
+can. Paul's first sketch, [13, -43], sits 7.8mm inside motor C's can outline
+in plan view, and the button's depth below the deck has never been measured,
+so it wasn't used. The groove, its lips and `groove_coupon` (STL and print
+file) are removed; deck_check now checks the lead run (<= 6mm of deck) and the
+finger room instead.
+
+**Verified (whole v3.2 deck):** deck_check PASS, dial_layout_check ALL PASS,
 dial_interference_check NO INTERFERENCE, stl_freshness_check ALL CURRENT;
 SketchUp script's deck outline equals the STL's (0.0mm2 difference).
 
