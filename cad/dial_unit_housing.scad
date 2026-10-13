@@ -624,8 +624,20 @@ groove_to        = wire_hole_pt;
 // 21mm from both that screw and the board (Paul: "centred between the corner
 // by the standoff and the start of the Mega"); the gap straight between them
 // is too narrow for it. Socket points up-left, away from the key turner.
-barrel_c        = [-69, 33.5];
-barrel_dir      = 135;            // outward; the socket points this way, over the edge
+// Correction 2026-10-13 (Paul, printed v3.1): that spot was a miss: the
+// adapter's leads to the RAMPS power terminal ran across the button. Paul
+// meant it to sit by the RAMPS power connector. v3.2: just beyond the board's
+// USB/jack end, in line with the RAMPS power terminal (X4, MSTBA 4-pin, KiCad:
+// pads at x 7.2, y -2.0..13.2 in the Mega frame from its corner, courtyard to
+// 3.3mm past the board end, wire entries facing out past that end). The
+// adapter lies along the board's long axis, its screw-terminal end ~5mm from
+// the terminal's wire entries, socket pointing straight out (deck_check
+// checks the gap and the clearances: USB 15mm, board 2mm).
+// v3.2 also opens the saddle through the deck edge (Paul: the plug's tapered
+// end didn't let it sit flat in the closed pocket): the deck ends where the
+// square body ends, so the taper overhangs freely.
+barrel_c        = mega_place([mega_outline[0][0] - jack_overhang - 2 - 13/2, -21.0]);
+barrel_dir      = (mega_rotation + 180) % 360;   // outward along the board axis; the socket points this way
 barrel_body_w   = 14.48 + 0.6;    // across the body (+ fit)
 barrel_body_l   = 13;             // the square section that sits in the saddle
 barrel_saddle_d = 2;              // saddle depth into the deck top
@@ -656,9 +668,11 @@ module deck_outline() {
         translate(wire_hole_pt) circle(r = wire_lobe_r, $fn = 32);
         // wall around the service access holes
         for (i = joint_access_idx) translate(joint_pts[i]) circle(r = joint_access_d/2 + 3, $fn = 32);
-        // enough deck under the barrel saddle and its two tie slots
+        // deck under the barrel saddle and its two tie slots, ending flush
+        // with the square body's outer end so the saddle is open there (v3.2)
         translate(barrel_c) rotate(barrel_dir)
-            square([barrel_body_l + 4, tie_slot_gap + tie_slot_t + 5], center = true);
+            translate([-barrel_body_l/2 - 2, -(tie_slot_gap + tie_slot_t + 5)/2])
+                square([barrel_body_l + 2, tie_slot_gap + tie_slot_t + 5]);
     }
 }
 // groove path as a rounded rectangle channel between two points
@@ -718,7 +732,7 @@ module electronics_deck() {
         // barrel cradle: saddle + two tie slots
         translate(barrel_c) rotate(barrel_dir) {
             translate([-barrel_body_l/2, -barrel_body_w/2, deck_thickness - barrel_saddle_d])
-                cube([barrel_body_l, barrel_body_w, barrel_saddle_d + eps_c]);
+                cube([barrel_body_l + 5, barrel_body_w, barrel_saddle_d + eps_c]);   // runs out through the edge (v3.2)
             for (s = [-1, 1]) translate([-tie_slot_w/2, s*tie_slot_gap/2 - tie_slot_t/2, -eps_c])
                 cube([tie_slot_w, tie_slot_t, deck_thickness + 2*eps_c]);
         }
@@ -856,6 +870,7 @@ echo(LAYOUT = [
     ["posts", [post_h, post_d, mega_rest_pt_rot, rest_post_d, insert_bore_d, insert_bore_depth, post_clear_d, post_hole_depth]],
     ["joint_access", [joint_access_idx, joint_access_d]],
     ["barrel", [barrel_c, barrel_dir, barrel_body_l, barrel_body_w, tie_slot_gap, tie_slot_w, tie_slot_t]],
+    ["ramps_power_terminal", [for (q = [[-54.1, -32.7], [-41.1, -32.7], [-41.1, -9.4], [-54.1, -9.4]]) mega_place(q)]],
     ["groove", [groove_from, groove_to, groove_w, groove_depth]],
     ["inspect_windows", inspect_windows],
     ["button", [button_pt, button_hole_d, button_recess_d, button_recess_h]], ["wire_hole", [wire_hole_pt, wire_hole_d, wire_lobe_r]], ["deck_thickness", deck_thickness],

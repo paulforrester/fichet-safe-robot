@@ -77,7 +77,7 @@ JOINT_ACCESS_IDX = [0, 1, 2]; JOINT_ACCESS_R = 10.0 / 2
 BUTTON = [-54.4, 28.0]; BUTTON_HOLE_R = 7.4 / 2; BUTTON_REC_R = 10.0 / 2; BUTTON_REC_H = 2.5
 WIRE_R = 4.0 / 2   # WIRE itself is placed off the board, after _mplace below
 GROOVE_W = 3.6; GROOVE_D = 2.0
-BARREL_C = [-69.0, 33.5]; BARREL_DIR = 135.0; BARREL_BODY_W = 14.48 + 0.6
+BARREL_BODY_W = 14.48 + 0.6   # BARREL_C / BARREL_DIR: set after _mplace (v3.2, beside the RAMPS power terminal)
 BARREL_BODY_L = 13.0; BARREL_SADDLE_D = 2.0; TIE_W = 2.41 + 0.6; TIE_T = 1.03 + 0.6
 TIE_GAP = BARREL_BODY_W + 6.0
 STAR_TIP_D = 7.73 - 0.35; STAR_ROOT_D = (7.73 - 2 * 2.00) - 0.35; STAR_W = 1.04
@@ -109,6 +109,7 @@ def _mplace(p): return [rot2(p, P['mega_rotation'])[0] + P['mega_offset'][0], ro
 MEGA_BOLT_ROT = [_mplace(p) for p in MEGA_BOLT]
 MEGA_REST_ROT = _mplace(MEGA_REST)
 WIRE = _mplace([29.8, 26.67 + 5.5])   # beside the RAMPS endstop block (KiCad)
+BARREL_C = _mplace([-50.8 - 6.4 - 2 - 13 / 2, -21.0]); BARREL_DIR = (P['mega_rotation'] + 180) % 360
 MEGA_HOLES_ROT = [_mplace(p) for p in MEGA_HOLES]
 JOINT_ACCESS = [P['joint_pts'][i] for i in JOINT_ACCESS_IDX]
 
@@ -219,8 +220,8 @@ def deck_outline():
     pts += circle(WIRE[0], WIRE[1], 5.5, 32)
     for p in JOINT_ACCESS: pts += circle(p[0], p[1], JOINT_ACCESS_R + 3, 32)
     # barrel-cradle lobe: a rectangle around the saddle + tie slots
-    bl, bw = BARREL_BODY_L + 4, TIE_GAP + TIE_T + 5
-    for q in [[-bl/2, -bw/2], [bl/2, -bw/2], [bl/2, bw/2], [-bl/2, bw/2]]:
+    x0, x1, bw = -BARREL_BODY_L / 2 - 2, BARREL_BODY_L / 2, TIE_GAP + TIE_T + 5   # v3.2: deck ends with the body (open saddle)
+    for q in [[x0, -bw/2], [x1, -bw/2], [x1, bw/2], [x0, bw/2]]:
         r = rot2(q, BARREL_DIR); pts.append([BARREL_C[0] + r[0], BARREL_C[1] + r[1]])
     return ccw(hull(pts))
 

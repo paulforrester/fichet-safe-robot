@@ -1,6 +1,6 @@
 # Housing — design decision log
 
-> **Revision 2026-10-12.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
+> **Revision 2026-10-13.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
 
 
 Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
@@ -8,6 +8,58 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `docs/decisions.md` (tube-socket test key geometry) and
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
+
+## 2026-10-13: deck v3.2 — barrel cradle by the RAMPS power terminal, open saddle (revision 2026-10-13.1)
+
+**Paul's report on the printed v3.1 deck** (2026-10-13, with a photo of the
+assembled deck):
+1. Insert test: "the largest hole was the best. It was wide enough to support
+   the insert before being inserted, but small enough that the insert will
+   not slip." (Which coupon: to confirm, see below.)
+2. None of the inserts were really long enough. In practice they aren't
+   needed: the screws aren't torqued, only snugged so the board doesn't
+   rattle. No nylon screws long enough, so Paul used metal screws with a
+   nylon washer at the top and bottom: "good enough".
+3. **The power plug location was a total miss**: its leads to the RAMPS ran
+   through the space the push button occupies. Paul meant it to sit near the
+   RAMPS power connector. Correction: the v3.1 entry read "centred between the
+   corner by the standoff and the start of the Mega" as a place on the deck,
+   never checked where the adapter's leads go, and never asked.
+4. The saddle works, but the plug's tapered end is too gentle a slope to sit
+   flat in a closed pocket: remove the edge nearest the deck edge (a ramp up
+   to the edge would also work, but the taper is hard to measure).
+5. **The access holes to the motor-plate screws work.**
+
+**Built (v3.2):**
+- **Cradle beside the RAMPS power terminal.** The terminal (X4, MSTBA 4-pin)
+  from the RAMPS KiCad file: pads at x 7.2, y -2.0..13.2mm in the Mega frame
+  (from its corner), courtyard to 3.3mm past the board's USB/jack end, wire
+  entries facing out past that end. The adapter lies just beyond that end,
+  along the board's long axis (26 deg in the deck frame), centred on the
+  terminal: its screw-terminal end is 5.1mm from the terminal's wire entries,
+  the socket points straight out. Clear of the USB socket by 15mm, the board
+  outline by 2mm, the button lead path by 81mm. The left-hand lobe that held
+  the v3.1 cradle is gone.
+- **Open saddle.** The deck lobe ends flush with the square body's outer end
+  and the 2mm pocket runs out through that edge, so the taper overhangs
+  freely (Paul's first option; a ramp would need the taper's dimensions).
+  STL checked: pocket open at z = 4, floor solid at z = 2.5, 1mm past the
+  body end is open air.
+- **deck_check** now also checks the adapter-to-terminal gap (<= 15mm) and
+  that the lead path stays clear of the button: the check that would have
+  caught item 3. Its deck outline is sliced at z = 2.5 (below the open
+  pocket).
+
+**Not changed, pending Paul:** the posts and bores (item 1 and 2). If "the
+largest hole" is the coupon Paul measured on 2026-10-12 (drawn 3.8 / 4.0 /
+4.2, read 3.6 / 3.8 / 4.0), the best was drawn 4.2, and the deck's 4.45 may be
+loose for an insert; if it is the later coupon (drawn 4.37 / 4.45 / 4.53), the
+best was 4.53. Since inserts aren't needed, the alternative is plain pilot
+holes for metal M3 screws to self-tap.
+
+**Verified:** deck_check PASS, dial_layout_check ALL PASS,
+dial_interference_check NO INTERFERENCE, stl_freshness_check ALL CURRENT;
+SketchUp script's deck outline equals the STL's (0.0mm2 difference).
 
 ## 2026-10-12: deck v3.1 — Mega on insert posts, every hole cleared (revision 2026-10-12.1)
 

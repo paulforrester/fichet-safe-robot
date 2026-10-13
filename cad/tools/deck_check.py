@@ -79,7 +79,8 @@ def main():
         stl = os.path.join(d, 'deck.stl')
         subprocess.run(['openscad', '-o', stl, PRINT], capture_output=True, text=True, check=True)
         m = trimesh.load(stl)
-    sec = m.section(plane_origin=[0, 0, t - 0.6], plane_normal=[0, 0, 1])
+    # outline slice at 2.5mm: above the 2mm lead groove, below the saddle floor (3mm)
+    sec = m.section(plane_origin=[0, 0, 2.5], plane_normal=[0, 0, 1])
     loops = [Polygon(p[:, :2]) for p in sec.discrete]
     deck = Polygon(max(loops, key=lambda q: q.area).exterior)
 
@@ -160,12 +161,24 @@ def main():
 
     print('\ncradle, button, wire hole vs the deck edge:')
     edge = deck.exterior
-    row('barrel saddle inside the deck (wall to edge)', min(edge.distance(Point(c)) for c in saddle.exterior.coords) if deck.contains(saddle) else -1, 1.5)
+    # v3.2: the saddle is open at its outer end (the deck ends with the square
+    # body, so the adapter's tapered socket end overhangs freely). Its sides and
+    # inner end must still sit >= 1.5mm inside the deck.
+    saddle_in = rect((bc[0] - 1.0*u[0], bc[1] - 1.0*u[1]), bdir, bl - 2.0, bw)
+    row('barrel saddle sides + inner end inside the deck (1 = yes, 1.5mm wall)', 1.0 if deck.buffer(-1.5).contains(saddle_in) else 0.0, 1.0)
     for k, s in enumerate(slots):
         row(f'tie slot {k} inside the deck (wall to edge)', min(edge.distance(Point(c)) for c in s.exterior.coords) if deck.contains(s) else -1, 1.5)
     o = (bc[0] + bl/2*u[0], bc[1] + bl/2*u[1])
-    sock = LineString([(o[0] + 3*u[0], o[1] + 3*u[1]), (o[0] + 23*u[0], o[1] + 23*u[1])])
-    row('socket end overhangs the edge (deck under the socket, mm of overlap = negative)', 0 if not sock.intersects(deck) else -sock.intersection(deck).length, 0)
+    sock = LineString([(o[0] + 0.3*u[0], o[1] + 0.3*u[1]), (o[0] + 23*u[0], o[1] + 23*u[1])])
+    row('saddle open at the outer end: deck under the socket (mm, negative = deck in the way)', 0 if not sock.intersects(deck) else -sock.intersection(deck).length, 0)
+    # the adapter's screw terminals face the RAMPS power terminal: short leads,
+    # nowhere near the button (v3.1 routed them across it)
+    term = Polygon(L['ramps_power_terminal'])
+    ie = Point(bc[0] - bl/2*u[0], bc[1] - bl/2*u[1])
+    gap = ie.distance(term)
+    row('adapter terminal end to the RAMPS power terminal, mm (need <= 15)', 15 - gap, 0, f'   [gap {gap:.1f}mm]')
+    lead = LineString([ie, term.centroid])
+    row('adapter-to-RAMPS lead path to the button nut', lead.distance(top['button nut']), 10.0)
     row('button recess wall to the deck edge', edge.distance(Point(bpt)) - b_rec_d/2, 2.0)
     row('button nut to nearest M6 head', min(Point(bpt).distance(Point(p)) for p in legs) - M6_HEAD_R - BUTTON_NUT_R, 1.0)
     cans = unary_union([affinity.translate(affinity.rotate(box(-NEMA_HALF, -NEMA_HALF, NEMA_HALF, NEMA_HALF), r, origin=(0, 0)), *p)

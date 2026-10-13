@@ -1,6 +1,6 @@
 # Fichet safe robot — build and operating manual
 
-> **Revision 2026-10-12.1** · key driver on the RAMPS E0 socket; UART pigtail replaces the hub board · log: `docs/revisions.md`
+> **Revision 2026-10-13.1** · key driver on the RAMPS E0 socket; UART pigtail replaces the hub board · log: `docs/revisions.md`
 
 For Paul. Covers the robot as of **revision 2026-10-08.2**: dial unit v2, key
 turner v1, wiring with all four drivers on the RAMPS and the UART pigtail
@@ -85,7 +85,7 @@ the print notes in `cad/dial_unit_housing.scad` (end of file) and
 | `dial_motor_sled.stl` | motor sled + 3 deck legs, with the 3 gear inspection windows (rev 2026-10-11.1) | 1 | PETG | inner face (spring pockets, countersinks); legs up |
 | `insert_coupon.stl` | optional: 3 insert posts, drawn 4.37 / 4.45 / 4.53 mm, should print ~4.25 / 4.33 / 4.41 (1 / 2 / 3 notches) (rev 2026-10-12.1) | 1 | PETG | flat base down |
 | `groove_coupon.stl` | **print first**: a 50 mm strip of the button-lead groove | 1 | PETG | groove side down |
-| `electronics_deck.stl` | deck v3.1: 3 M3 insert posts + 1 rest post for the Mega, 3 access holes, button, wire hole, lead groove, barrel cradle (rev 2026-10-12.1) | 1 | PETG | underside (motor side) down, as exported; posts up |
+| `electronics_deck.stl` | deck v3.2: 3 M3 insert posts + 1 rest post for the Mega, 3 access holes, button, wire hole, lead groove, barrel cradle by the RAMPS power terminal (rev 2026-10-13.1) | 1 | PETG | underside (motor side) down, as exported; posts up |
 | `board_spacers.stl` | 9 spacers for between the RAMPS and the Mega: 3 each of 8.4 / 8.8 / 9.2 mm (1 / 2 / 3 notches) | 1 plate | PETG | flat |
 | `dial_drivetrain.stl` | 3 gear-shafts + 3 pinions, one plate | 1 plate | **PETG-CF** | gear face / pinion hub. **Elephant-foot compensation on**, or the bottom layer of the teeth binds |
 | `magnet_retainers.stl` | 10 retainer discs (9 needed) | 1 plate | PETG | flat |
@@ -308,7 +308,7 @@ Tell me if a different order works better, and I'll record it.
 10. **Mega + RAMPS on the posts** (revision 2026-10-12.1). No base plate any
     more: the Mega sits straight on the deck's three insert posts and the
     shorter rest post, its USB/power-jack end pointing right.
-    Map: `docs/photos/deck_v3_1_layout.png`.
+    Map: `docs/photos/deck_v3_2_layout.png`.
     1. With the RAMPS on the Mega as usual, slide a spacer between the boards
        at each of the RAMPS's three mounting holes (by the D8–D10 LEDs, at the
        AUX-4 end and at the power/USB end). Pick the length (8.4 / 8.8 / 9.2,
@@ -337,13 +337,14 @@ Tell me if a different order works better, and I'll record it.
     The UART pigtail's splice (2.5) just zip-ties to the deck.
     - Print the **groove coupon** (`cad/groove_coupon.stl`) first and
       check the two leads press in and stay before committing the whole deck.
-12. **12 V barrel adapter** (revision 2026-10-12.1). Wire the 5.5 × 2.1 mm
-    female DC-jack-to-screw-terminal adapter into the power path (its screw
-    terminals to the lead that goes to the RAMPS "5A" input, at the
-    power/USB end of the board). Sit its square body in the **cradle** at the
-    deck's left edge, beside deck screw C, with the socket end pointing out
-    and up-left over the edge, and hold it down with a small zip tie through
-    the two slots. The PSU plug then pushes in from outside.
+12. **12 V barrel adapter** (revision 2026-10-13.1). Sit the 5.5 × 2.1 mm
+    female DC-jack-to-screw-terminal adapter's square body in the **cradle**
+    just past the board's USB/jack end, right in front of the RAMPS power
+    terminal: its screw terminals face the RAMPS terminal (about 5 mm away),
+    its socket end points out over the deck edge (the cradle is open on that
+    side so the tapered end hangs free). Hold it down with a small zip tie
+    through the two slots, then run two short leads from its terminals to the
+    RAMPS "5A" input. The PSU plug pushes in from outside.
 
 ### 1.5 Key turner
 

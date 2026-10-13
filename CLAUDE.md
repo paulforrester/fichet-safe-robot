@@ -3,16 +3,15 @@
 Context for any Claude session working in this repo. Read this first, then
 the doc that matches your task (table below). Last updated 2026-10-08.
 
-> **Project revision 2026-10-12.1** — all four TMC2209 drivers are on the
+> **Project revision 2026-10-13.1** — all four TMC2209 drivers are on the
 > RAMPS (the key in the **E0** socket); there is no remote driver board or
 > inter-unit signal cable, only the key motor's own cable. The UART junction
 > is a six-lead **UART pigtail** (R1 in the TX2 lead, one splice), not a
 > board (2026-10-08.2). The start/stop button mounts on the electronics deck
 > (2026-10-09.1). The dial unit is **v3** (2026-10-11.1), with the **v3.1 deck**
-> (2026-10-12.1): no Mega base plate; the Mega + RAMPS sit on 3 M3 heat-set
+> (2026-10-12.1), **v3.2** (2026-10-13.1: barrel cradle by the RAMPS power terminal, open saddle): no Mega base plate; the Mega + RAMPS sit on 3 M3 heat-set
 > insert posts (+1 rest post), M3 nylon screws from the top; access holes over
-> all 3 motor-plate joints, clear of the board; lead groove; barrel cradle at
-> the left edge. The motor plate's inspection windows can't be seen through
+> all 3 motor-plate joints, clear of the board (they work, Paul 2026-10-13); lead groove. The motor plate's inspection windows can't be seen through
 > once assembled: inspect the gears from the side. The current
 > revision ID lives in `REVISION`; the log is `docs/revisions.md`. When a
 > design change affects how the robot is built, wired or run, bump `REVISION`,

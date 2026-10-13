@@ -1,6 +1,6 @@
 # Bench bring-up plan
 
-> **Revision 2026-10-12.1** · key driver on the RAMPS E0 socket; UART pigtail · log: `docs/revisions.md`
+> **Revision 2026-10-13.1** · key driver on the RAMPS E0 socket; UART pigtail · log: `docs/revisions.md`
 
 Seven short stages, in order. Each ends with **"Send back"**: the numbers or
 log lines I need to fill in `control/firmware/safe_robot/config.h`.

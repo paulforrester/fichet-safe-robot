@@ -1,6 +1,6 @@
 # Tube-socket test key — dimensional decision log
 
-> **Revision 2026-10-12.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
+> **Revision 2026-10-13.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
 
 
 Working notes on how the test key's dimensions were arrived at, most
