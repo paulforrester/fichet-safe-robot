@@ -1,6 +1,6 @@
 # Project revisions
 
-> **Revision 2026-10-12.1** · this file is the revision log · current ID in `REVISION`
+> **Revision 2026-10-13.1** · this file is the revision log · current ID in `REVISION`
 
 Every project document and drawing carries the project revision it was last
 brought up to date in, so a printed or downloaded copy can be told apart from
@@ -21,6 +21,21 @@ a newer one. The ID is the date plus a sequence number for that day:
   which also names the project revision it was built for.
 
 ## Log (most recent first)
+
+### 2026-10-13.1 — deck v3.2: barrel cradle by the RAMPS power terminal
+
+**Change** (`cad/dial_unit_housing.scad` section 9, `cad/tools/deck_check.py`,
+review model script). From Paul's report on the printed v3.1 deck: the barrel
+adapter moves from the left edge (its leads crossed the button) to just past
+the board's USB/jack end, in front of the RAMPS power terminal (leads ~5 mm);
+its saddle is open at the deck edge so the tapered end hangs free. The start
+button moves from the left edge to the board's lower edge beside its wire hole
+(Paul's idea, from the new board orientation), so the lead groove and its test
+coupon are gone. Insert posts kept, bores drawn 4.45 mm (Paul's insert test:
+~4.25 mm measured). The access holes worked and are unchanged.
+
+**What to do:** reprint the deck (`electronics_deck.stl`). The groove coupon
+is no longer needed.
 
 ### 2026-10-12.1 — electronics deck v3.1: Mega on insert posts, holes cleared
 

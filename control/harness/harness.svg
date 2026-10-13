@@ -227,7 +227,7 @@
 <polygon fill="none" stroke="black" points="1268,-441.5 1268,-464.5 2098,-464.5 2098,-441.5 1268,-441.5"/>
 <text text-anchor="start" x="1580.5" y="-449.3" font-family="arial" font-size="14.00">UART pigtail splice (the bus node)</text>
 <polygon fill="none" stroke="black" points="1268,-418.5 1268,-441.5 2098,-441.5 2098,-418.5 1268,-418.5"/>
-<text text-anchor="start" x="1272" y="-426.3" font-family="arial" font-size="14.00">solder + heat shrink, zip&#45;tied to the deck. R1 1 kΩ sits in line in the TX2 lead (since revision 2026&#45;10&#45;08.2; drawing revision 2026&#45;10&#45;12.1)</text>
+<text text-anchor="start" x="1272" y="-426.3" font-family="arial" font-size="14.00">solder + heat shrink, zip&#45;tied to the deck. R1 1 kΩ sits in line in the TX2 lead (since revision 2026&#45;10&#45;08.2; drawing revision 2026&#45;10&#45;13.1)</text>
 </g>
 <!-- RX_X -->
 <g id="node5" class="node">

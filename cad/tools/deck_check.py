@@ -71,7 +71,6 @@ def main():
     bolts = L['mega_bolt_pts_rot']; holes_all = L['mega_hole_pts_rot']
     (bpt, b_hole, b_rec_d, b_rec_h), (wpt, w_d, w_lobe) = L['button'], L['wire_hole']
     bc, bdir, bl, bw, tgap, tw, tt = L['barrel']
-    gfrom, gto, gw, gdepth = L['groove']
     t = L['deck_thickness']
 
     # ---- the rendered deck (authoritative outline) ----
@@ -79,7 +78,8 @@ def main():
         stl = os.path.join(d, 'deck.stl')
         subprocess.run(['openscad', '-o', stl, PRINT], capture_output=True, text=True, check=True)
         m = trimesh.load(stl)
-    sec = m.section(plane_origin=[0, 0, t - 0.6], plane_normal=[0, 0, 1])
+    # outline slice at 2.5mm: below the barrel saddle's floor (3mm), which is open at the edge
+    sec = m.section(plane_origin=[0, 0, 2.5], plane_normal=[0, 0, 1])
     loops = [Polygon(p[:, :2]) for p in sec.discrete]
     deck = Polygon(max(loops, key=lambda q: q.area).exterior)
 
@@ -101,7 +101,6 @@ def main():
     top['button nut'] = Point(bpt).buffer(BUTTON_NUT_R, 64)
     top['wire hole'] = Point(wpt).buffer(w_d/2, 64)
 
-    groove = LineString([gfrom, gto]).buffer(gw/2, 32)
     under = {}    # things on / cut into the underside
     for n, p in zip('ABC', legs):
         under[f'deck leg {n}'] = Point(p).buffer(LEG_R, 64)
@@ -113,8 +112,7 @@ def main():
         under[f'tie slot {k}'] = s
     under['button recess'] = Point(bpt).buffer(b_rec_d/2, 64)
     under['wire hole'] = Point(wpt).buffer(w_d/2, 64)
-    under['lead groove'] = groove
-    joined = {frozenset(('lead groove', 'button recess')), frozenset(('lead groove', 'wire hole'))}  # by design
+    joined = set()
 
     print('every pair of features on the TOP face (gap between edges):')
     worst = sorted((a[1].distance(b[1]), a[0], b[0]) for a, b in itertools.combinations(top.items(), 2))
@@ -133,7 +131,7 @@ def main():
     for dd, a, b in worst[6:]:
         if dd < 1.5:
             row(f'{a} <-> {b}', dd, 1.5)
-    print(f'  ({len(worst)} pairs, the 6 closest shown; groove joins the button recess and wire hole by design)')
+    print(f'  ({len(worst)} pairs, the 6 closest shown)')
 
     print('\nthe board (Mega + RAMPS outline + USB/jack) vs what must be reached from above:')
     for i in acc_idx:
@@ -160,19 +158,35 @@ def main():
 
     print('\ncradle, button, wire hole vs the deck edge:')
     edge = deck.exterior
-    row('barrel saddle inside the deck (wall to edge)', min(edge.distance(Point(c)) for c in saddle.exterior.coords) if deck.contains(saddle) else -1, 1.5)
+    # v3.2: the saddle is open at its outer end (the deck ends with the square
+    # body, so the adapter's tapered socket end overhangs freely). Its sides and
+    # inner end must still sit >= 1.5mm inside the deck.
+    saddle_in = rect((bc[0] - 1.0*u[0], bc[1] - 1.0*u[1]), bdir, bl - 2.0, bw)
+    row('barrel saddle sides + inner end inside the deck (1 = yes, 1.5mm wall)', 1.0 if deck.buffer(-1.5).contains(saddle_in) else 0.0, 1.0)
     for k, s in enumerate(slots):
         row(f'tie slot {k} inside the deck (wall to edge)', min(edge.distance(Point(c)) for c in s.exterior.coords) if deck.contains(s) else -1, 1.5)
     o = (bc[0] + bl/2*u[0], bc[1] + bl/2*u[1])
-    sock = LineString([(o[0] + 3*u[0], o[1] + 3*u[1]), (o[0] + 23*u[0], o[1] + 23*u[1])])
-    row('socket end overhangs the edge (deck under the socket, mm of overlap = negative)', 0 if not sock.intersects(deck) else -sock.intersection(deck).length, 0)
+    sock = LineString([(o[0] + 0.3*u[0], o[1] + 0.3*u[1]), (o[0] + 23*u[0], o[1] + 23*u[1])])
+    row('saddle open at the outer end: deck under the socket (mm, negative = deck in the way)', 0 if not sock.intersects(deck) else -sock.intersection(deck).length, 0)
+    # the adapter's screw terminals face the RAMPS power terminal: short leads,
+    # nowhere near the button (v3.1 routed them across it)
+    term = Polygon(L['ramps_power_terminal'])
+    ie = Point(bc[0] - bl/2*u[0], bc[1] - bl/2*u[1])
+    gap = ie.distance(term)
+    row('adapter terminal end to the RAMPS power terminal, mm (need <= 15)', 15 - gap, 0, f'   [gap {gap:.1f}mm]')
+    lead = LineString([ie, term.centroid])
+    row('adapter-to-RAMPS lead path to the button nut', lead.distance(top['button nut']), 10.0)
     row('button recess wall to the deck edge', edge.distance(Point(bpt)) - b_rec_d/2, 2.0)
     row('button nut to nearest M6 head', min(Point(bpt).distance(Point(p)) for p in legs) - M6_HEAD_R - BUTTON_NUT_R, 1.0)
     cans = unary_union([affinity.translate(affinity.rotate(box(-NEMA_HALF, -NEMA_HALF, NEMA_HALF, NEMA_HALF), r, origin=(0, 0)), *p)
                         for p, r in zip(L['motor_pts'], L['motor_rot'])])
     row('button body (below the deck) to the motor cans, plan view', cans.distance(Point(bpt)) - BUTTON_BODY_R, 3.0)
     row('wire hole wall to the deck edge', edge.distance(Point(wpt)) - w_d/2, 2.0)
-    row('lead groove to the deck edge', edge.distance(groove) if deck.contains(groove) else -1, 1.5)
+    # v3.2: no groove; the button sits beside the wire hole so its leads only
+    # cross a few mm of deck underside (Paul, 2026-10-13)
+    run = Point(bpt).distance(Point(wpt)) - b_rec_d/2 - w_d/2
+    row('button recess to wire hole, deck the leads cross (mm, need <= 6)', 6 - run, 0, f'   [{run:.1f}mm]')
+    row('button nut to the board outline (finger room)', board.distance(top['button nut']), 6.0)
 
     print('\nrendered STL:')
     nb = len(m.split(only_watertight=False))
@@ -190,8 +204,7 @@ def main():
     for k, p in enumerate(bolts):
         row(f'insert bore {k} at the post top (found = 1)', 1.0 if found(ztop, p, ins_d) else 0.0, 1.0)
         row(f'post bore {k} is blind: no hole at z=0.5 (1 = blind)', 0.0 if found(0.5, p, clr_d) else 1.0, 1.0)
-    # the groove (2mm deep) joins the button recess and the wire hole by design, so
-    # slice the recess at 2.3 (above the groove, below its 2.5 floor) and the holes near the top
+    # slice the recess at 2.3 (inside its 2.5mm depth) and the holes near the top
     row('button recess at z=2.3 (found = 1)', 1.0 if found(2.3, bpt, b_rec_d, 0.2) else 0.0, 1.0)
     row('button hole at z=3.8 (found = 1)', 1.0 if found(3.8, bpt, b_hole, 0.2) else 0.0, 1.0)
     row('wire hole at z=3.8 (found = 1)', 1.0 if found(3.8, wpt, w_d, 0.2) else 0.0, 1.0)
