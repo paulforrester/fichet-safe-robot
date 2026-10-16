@@ -279,15 +279,23 @@ turner is not needed yet. 12 V on. `set axes 7`.
    key. A clear difference would suggest the key changes what the dials
    drive (`control/sequence.md`, "Does a combination dialled with the key
    already in count?"). The same numbers are only weak reassurance.
-7. **Position 20 and the stop.** `goto 20 20 20`, then `goto 19 19 19`.
+7. **Position 20, and does anything add up over full turns?** (Paul's
+   question, 2026-10-16: is there an error per step?)
+   a. `calibrate`, then `home A`, `home B`, `home C`. Note each `HOME` pass 1:
+      that's the reference.
+   b. Five times: `goto 20 20 20`, then `goto 1 1 1`. Each dial turns 19
+      clicks out and back, 5 times.
+   c. `home A`, `home B`, `home C` again. Each pass 1 should match (a) within
+      ~2 full steps. 4 or more means steps were lost along the way.
    Dial C's first click is ~18.5 full steps from its stop, so its position 20
    (19 clicks on) is only ~1.5 full steps (~1.4° of dial) short of one full
    turn from the stop, where the stop catches again when the dial turns back.
-   Does the second `goto` end with `# dials at 19 19 19`, or with `JAM`?
+   Does every `goto 1 1 1` end with `# dials at 1 1 1`, or with `JAM`?
 
 **Send back**: the `HOME` lines from 4 (v0.5); for 5, which gears moved and
 how far; for 6, both runs' `CAL` and `OFFSET` lines, labelled "key out" and
-"key in"; for 7, the last line of each `goto`.
+"key in"; for 7, the `HOME` lines from a and c and any `goto` that didn't end
+with `# dials at …`.
 
 ---
 
@@ -382,4 +390,4 @@ measured spread and start the real run with `resume`.
 | Magnets holding under real loads | 5, 6 |
 | The firmware notices a driver reset (GSTAT check, v0.3) | 6 |
 | Dial current | 600 mA (2026-10-14: at 1 A homing failed its repeat check). The dial torque itself is still not measured |
-| Dial position 20 clear of the stop on the way back (C's first click is ~18.5 full steps out) | 4b.7 |
+| Dial position 20 clear of the stop on the way back (C's first click is ~18.5 full steps out); no steps lost over full turns | 4b.7 |
