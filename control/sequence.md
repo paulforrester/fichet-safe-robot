@@ -264,6 +264,17 @@ Decisions made while writing the firmware, on top of the sequence above:
 - **Homing (step 4)** runs twice per dial (stall, back off 2 positions, stall
   again); the two must agree. Before homing, the key is homed, then the slow
   1/8-turn seat runs.
+- **Settle after homing (v0.5, 2026-10-16, Paul's decision)**: once the dials
+  are homed, their drivers switch off for 0.5 s and on again, so each dial
+  falls into its nearest click. On the door, dial B's drive gives a little
+  under the homing push and relaxes when its motor lets go, and B's clicks
+  don't show in StallGuard, so its position 1 is a fixed offset that may sit
+  off its click (bring-up 4b, 2026-10-14). Switching on again pulls a motor
+  to its nearest holding point, one every 4 full steps (TMC2209 DS §3.6.1),
+  so a dial ends within 2 full steps (1.8° of dial) of its click. Its step
+  count may then be off by 4 or 8 full steps; moves are relative, so that
+  only shows at the next re-check, as a home discrepancy
+  (`control/firmware/README.md`, v0.5).
 - **N (step 5)** is the median of 3 tries. It is learned at the most recent
   attempt that was a clean fail — never at a possible false set. On a fresh
   run it's learned at the first two combinations, keeping the lower.
@@ -271,8 +282,8 @@ Decisions made while writing the firmware, on top of the sequence above:
   success ≥ N + 10°, "early" < N − 8°. All are config values, to be set from
   the measured spread. The raw angle is always logged.
 - **Re-check every 200 attempts**: re-home the dials (the stall must come
-  where the step count says) and re-learn N. On a mismatch (a unit slipped),
-  stop and rewind to the last good re-check.
+  where the step count says), let them settle again, and re-learn N. On a
+  mismatch (a unit slipped), stop and rewind to the last good re-check.
 - **Resume after power loss** (or a re-seat): progress lives in EEPROM. A
   resume redoes the whole session start and restarts from the last good
   re-check (≤ 200 attempts redone). A pause re-checks first, so it loses

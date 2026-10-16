@@ -83,4 +83,6 @@ HEIGHT (radial), DEPTH (axial into the socket) — see
 - Wiring harness designed (`control/wiring.md`; **revision 2026-10-08.1**:
   all four drivers on the RAMPS, the key in the E0 socket, no remote board
   or signal cable); firmware written and host-tested (`control/firmware/`,
-  v0.4); next: the bench bring-up (`control/bringup.md`).
+  v0.5, 2026-10-16: dials settle into their clicks after homing, dial current
+  600 mA); bench bring-up under way, on the door at stage 4b
+  (`control/bringup.md`).

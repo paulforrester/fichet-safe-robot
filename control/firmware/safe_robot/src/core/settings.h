@@ -40,6 +40,8 @@ struct Settings {
   uint16_t homeRepeatTolFull;  // pass 2 must stall within backoff +/- this
   int16_t homeOffsetFull[3];   // stall point -> position 1, full steps away from the stop
   uint16_t dialApproachFull;   // >0: approach every target from the home side (anti-backlash)
+  uint16_t settleMs;           // after homing: dial drivers off this long so each dial falls into its click; 0 = no
+  uint16_t settleOnMs;         // then still this long after switching them back on
   // Key
   uint8_t keyHome;             // KeyHomeMode
   uint16_t keyHomeSearchDeg;   // session start: CCW bound to find the rest stop

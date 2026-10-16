@@ -1,9 +1,54 @@
 # Firmware — Fichet safe robot (Mega 2560 + RAMPS 1.4 + 4 × TMC2209)
 
-> **Revision 2026-10-13.1** · key driver on the RAMPS E0 socket; firmware v0.4 (unchanged by 2026-10-08.2) · log: `../../docs/revisions.md`
+> **Revision 2026-10-13.1** · key driver on the RAMPS E0 socket; firmware v0.5 (2026-10-16: settle after homing, dials 600 mA) · log: `../../docs/revisions.md`
 
 Implements the sequence in `control/sequence.md` on the pin map in
 `control/wiring.md`. Bring it up on the bench with `control/bringup.md`.
+
+## v0.5 (2026-10-16): dials settle after homing; dial current 600 mA
+
+From the door tests, bring-up stage 4b (Paul, 2026-10-14 and 2026-10-16):
+- **Settle after homing (Paul's decision).** Homing pushes each dial against
+  its stop. On the door, dial B's stop seemed to move each time B was homed
+  again straight after a home (pass 2 at 47–49 full steps instead of 40), and
+  B turned back ~29 full steps when an error switched the motors off: its
+  drive gives a little under the push and relaxes when the motor lets go.
+  B's clicks also don't show in its StallGuard ripple, so its position 1 is
+  the config offset, which can be up to half a click from its real click. So
+  once the dials are homed (session start, every re-check, `calibrate`,
+  `home`), their drivers are switched off for 0.5 s, so each dial falls into
+  its nearest click, then on again (`EV,…,SETTLED,<dials>`, 1 = A, 2 = B,
+  4 = C). The next home starts from a relaxed drive, like the first homes
+  on the door, which were always good.
+- **What switching back on does** (TMC2209 DS §3.6.1): a motor pulls back
+  into the same step if it moved less than ±2 full steps, else into the
+  nearest of its holding points, one every 4 full steps. So a dial that fell
+  less than 2 full steps (A and C, whose clicks are found) is pulled back
+  where it was. One that fell further ends within 2 full steps (1.8° of
+  dial) of its click, with its step count off by 4 or 8 full steps. Moves
+  are relative, so every later position sits the same way on its click; the
+  offset only shows at the next re-check, as a home discrepancy. A fall of
+  up to 6 full steps leaves ≤ 4, inside the 8 allowed
+  (`CFG_RECHECK_HOME_TOL_FULL`). A fall of 7–10 full steps (a click that far
+  clockwise of the config offset) leaves 8, the whole margin: the first
+  re-check then stops the run, rewound, and prints the offset that fixes it:
+  ``# dial B is on its config offset: if nothing moved, `set offB 18` (and in
+  config.h), then `resume` ``.
+- **Simulated sweep** of dial B's click over one whole click (20 phases), on
+  the config offset, with a run through two re-checks: without the settle, B
+  sits between clicks for 11 of the 20 (a run that could never open the
+  lock); with it, B is on its click for all 20; 16 run through, and the
+  other 4 stop at the first re-check with that hint.
+- **Dial current 600 mA** (`CFG_DIAL_RUN_MA`, was 1000): at 1 A the door
+  homing failed its repeat check; at 600 mA all three dials seated,
+  calibrated and homed. No more `set maA 600` after every reset.
+- `goto` before every dial is homed now says which aren't (`# goto: not
+  homed: A B. ...`). Any error switches every motor off and un-homes every
+  dial, which is why `goto 5 5 5` was refused on 2026-10-14.
+- New settings `settlems` (0 = no settle) and `settleonms`; `cfg` prints them
+  on the `CFG,home` line. New HAL call `delayMs()`.
+- Verified: host tests 57/57, logger tests 3/3, AVR build 53.5 KB flash.
+  Not run on hardware.
 
 ## v0.4 (2026-10-08, project revision 2026-10-08.1): key driver on RAMPS E0
 
@@ -34,6 +79,8 @@ The key's TMC2209 moved from a remote board at the key turner to the RAMPS
    - **calibrate each dial** with one free clockwise turn;
    - home each dial anticlockwise on its stop, in two passes that must agree,
      and park it on its first click;
+   - **settle**: switch the dial drivers off for 0.5 s so each dial drops
+     into its click, then on again (v0.5);
    - learn the key's stop angle **N** (3 tries, median, spread checked).
 2. **Attempt loop** over the 8,000 combinations in serpentine order: each
    attempt moves **one dial by one position**, never wraps a dial, turns the
@@ -41,7 +88,8 @@ The key's TMC2209 moved from a remote board at the key turner to the RAMPS
    attempt (clean / false set / success / early), retracts the key to its
    rest stop, and saves progress to EEPROM.
 3. **Every 200 attempts, a re-check**: re-home every dial (the home must be
-   where the step count says it is) and re-learn N at the last clean fail.
+   where the step count says it is), settle them again, and re-learn N at the
+   last clean fail.
    If anything moved, it stops, **rewinds to the last good re-check**, and
    asks for a re-seat.
 4. **Success** (key gets ≥ N + 10°): stops, holds the key where it got to, and
@@ -260,14 +308,14 @@ a move must stop with `DRVFAULT`).
 | `!` | abort the current move at once, drivers off |
 | `release` | all drivers off (also lets go of the key after a success) |
 | `reset yes` | erase stored progress |
-| `calibrate` | key (from its start position) + seat + one free turn per dial + homing; prints `CAL`/`OFFSET`, saves to EEPROM |
-| `seat`, `home [A\|B\|C]`, `learn` | bench: run one part of the session start |
-| `goto a b c` | bench: dials to positions (1–20) after `home` |
+| `calibrate` | key (from its start position) + seat + one free turn per dial + homing + settle; prints `CAL`/`OFFSET`, saves to EEPROM |
+| `seat`, `home [A\|B\|C]`, `learn` | bench: run one part of the session start (`home` ends with a settle of the dials it homed) |
+| `goto a b c` | bench: dials to positions (1–20) after `home` (says which dials aren't homed) |
 | `try` | bench: one key attempt at the current dial setting |
 | `key <deg>` | bench: turn the key clockwise up to `deg` (stops on stall), then back |
 | `jog <A\|B\|C\|K> <fullsteps>` | bench: bounded move (±800 full steps), stops on stall |
 | `sg <A\|B\|C\|K> <fullsteps>` | bench: like jog, printing `SG,axis,fullstep,value` samples |
-| `set <name> <value>` | bench, RAM only: `sgA..sgK`, `maA..maK`, `rps100A..K` (speed × 100), `invA..K`, `offA..C`, `keyhome`, `margin`, `success`, `clean`, `early` (0.1°), `recheck`, `seatma`, `seatrps100`, `sgmin100`, `autocal`, `detentcal`, `calpct` |
+| `set <name> <value>` | bench, RAM only: `sgA..sgK`, `maA..maK`, `rps100A..K` (speed × 100), `invA..K`, `offA..C`, `keyhome`, `margin`, `success`, `clean`, `early` (0.1°), `recheck`, `seatma`, `seatrps100`, `sgmin100`, `autocal`, `detentcal`, `calpct`, `settlems` (0 = no settle), `settleonms` |
 
 The button: pauses a running session; when idle, resumes a stored run or
 starts a new one.
@@ -283,6 +331,9 @@ CAL,ms,axis,baseline,sgthrs,amp,resid,clicksTrusted    OFFSET,ms,dial,offsetFull
 GSTAT,ms,axis,gstat,when     a driver reset or fault, just before ERR DRVFAULT (see "Driver resets")
 EV,ms,name,detail    ERR,ms,code,text    DRV,...    CFG,...    SG,...    # human text
 ```
+
+`EV,…,SETTLED,<dials>`: the settle after homing (v0.5); `dials` adds up
+1 = A, 2 = B, 4 = C.
 
 `GSTAT`: `gstat` is hex: 1 = the driver reset, 2 = drv_err (overtemperature
 or short), 4 = uv_cp (12 V too low), 80 = no answer; flags add up. `when` is
@@ -302,7 +353,7 @@ The first is live mode (type commands in it); the second re-analyses a run.
 
 ## Verified here (cloud session, no hardware)
 
-- **Host tests**: `make -C control/firmware/test` — 53 tests, ~36,500 checks,
+- **Host tests**: `make -C control/firmware/test` — 57 tests, ~36,500 checks,
   0 failures. Built with `-Wall -Wextra -Werror` (g++ 13 and clang 18) and
   also run under AddressSanitizer + UBSan. They cover:
   - the serpentine order: a bijection, and each step moves one dial by one
@@ -333,6 +384,15 @@ The first is live mode (type commands in it); the second re-analyses a run.
     fixed config offset would miss them); no visible ripple → config
     fallback; readings too low → error; `calibrate` → stored → used after a
     power cycle; numbering kept stable across sessions;
+  - the settle (v0.5): it comes after the last homing and before learning N,
+    and leaves the drivers on; dials on the config offset, clicks anywhere,
+    end on their clicks (with a control: no settle, between clicks); a
+    settle that shifts a count by 4 full steps passes the re-check; one that
+    shifts it by 8 stops at the first re-check with the offset hint, and that
+    offset then runs through; `home B` settles only B; `settlems 0` turns it
+    off. The simulator lets a dial fall into its click when its driver is
+    off and pulls the motor to its nearest 4-full-step holding point when it
+    comes back on (DS §3.6.1);
   - the simulator also polices the firmware: no dial moves with the key out,
     every move bounded and with a timeout, never a move on a disabled driver,
     never a move on a driver that has reset, never pressing into a stop with
@@ -343,10 +403,11 @@ The first is live mode (type commands in it); the second re-analyses a run.
   every attempt.
 - **AVR build**: compiles for the ATmega2560 with avr-gcc 7.3 + Arduino AVR
   core 1.8.6 + TMCStepper 0.7.3 (Ubuntu packages; the Arduino download
-  servers are blocked here): 52.1 KB flash (19.9 %), 1.4 KB static RAM
-  (16.6 %), no warnings from this code (v0.4, 2026-10-08).
+  servers are blocked here): 53.5 KB flash (20.4 %), 1.4 KB static RAM
+  (16.7 %), no warnings from this code (v0.5, 2026-10-16).
 
-**Not verified**: anything on hardware. The simulator's lock is my model of
+**Not verified**: anything on hardware beyond bring-up stages 1–4b (v0.4,
+2026-10-10 to 14); v0.5 hasn't run on hardware yet. The simulator's lock is my model of
 the description in `control/sequence.md` and Paul's checks, not the real lock;
 in particular its StallGuard click ripple is an assumption. Motor
 directions, how SG_RESULT really looks on these dials, the 50 % threshold

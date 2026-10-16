@@ -41,7 +41,7 @@ Wiring is in `control/wiring.md`; firmware commands in
    board "Arduino Mega or Mega 2560", **Verify**, then **Upload** with only
    USB connected (RAMPS may be on or off the Mega).
 2. Start the logger and type `status`. You should see
-   `# Fichet safe robot 0.4 (2026-10-08, rev 2026-10-08.1) - type help` and `# state=IDLE run=0 next=0 ...`.
+   `# Fichet safe robot 0.5 (2026-10-16, rev 2026-10-13.1) - type help` and `# state=IDLE run=0 next=0 ...`.
 3. **RAMPS jumpers** (under the sockets): X none; Y **MS1** only; Z **MS2**
    only; **E0 MS1 + MS2** (the key, address 3); E1 none; **no MS3 jumper
    anywhere**. (Correction, 2026-10-09: E0 was missing from this step.)
@@ -156,7 +156,7 @@ sits clearly between running free and stalling. It follows the datasheet's
 own procedure (§11.2): watch SG_RESULT running free, then while braking the
 shaft by hand.
 
-1. `set maA 1000` (the dial current), `set sgA 0` (no stopping).
+1. `set maA 600` (the dial current; 1000 until 2026-10-14), `set sgA 0` (no stopping).
 2. `sg A 800`. The logger prints `SG,A,<step>,<value>` lines while the motor
    runs free. Note the typical and the lowest value.
 3. `sg A 800` again. This time pinch the tape flag (or the shaft through a
@@ -227,25 +227,75 @@ turner is not needed yet. 12 V on. `set axes 7`.
 3. **Calibrate**: `calibrate`. For each dial, it makes one free clockwise
    turn and prints `CAL,…,A,<baseline>,<threshold>,<ripple>,<noise>,<clicks
    found 1/0>`. Then it homes (two `HOME` lines; pass 2 should read about
-   **40**) and prints `OFFSET,…,A,<position 1 in full steps>,1`.
+   **40**) and prints `OFFSET,…,A,<position 1 in full steps>,1`. From
+   firmware v0.5 it ends by switching the dial drivers off for half a second
+   and on again (`EV,…,SETTLED,7`), so each dial falls into its click.
    - `stalled on its free calibration turn`: `set sgA 0` (and B, C), then
      retry.
    - `clicks not clear`: send me the log; it falls back to a fixed offset.
+
+   **Result (Paul, 2026-10-14):** at 1000 mA the homing failed its repeat
+   check (`HOMEREP`). At 600 mA (`set maA 600`, `maB`, `maC`) seat,
+   calibration and homing passed on all three dials: `CAL` A 216/54/29/6/1,
+   B 242/61/16/9/0, C 257/64/11/5/1 (baseline/threshold/ripple/noise/clicks);
+   pass 2 41, 41, 40; position 1 at 14.3 (A) and 18.3 (C) full steps from
+   the clicks. **Dial B's clicks don't show** (ripple 16 against noise 9,
+   the same at a second calibrate), so B uses the config offset, 10 full
+   steps. So `CFG_DIAL_RUN_MA` = **600** (firmware v0.5; before it, `set maA
+   600` etc. after every reset).
 4. **Home repeatability**: `home A` 5 times, then B and C. Pass 2 should stay
    near 40 each time.
-5. **Parked on a click?** `goto 5 5 5`, then `release` (motors off). Watch and
-   listen: does any dial **snap** to a click when released? Sitting still
-   means it was parked on its click.
+
+   **Result (Paul, 2026-10-14, at 600 mA):** A: pass 2 41–42, position 1
+   14.3–15.9. C: 40–41, 17.4–18.7. **B: 40–41 whenever it was the first home
+   after a seat or after the motors had been off; homed again straight after
+   a home, 47, 47, 48, 49** (two `HOMEREP`). Over three homes in a row B's
+   stop seemed to move 32 full steps anticlockwise, which a fixed stop can't,
+   and when an error switched the motors off, B's next first pass ran 29 full
+   steps from where it had stopped. Something in B's drive gives under the
+   homing push and relaxes when the motor lets go. B's gear moves ≤ 5° (Paul,
+   2026-10-16).
+   **Decision (Paul, 2026-10-16):** not worth chasing: homing is once per
+   session. End it by switching the dial drivers off so the dials settle into
+   their clicks (firmware v0.5: after every homing, at session start, each
+   re-check, `calibrate` and `home`). Each later home then starts from a
+   relaxed drive, like the good first homes above.
+   **Re-check with v0.5:** `calibrate`, then `home B` 3 times. Pass 2 should
+   now stay near 40 every time.
+5. **The settle.** Watch the three big gears at the end of `calibrate`, when
+   `EV,…,SETTLED,7` prints. Does any of them turn as its motor lets go, and
+   how far? A and C should hardly move (their position 1 comes from their
+   clicks). If B turns more than ~5° (a quarter of a click), say which way:
+   its config offset (`CFG_HOME_OFFSET_B`) then moves to its click. Otherwise
+   the first re-check of a run would stop with `RECHECK` and print the
+   offset to use (firmware README, v0.5).
+   (The earlier version of this step, `goto 5 5 5` then `release`, was
+   refused on 2026-10-14: B's `HOMEREP` had switched every motor off, which
+   un-homes every dial, and only C was homed again. v0.5 says which dials
+   aren't homed.)
 6. **Key out vs. key in.** `release`, take the real key out, then
    `calibrate`. Put the key back in at its start, then `calibrate` again.
    This compares the dials' load and click pattern with and without the
    key. A clear difference would suggest the key changes what the dials
    drive (`control/sequence.md`, "Does a combination dialled with the key
    already in count?"). The same numbers are only weak reassurance.
+7. **Position 20, and does anything add up over full turns?** (Paul's
+   question, 2026-10-16: is there an error per step?)
+   a. `calibrate`, then `home A`, `home B`, `home C`. Note each `HOME` pass 1:
+      that's the reference.
+   b. Five times: `goto 20 20 20`, then `goto 1 1 1`. Each dial turns 19
+      clicks out and back, 5 times.
+   c. `home A`, `home B`, `home C` again. Each pass 1 should match (a) within
+      ~2 full steps. 4 or more means steps were lost along the way.
+   Dial C's first click is ~18.5 full steps from its stop, so its position 20
+   (19 clicks on) is only ~1.5 full steps (~1.4° of dial) short of one full
+   turn from the stop, where the stop catches again when the dial turns back.
+   Does every `goto 1 1 1` end with `# dials at 1 1 1`, or with `JAM`?
 
-**Send back**: directions; seated yes/no per dial; the raw log
-(CAL / HOME / OFFSET lines); for 4b.5, which dials snapped, if any; for
-4b.6, both runs' CAL and OFFSET lines, labelled "key out" and "key in".
+**Send back**: the `HOME` lines from 4 (v0.5); for 5, which gears moved and
+how far; for 6, both runs' `CAL` and `OFFSET` lines, labelled "key out" and
+"key in"; for 7, the `HOME` lines from a and c and any `goto` that didn't end
+with `# dials at …`.
 
 ---
 
@@ -333,10 +383,11 @@ measured spread and start the real run with `resume`.
 | Does a combination dialled with the key in count? | weak hint from 4b.6; the real test is the first full run |
 | Motor direction ↔ dial direction | 4b |
 | Plug seating (seat routine angle and speed) | 4b |
-| Position 1 relative to the stop — now found from the clicks; parked-on-click check | 4b |
+| Position 1 relative to the stop: found from the clicks (A, C, 2026-10-14); B from the config offset, then settled into its click (v0.5) | 4b.5 |
 | Key motor direction | 5 (rest stop answered 2026-10-06: none anticlockwise of the start → `keyhome` 0) |
 | Key current (2 × minimum) | 5 |
 | Key stop angle N and its spread (classification bands) | 5, 6 |
 | Magnets holding under real loads | 5, 6 |
 | The firmware notices a driver reset (GSTAT check, v0.3) | 6 |
-| Dial torque (dial current, still 1 A) | not measured directly: if homing works at 1 A with margin, keep it; we can try 0.8 A in stage 4 |
+| Dial current | 600 mA (2026-10-14: at 1 A homing failed its repeat check). The dial torque itself is still not measured |
+| Dial position 20 clear of the stop on the way back (C's first click is ~18.5 full steps out); no steps lost over full turns | 4b.7 |

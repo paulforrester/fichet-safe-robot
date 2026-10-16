@@ -85,6 +85,7 @@ class Hal {
   virtual void enable(Axis ax, bool on) = 0;
   virtual MoveResult move(const MoveRequest& r) = 0;  // blocking, bounded
   virtual uint32_t millis() = 0;
+  virtual void delayMs(uint32_t ms) = 0;              // wait, motors as they are
   virtual void emit(const char* line) = 0;            // one log line, no newline
   // Persistent bytes (EEPROM on the Mega).
   virtual uint8_t storeRead(uint16_t addr) = 0;

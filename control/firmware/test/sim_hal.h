@@ -14,6 +14,12 @@
 //    elastically up to 2 full steps of lag; pushed further into a stop it
 //    slips a pole (falls back 4 full steps = one electrical cycle), as a
 //    real stepper does at the stop when nothing stops it (e.g. the slow seat).
+//  - settle: with its driver switched off long enough (clickPullMs), an
+//    engaged dial falls into its nearest click (never past its stop), turning
+//    its unpowered motor. Switched on again, the motor pulls to its nearest
+//    holding point, one every 4 full steps (DS §3.6.1): a fall under 2 full
+//    steps is undone, a bigger one ends within 2 full steps of the click with
+//    the rotor a whole number of 4-full-step cycles from where it was.
 //  - drivers: GSTAT.reset is set at power-on and cleared by configure(). A
 //    driver reset (its supply dropping out, injected by a test) sets it
 //    again and loses the configured StallGuard threshold, so DIAG never
@@ -72,6 +78,10 @@ struct SimHal : public core::Hal {
   int32_t keyOff = 0;              // key rotor offset from its field (pole slips)
   static const int32_t kSlip = 32; // 2 full steps: beyond this the rotor slips a pole
   bool enabled[4] = {false, false, false, false};
+  bool clickPull = true;           // false: a dial stays put with its driver off
+  uint32_t clickPullMs = 50;       // off this long for a click to pull its dial in
+  uint32_t offSince[4] = {0, 0, 0, 0};
+  int falls = 0;                   // settles that moved a dial
   uint8_t sgthrs[4] = {0, 0, 0, 0};  // as last configured
   uint32_t now = 0;
   int moveCount = 0;
@@ -158,8 +168,15 @@ struct SimHal : public core::Hal {
     if (!present[ax]) return core::GSTAT_NO_REPLY;
     return resetHidden ? (uint8_t)(gstatFlags[ax] & ~core::GSTAT_RESET) : gstatFlags[ax];
   }
-  void enable(core::Axis ax, bool on) override { enabled[ax] = on; }
+  void enable(core::Axis ax, bool on) override {
+    if (ax < 3) {
+      if (!on && enabled[ax]) offSince[ax] = now;
+      if (on && !enabled[ax] && clickPull && dial[ax].engaged && now - offSince[ax] >= clickPullMs) fallIntoClick(ax);
+    }
+    enabled[ax] = on;
+  }
   uint32_t millis() override { return now; }
+  void delayMs(uint32_t ms) override { now += ms; }
   void emit(const char* line) override {
     lines.push_back(line);
     if (echo) std::printf("    | %s\n", line);
@@ -250,6 +267,20 @@ struct SimHal : public core::Hal {
     res.sgMin = r.sampleSG ? sgMin : 0xFFFF;
     now += (uint32_t)(1000.0f * std::abs(res.stepsDone) / r.maxSps) + 5;
     return res;
+  }
+
+  // Driver off, then on again: see "settle" at the top.
+  void fallIntoClick(int d) {
+    Dial& dl = dial[d];
+    const int32_t w = wheel(d);
+    const int32_t k = (int32_t)std::lround((double)(w - detentPhase[d]) / usPerPos);
+    int32_t c = detentPhase[d] + k * usPerPos;  // nearest click
+    if (dialHasStop[d] && c < 0) c = 0;           // can't fall past the stop: rests on it
+    const int32_t fall = c - w;                   // the rotor turns with the wheel
+    int32_t r = ((fall % 64) + 64) % 64;          // back on: nearest holding point,
+    if (r >= 32) r -= 64;                         //   whole 64-ustep cycles from before
+    dl.off -= fall - r;
+    if (fall - r != 0) ++falls;
   }
 
   // ---- helpers for tests
