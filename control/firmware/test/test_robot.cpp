@@ -569,11 +569,129 @@ TEST(clicks_anywhere_relative_to_the_stop_are_found) {
   h2.detentPhase[0] = 40; h2.detentPhase[1] = 200; h2.detentPhase[2] = 300;
   Settings s2 = tunedSettings();
   s2.detentAutocal = 0;
+  s2.settleMs = 0;  // and no settle (the next test has it)
   Robot r2(h2, s2);
   r2.boot();
   r2.handleLine("start");
   while (r2.state() == ST_SESSION) r2.tick();
   CHECK_EQ(h2.detentOf(0), -1);  // between clicks: such a run could never open the lock
+}
+
+namespace {
+int firstLine(const SimHal& h, const char* prefix, size_t from = 0) {
+  for (size_t i = from; i < h.lines.size(); ++i) if (h.lines[i].rfind(prefix, 0) == 0) return (int)i;
+  return -1;
+}
+int lastLineBefore(const SimHal& h, const char* prefix, int before) {
+  int k = -1;
+  for (int i = 0; i < before && i < (int)h.lines.size(); ++i) if (h.lines[i].rfind(prefix, 0) == 0) k = i;
+  return k;
+}
+}  // namespace
+
+TEST(settle_after_homing_puts_each_dial_on_its_click) {
+  // Paul (2026-10-16): end the session-start homing by switching the dial
+  // drivers off, so each dial falls into its click. Same clicks as above,
+  // with the config offset (as dial B on the door, whose clicks StallGuard
+  // can't see): every dial now ends on a click.
+  SimHal h;
+  h.detentPhase[0] = 40; h.detentPhase[1] = 200; h.detentPhase[2] = 300;
+  Settings s = tunedSettings();
+  s.detentAutocal = 0;
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("start");
+  while (r.state() == ST_SESSION) r.tick();
+  CHECK_EQ(r.state(), ST_RUN);
+  for (int d = 0; d < 3; ++d) CHECK(h.detentOf(d) == 0);  // position 1 = the first click
+  CHECK_EQ(h.falls, 3);
+  // Order: after the last HOME/OFFSET line, before learning N.
+  const int st = firstLine(h, "EV,");
+  int settled = -1;
+  for (int i = st; i >= 0 && i < (int)h.lines.size(); ++i)
+    if (h.lines[i].find(",SETTLED,7") != std::string::npos) { settled = i; break; }
+  CHECK(settled > 0);
+  CHECK(lastLineBefore(h, "OFFSET,", settled) > lastLineBefore(h, "HOME,", settled));
+  CHECK(firstLine(h, "OFFSET,", (size_t)settled) < 0);
+  CHECK(firstLine(h, "LEARN,") > settled);
+  for (int d = 0; d < 3; ++d) CHECK(h.enabled[d]);  // back on, holding
+  noViolations(h);
+}
+
+TEST(settle_that_shifts_the_count_passes_the_recheck) {
+  // Dial B's position 1 sits ~5 full steps off its click: it falls in and its
+  // motor ends one 4-full-step cycle further on, so the re-check sees a
+  // 4-full-step home discrepancy, within CFG_RECHECK_HOME_TOL_FULL (8).
+  SimHal h;
+  h.detentPhase[1] = 215;
+  h.secret[0] = 1; h.secret[1] = 2; h.secret[2] = 3;  // past the first re-check
+  Settings s = tunedSettings();
+  s.detentAutocal = 0;
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("start");
+  runUntilIdle(r);
+  CHECK_EQ(r.state(), ST_SUCCESS);
+  CHECK_EQ(r.progress().successIndex, secretIndex(h));
+  CHECK_EQ(h.count("ERR,"), 0);
+  int bLines = 0;
+  for (auto& l : h.lines)
+    if (l.rfind("RECHECK,", 0) == 0 && field(l, 3) == "B") {
+      ++bLines;
+      CHECK(std::abs(std::atoi(field(l, 4).c_str()) - 4) <= 2);
+      CHECK(field(l, 6) == "1");
+    }
+  CHECK(bLines >= 1);
+  noViolations(h);
+}
+
+TEST(settle_fall_of_8_full_steps_stops_at_the_recheck_and_says_the_offset) {
+  // Known limit (config.h, CFG_DIAL_SETTLE_MS): dial B's click sits ~8 full
+  // steps clockwise of its config offset. The settle puts it on the click but
+  // leaves its step count 8 full steps off, the whole re-check margin: the
+  // first re-check stops the run (rewound: nothing was tested wrongly) and
+  // prints the offset that fixes it.
+  SimHal h;
+  h.detentPhase[1] = 256;
+  h.secret[0] = 1; h.secret[1] = 2; h.secret[2] = 3;
+  Settings s = tunedSettings();
+  s.detentAutocal = 0;
+  {
+    Robot r(h, s);
+    r.boot();
+    r.handleLine("start");
+    runUntilIdle(r);
+    CHECK_EQ(r.state(), ST_ERROR);
+    CHECK(h.last("ERR,").find(",RECHECK,") != std::string::npos);
+    CHECK_EQ(r.progress().nextIndex, 0);  // rewound to the start
+    CHECK(h.has("# dial B is on its config offset: if nothing moved, `set offB 18`"));
+  }
+  s.homeOffsetFull[1] = 18;  // as the hint says
+  SimHal h2;
+  h2.detentPhase[1] = 256;
+  h2.secret[0] = 1; h2.secret[1] = 2; h2.secret[2] = 3;
+  Robot r2(h2, s);
+  r2.boot();
+  r2.handleLine("start");
+  runUntilIdle(r2);
+  CHECK_EQ(r2.state(), ST_SUCCESS);
+  CHECK_EQ(r2.progress().successIndex, secretIndex(h2));
+  CHECK_EQ(h2.falls, 0);  // on its click already: nothing to fall
+  noViolations(h2);
+}
+
+TEST(settle_off_and_bench_home_settles_only_that_dial) {
+  SimHal h;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("home B");
+  CHECK(h.last("EV,").find(",SETTLED,2") != std::string::npos);
+  r.handleLine("set settlems 0");
+  const int before = h.count("EV,");
+  r.handleLine("home");
+  CHECK_EQ(h.count("EV,"), before);  // no SETTLED event with the settle off
+  noViolations(h);
 }
 
 TEST(no_visible_clicks_falls_back_to_the_config_offset) {
@@ -839,7 +957,7 @@ TEST(bench_command_after_a_12v_cycle_reports_it_once) {
   CHECK(h.last("ERR,").find(",DRVFAULT,") != std::string::npos);
   CHECK_EQ(h.moves.size(), moves);
   r.handleLine("goto 2 2 2");
-  CHECK(h.last("# goto a b c").size() > 0);  // positions forgotten: home first
+  CHECK(h.last("# goto: not homed: A B C").size() > 0);  // positions forgotten: home first
   r.handleLine("jog A 20");
   CHECK(h.last("# moved").find("moved 20 full steps") != std::string::npos);
   noViolations(h);

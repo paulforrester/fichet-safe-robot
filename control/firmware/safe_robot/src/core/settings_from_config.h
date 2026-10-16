@@ -40,6 +40,8 @@ inline Settings makeSettings() {
   s.homeOffsetFull[1] = CFG_HOME_OFFSET_B;
   s.homeOffsetFull[2] = CFG_HOME_OFFSET_C;
   s.dialApproachFull = CFG_DIAL_APPROACH_FULL;
+  s.settleMs = CFG_DIAL_SETTLE_MS;
+  s.settleOnMs = CFG_DIAL_SETTLE_ON_MS;
   s.keyHome = CFG_KEY_HOME_MODE;
   s.keyHomeSearchDeg = CFG_KEY_HOME_SEARCH_DEG;
   s.keyHomeExtraDeg = CFG_KEY_HOME_EXTRA_DEG;

@@ -187,6 +187,7 @@ void Robot::handleLine(const char* line) {
     if (ok) ok = seatDials() && calibrateDials();
     for (uint8_t d = 0; d < 3 && ok; ++d)
       if (fitted(d)) ok = homeDial(d, -1, 0);
+    if (ok) ok = settleDials(0x07);
     forceCal_ = false;
     if (ok) { saveCal(); l.p(CP("# calibration saved")); emit(l); }
     return;
@@ -196,8 +197,12 @@ void Robot::handleLine(const char* line) {
     // The key stays wherever it was left: get it to rest before any dial moves.
     if (fitted(AX_KEY) && !keyHomed_ && !keyHome(keyDeciToUs(s_, (int32_t)s_.keyHomeSearchDeg * 10))) return;
     Axis ax;
-    if (tok[1] && parseAxis(tok[1], &ax) && ax != AX_KEY) { if (fitted(ax)) homeDial(ax, -1, 0); }
-    else for (uint8_t d = 0; d < 3 && state_ != ST_ERROR; ++d) if (fitted(d)) homeDial(d, -1, 0);
+    if (tok[1] && parseAxis(tok[1], &ax) && ax != AX_KEY) {
+      if (fitted(ax) && homeDial(ax, -1, 0)) settleDials((uint8_t)(1u << ax));
+    } else {
+      for (uint8_t d = 0; d < 3 && state_ != ST_ERROR; ++d) if (fitted(d)) homeDial(d, -1, 0);
+      if (state_ != ST_ERROR) settleDials(0x07);
+    }
     return;
   }
   if (TOKEQ(cmd, "learn")) {
@@ -206,7 +211,15 @@ void Robot::handleLine(const char* line) {
     return;
   }
   if (TOKEQ(cmd, "goto")) {
-    if (!(homed_[0] && homed_[1] && homed_[2]) || !tok[3]) { l.p(CP("# goto a b c (1..20), after `home`")); emit(l); return; }
+    if (!tok[3]) { l.p(CP("# goto a b c (1..20), after `home`")); emit(l); return; }
+    if (!(homed_[0] && homed_[1] && homed_[2])) {
+      // Any error switches every motor off and un-homes every dial.
+      l.p(CP("# goto: not homed:"));
+      for (uint8_t d = 0; d < 3; ++d) if (!homed_[d]) l.c(' ').c(kAxisChar[d]);
+      l.p(CP(". `home` (or `calibrate`) first"));
+      emit(l);
+      return;
+    }
     Combo c;
     for (uint8_t d = 0; d < 3; ++d) {
       const long v = atol(tok[d + 1]);
@@ -302,6 +315,8 @@ void Robot::cmdSet(const char* name, int32_t v) {
   else if (TOKEQ(name, "seatma")) s_.seatMa = (uint16_t)v;
   else if (TOKEQ(name, "seatrps100")) s_.seatRps = v / 100.0f;
   else if (TOKEQ(name, "sgmin100")) s_.sgMinRps = v / 100.0f;
+  else if (TOKEQ(name, "settlems")) s_.settleMs = (uint16_t)(v < 0 ? 0 : v > 5000 ? 5000 : v);
+  else if (TOKEQ(name, "settleonms")) s_.settleOnMs = (uint16_t)(v < 0 ? 0 : v > 5000 ? 5000 : v);
   else ok = false;
   if (ok) { l.p(CP("# set ")).s(name).c('=').i(v).p(CP(" (RAM only; copy to config.h)")); }
   else { l.p(CP("# unknown setting ")).s(name); }
@@ -336,7 +351,8 @@ void Robot::sessionStep() {
     case SS_CAL: ok = !(s_.sgAutocal || s_.detentAutocal) || calibrateDials(); step_ = SS_HOME_A; break;
     case SS_HOME_A: ok = homeDial(0, -1, 0); step_ = SS_HOME_B; break;
     case SS_HOME_B: ok = homeDial(1, -1, 0); step_ = SS_HOME_C; break;
-    case SS_HOME_C: ok = homeDial(2, -1, 0); step_ = SS_LEARN; break;
+    case SS_HOME_C: ok = homeDial(2, -1, 0); step_ = SS_SETTLE; break;
+    case SS_SETTLE: ok = settleDials(0x07); step_ = SS_LEARN; break;
     case SS_LEARN: saveCal(); ok = thenRun_ ? learnForRun() : learnN(); step_ = SS_DONE; break;
     case SS_DONE:
       if (thenRun_) { state_ = ST_RUN; event(CP("RUN"), prog_.nextIndex); }
@@ -424,8 +440,22 @@ bool Robot::recheck() {
     l.p(CP("RECHECK,")).u(hal_.millis()).sep().u(prog_.nextIndex).sep().c(kAxisChar[d]).sep()
         .i(disc / s_.microsteps).p(CP(",,")).u(ok);
     emit(l);
+    if (!ok && !offsetFromClicks_[d]) {
+      // A dial on its config offset whose click sits 7-10 full steps further
+      // clockwise: the settle puts it on the click but leaves its count 8 full
+      // steps off, which reads as this discrepancy (config.h, CFG_DIAL_SETTLE_MS).
+      // A settle shifts a count by whole 4-full-step cycles: round to one.
+      const int32_t cyc = 4 * s_.microsteps;
+      const int32_t full = 4 * ((disc >= 0 ? disc + cyc / 2 : disc - cyc / 2) / cyc);
+      l.clear();
+      l.p(CP("# dial ")).c(kAxisChar[d]).p(CP(" is on its config offset: if nothing moved, `set off")).c(kAxisChar[d])
+          .c(' ').i(s_.homeOffsetFull[d] + full).p(CP("` (and in config.h), then `resume`"));
+      emit(l);
+    }
     pass = pass && ok;
   }
+  // As at session start: let the dials fall into their clicks (config.h).
+  if (pass && !settleDials(0x07)) return false;
   const int32_t oldN = n_;
   if (pass) {
     if (!learnForRun()) return false;
@@ -602,6 +632,33 @@ bool Robot::homeDial(uint8_t d, int32_t expectDist, int32_t* discrepancy) {
       .sep().u(clicks);
   emit(l);
   return moveDialTo(d, dialTarget(d, 0));
+}
+
+// Paul's decision (2026-10-16): after homing, switch the dial drivers off so
+// each dial falls into its nearest click and dial B's drive relaxes (it gives
+// a little under the homing push: bring-up 4b, 2026-10-14), then on again. No
+// move is made, so the step count stays as it was; switching on pulls each
+// motor to its nearest holding point (every 4 full steps, DS §3.6.1), so a
+// dial that fell more than 2 full steps now sits a multiple of 4 full steps
+// from where the count says (config.h, CFG_DIAL_SETTLE_MS). Only homed dials.
+bool Robot::settleDials(uint8_t mask) {
+  if (s_.settleMs == 0) return true;
+  uint8_t m = 0;
+  for (uint8_t d = 0; d < 3; ++d)
+    if (((mask >> d) & 1) && fitted(d) && homed_[d]) m |= (uint8_t)(1u << d);
+  if (!m) return true;
+  // A driver that reset since its last move must not be switched on again
+  // unnoticed: check before and after (as around every move).
+  for (uint8_t d = 0; d < 3; ++d)
+    if (((m >> d) & 1) && !driverOk((Axis)d, CP("settle"))) { driverFault(); return false; }
+  for (uint8_t d = 0; d < 3; ++d) if ((m >> d) & 1) hal_.enable((Axis)d, false);
+  hal_.delayMs(s_.settleMs);
+  for (uint8_t d = 0; d < 3; ++d) if ((m >> d) & 1) hal_.enable((Axis)d, true);
+  hal_.delayMs(s_.settleOnMs);
+  for (uint8_t d = 0; d < 3; ++d)
+    if (((m >> d) & 1) && !driverOk((Axis)d, CP("settle"))) { driverFault(); return false; }
+  event(CP("SETTLED"), m);
+  return true;
 }
 
 bool Robot::keyHome(int32_t boundUs) {
@@ -984,7 +1041,8 @@ void Robot::printCfg() {
   l.p(CP("CFG,home,mode=")).u(s_.dialHome[0]).u(s_.dialHome[1]).u(s_.dialHome[2]).p(CP(",off="))
       .i(s_.homeOffsetFull[0]).c('/').i(s_.homeOffsetFull[1]).c('/').i(s_.homeOffsetFull[2])
       .p(CP(",backoff=")).u(s_.homeBackoffFull).p(CP(",tol=")).u(s_.homeRepeatTolFull)
-      .p(CP(",seatDeg=")).u(s_.seatDialDeg).p(CP(",seatma=")).u(s_.seatMa);
+      .p(CP(",seatDeg=")).u(s_.seatDialDeg).p(CP(",seatma=")).u(s_.seatMa)
+      .p(CP(",settlems=")).u(s_.settleMs).c('/').u(s_.settleOnMs);
   emit(l);
   l.clear();
   l.p(CP("CFG,key,home=")).u(s_.keyHome).p(CP(",learnMax=")).u(s_.keyLearnMaxDeg).p(CP(",margin=")).deci(s_.keyTargetMarginDeci)

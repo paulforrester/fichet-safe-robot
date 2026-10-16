@@ -628,8 +628,9 @@ before the first power-up.
 - If a motor **buzzes or jitters instead of turning**: 12 V off, then swap
   the two middle wires in its connector. Some 17HE19-2004S have them swapped.
 - **Never plug or unplug a motor with 12 V on**, the key motor included.
-- Currents are set over UART (pots at minimum): dials 1.0 A RMS; the key
-  starts at 0.6 A and stage 5 sets its final value.
+- Currents are set over UART (pots at minimum): dials 0.6 A RMS (firmware
+  v0.5; 1.0 A before the door test of 2026-10-14); the key starts at 0.6 A and
+  stage 5 sets its final value.
 
 ---
 
@@ -756,8 +757,8 @@ them yourself is only needed if you change the code.
 
 1. Start the logger (5.3). Opening the port restarts the Mega.
 2. The first line is
-   `# Fichet safe robot 0.4 (2026-10-08, rev 2026-10-08.1) - type help`. If it
-   says 0.3 or older, the old code is still on the Mega.
+   `# Fichet safe robot 0.5 (2026-10-16, rev 2026-10-13.1) - type help`. If it
+   says 0.4 or older, the old code is still on the Mega.
 3. Type `status`. Expect `# state=IDLE run=… next=…`.
 4. Type `cfg` to see the settings it was built with.
 
@@ -878,7 +879,8 @@ Either way the robot first does the **session start**, about 40 s
    wherever it was left) and calibrates the key;
 3. seats the dials, then turns each one free once to measure its load and
    find its clicks;
-4. homes each dial on its stop, twice;
+4. homes each dial on its stop, twice, then switches the dial motors off
+   for half a second so each dial drops into its click (`EV,…,SETTLED,7`);
 5. learns **N**, the angle where the key stops with a wrong combination
    (3 tries; `NSTOP` line).
 
@@ -890,8 +892,9 @@ Then the attempts begin (`EV,…,RUN,…`).
   dial ever wraps from 20 back to 1). It then turns the key to N + 15°,
   records the angle reached, turns the key back to its start, and saves
   progress.
-- **Every 200 attempts** it re-checks: it re-homes the dials and re-learns N.
-  If anything moved, it stops and rewinds to the last good check (5.8).
+- **Every 200 attempts** it re-checks: it re-homes the dials, lets them
+  settle into their clicks again, and re-learns N. If anything moved, it stops
+  and rewinds to the last good check (5.8).
 - **8,000 combinations** in all.
   - **Time (estimate, not measured):** from the `config.h` speeds, motor
     movement alone is about 0.8 s per attempt, so about 1.8 h for all
@@ -969,7 +972,7 @@ the error before a bench command). If you're not sure, send me the raw log.
 | KEYOUT | refused to turn dials with the key out of rest | a protection. `resume` (the session start homes the key) |
 | LEARN | N didn't repeat within 5° | key turner loose? Re-seat; `resume` |
 | EARLY | the key stopped well short of N three times | a unit has moved. Re-seat both; `resume` |
-| RECHECK | a re-check found a dial home or N moved | it has already rewound to the last good check. Re-seat; `resume` |
+| RECHECK | a re-check found a dial home or N moved | it has already rewound to the last good check. Re-seat; `resume`. If it also printed `# dial B is on its config offset: … set offB 18 …` and nothing moved, it's the settle, not a slip: type that `set` line, then `resume`, and send me the number for `config.h` |
 | CFGHASH | dial position settings changed since the run started | see 4.3 |
 | NOHOME | (only if a dial's home mode is set to "no stop") | `resume force` or `reset yes` |
 | DRVFAULT | a driver reset or reported a fault. The `GSTAT` line just before says which driver and what (below) | fix the cause, then `resume`. In a run it has already rewound to the last good check |

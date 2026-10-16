@@ -39,7 +39,11 @@
 #define CFG_INVERT_KEY           0
 
 // ---- Currents (control/wiring.md §7) ---------------------------------------
-#define CFG_DIAL_RUN_MA          1000   // ~1 A RMS until the dial torque is measured
+// Dials: 600 mA from the door test (bring-up 4b, Paul 2026-10-14): at 1000 mA
+// homing failed its repeat check (HOMEREP); at 600 mA seat, calibration turn
+// and homing passed on all three dials, free-running StallGuard ~4x above the
+// stall level. The dial torque itself is still not measured.
+#define CFG_DIAL_RUN_MA          600
 #define CFG_DIAL_HOLD_PCT        50
 #define CFG_KEY_RUN_MA           600    // start; stage 5 sets it to 2x the measured minimum
 #define CFG_KEY_HOLD_PCT         50
@@ -103,6 +107,23 @@
 #define CFG_HOME_OFFSET_B        10
 #define CFG_HOME_OFFSET_C        10
 #define CFG_DIAL_APPROACH_FULL   0      // >0: always finish dial moves going away from the stop
+
+// ---- Settle after homing (Paul's decision, 2026-10-16) ------------------------
+// After the dials are homed (session start, every re-check, `calibrate`,
+// `home`), their drivers are switched off for CFG_DIAL_SETTLE_MS so each dial
+// can fall into its nearest click (and dial B's drive, which gives a little
+// under the homing push, can relax: bring-up 4b, 2026-10-14), then switched
+// on again. Switching on pulls each motor to the nearest of its
+// holding points, one every 4 full steps (DS §3.6.1: the motor pulls back into
+// the same step if it moved less than +-2 full steps). So a dial that fell
+// less than 2 full steps is pulled back where it was; one that fell further
+// ends within 2 full steps (1.8 deg of dial) of its click, and its step count
+// is then off by 4 (or 8) full steps, which the next re-check sees as a home
+// discrepancy (CFG_RECHECK_HOME_TOL_FULL 8: fine up to a fall of 6 full steps).
+// 0 = no settle.
+#define CFG_DIAL_SETTLE_MS       500    // ASSUMPTION: long enough for a click to pull its dial in; stage 4b checks
+#define CFG_DIAL_SETTLE_ON_MS    200    // still, after switching back on, before the next move (precaution:
+                                        // StealthChop tunes at standstill, DS §6.1 AT#1 <=130 ms)
 
 // ---- Key -----------------------------------------------------------------------
 // The key can't turn anticlockwise at all from its insertion position (Paul,

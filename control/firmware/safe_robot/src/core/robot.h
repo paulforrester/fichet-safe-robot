@@ -56,7 +56,7 @@ class Robot {
 
  private:
   enum Step : uint8_t {
-    SS_PING, SS_KEYHOME, SS_KEYCAL, SS_SEAT, SS_CAL, SS_HOME_A, SS_HOME_B, SS_HOME_C, SS_LEARN, SS_DONE
+    SS_PING, SS_KEYHOME, SS_KEYCAL, SS_SEAT, SS_CAL, SS_HOME_A, SS_HOME_B, SS_HOME_C, SS_SETTLE, SS_LEARN, SS_DONE
   };
   // session / run
   void startSession(bool thenRun);
@@ -71,6 +71,7 @@ class Robot {
   bool configureAll(bool seatCurrent);
   bool seatDials();
   bool homeDial(uint8_t d, int32_t expectDist, int32_t* discrepancy);
+  bool settleDials(uint8_t mask);  // homed dials in mask (bit 0 = A): drivers off, then on again
   bool keyHome(int32_t boundUs);
   bool learnN();
   bool learnForRun();

@@ -27,6 +27,7 @@ class HwMega : public core::Hal {
   void enable(core::Axis ax, bool on) override;
   core::MoveResult move(const core::MoveRequest& r) override;
   uint32_t millis() override { return ::millis(); }
+  void delayMs(uint32_t ms) override { ::delay(ms); }
   void emit(const char* line) override { Serial.println(line); }
   uint8_t storeRead(uint16_t addr) override;
   void storeWrite(uint16_t addr, uint8_t v) override;

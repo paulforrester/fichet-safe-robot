@@ -1,7 +1,7 @@
 # CLAUDE.md — Fichet-Bauche safe combination robot
 
 Context for any Claude session working in this repo. Read this first, then
-the doc that matches your task (table below). Last updated 2026-10-08.
+the doc that matches your task (table below). Last updated 2026-10-16.
 
 > **Project revision 2026-10-13.1** — all four TMC2209 drivers are on the
 > RAMPS (the key in the **E0** socket); there is no remote driver board or
@@ -115,8 +115,15 @@ RAMPS, UART pigtail); firmware written and host-tested
   plug that doesn't line up with its star is pushed back. So every session
   starts with a **seat routine** — turn each dial motor slowly, at most
   1/8 dial turn (45° dial = 90° motor), until the plug drops in — then home.
-- **Dial torque: not measured yet.** Until it is, run dial drivers at
-  ~1 A RMS.
+- **Dial torque: not measured yet.** Dial drivers run at **600 mA RMS**
+  (door test 2026-10-14: at 1 A homing failed its repeat check; at 600 mA
+  seat, calibration and homing passed on all three dials).
+- **Dial B's drive gives under the homing push** (door, 2026-10-14): its
+  stop seemed to move when homed again straight after a home, and it turned
+  back when the motors went off; its gear moves ≤ 5° (Paul, 2026-10-16). B's
+  clicks don't show in StallGuard, so its position 1 is the config offset.
+  Paul's decision (2026-10-16): don't chase it; every homing ends with a
+  **settle** (dial drivers off 0.5 s, so each dial falls into its click).
 - **Key turner:** direct drive, motor on the key axis. The key turns
   **clockwise (seen from in front of the safe) to ~100° and stops** with a
   wrong combination. Measured key torque **0.07–0.08 N·m** (0.14–0.16 kg on
@@ -203,7 +210,7 @@ RAMPS, UART pigtail); firmware written and host-tested
   `control/harness/uart_pigtail.svg`). 12 V goes from the PSU's DC-jack
   adapter straight to the RAMPS "5A" terminal; RAMPS's own 5 A fuse feeds all
   four drivers.
-- Currents: dials 1.0 A RMS (hold 0.5 A); key 0.6 A to start, then 2 × the
+- Currents: dials 0.6 A RMS (hold 0.3 A; 1.0 A until 2026-10-14); key 0.6 A to start, then 2 × the
   measured minimum. Power: USB first, then 12 V; 12 V off first; never
   (un)plug a motor (the key motor cable included) with 12 V on.
 
@@ -219,17 +226,19 @@ deck); the start button mounts from under the deck (7.4mm hole, 10 x 2.5mm
 recess, 4mm wire hole beside the endstop block; revision 2026-10-09.1,
 `docs/housing_decisions.md`): check it on the reprinted deck.
 
-## Firmware — `control/firmware/` (v0.4, 2026-10-08; read its README)
+## Firmware — `control/firmware/` (v0.5, 2026-10-16; read its README)
 
-Built and host-tested, **not yet run on hardware**. Sequence as in
+Host-tested; v0.4 ran through bench bring-up stages 1–4b (2026-10-10 to
+14), **v0.5 not yet on hardware**. Sequence as in
 `control/sequence.md`: session start = ping/configure drivers → key home
 (rest stop, search 180°) → key calibration → seat (clockwise) → one free
 clockwise calibration turn per dial (StallGuard threshold + click positions)
-→ home each dial (two passes on its stop; position 1 = first click) → learn
-N (3 tries, median) → attempt loop in **serpentine order** (each attempt moves one
+→ home each dial (two passes on its stop; position 1 = first click) →
+**settle** (dial drivers off 0.5 s and on again: each dial falls into its
+click; v0.5) → learn N (3 tries, median) → attempt loop in **serpentine order** (each attempt moves one
 dial one position) → key to N + 15°, **log the angle reached** → retract →
 save progress (EEPROM journal). Re-check every 200 attempts (re-home +
-re-learn N at the last clean fail); on a mismatch, stop and rewind to the last
+settle + re-learn N at the last clean fail); on a mismatch, stop and rewind to the last
 good check. Success (≥ N + 10°) stops and holds the key. Resume after power
 loss redoes the session start and continues from the last check.
 

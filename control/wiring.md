@@ -59,9 +59,10 @@ DIAG pin (no soldering on the drivers; two snips each). Decision log,
    VMOT). *Revision 2026-10-08.1*: the hub's 1.1 A fuse on a separate key
    branch is gone with the branch. 12 V goes from the PSU adapter straight
    into the RAMPS "5A" terminal; nothing else carries it.
-9. **Currents**: dial drivers 1.0 A RMS (hold 0.5 A) until the dial torque is
-   measured; key driver starts at 0.6 A RMS and is then set to 2 × the measured
-   minimum that turns the key (bench stage 5).
+9. **Currents**: dial drivers 0.6 A RMS (hold 0.3 A; was 1.0 A until the door
+   test of 2026-10-14, where homing at 1 A failed its repeat check); key driver
+   starts at 0.6 A RMS and is then set to 2 × the measured minimum that turns
+   the key (bench stage 5).
 10. **Power order**: everything plugged with power off; USB first, then 12 V;
     12 V off first. Never plug or unplug a motor with 12 V on (the key motor
     included: its cable runs between the units).
@@ -303,7 +304,7 @@ datasheet asks for IRUN 8…31 in StealthChop (p. 42).
 
 | Driver | Run (IRUN) | Hold (IHOLD) | Why |
 |---|---|---|---|
-| Dial A, B, C | **1.0 A RMS** (CS 17 → 0.99 A) | 0.5 A | `sequence.md`: ~1 A until dial torque is measured; the 2:1 gearing doubles what reaches the printed teeth |
+| Dial A, B, C | **0.6 A RMS** (vsense=1, CS 18 → 0.58 A) | 0.3 A | Door test, bring-up 4b (Paul, 2026-10-14): at 1.0 A (CS 17 → 0.99 A, the start value) homing failed its repeat check; at 0.6 A seat, calibration and homing passed on all three dials. The dial torque itself is still not measured; the 2:1 gearing doubles what reaches the printed teeth |
 | Key | **0.6 A RMS to start** (vsense=1, CS 18 → 0.58 A) | 0.3 A | measured key torque 0.07–0.08 N·m; want ~2×. Bench stage 5 finds the lowest current that still turns the key through its free travel; set 2 × that (torque ∝ current), max 1.0 A |
 | Ceiling (firmware clamps) | 1.2 A | — | DS: 1.4 A RMS design guideline (p. 75); BTT: active cooling above 1.2 A |
 
