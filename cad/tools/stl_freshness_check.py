@@ -21,6 +21,7 @@ SOURCES = {
     'magnet_retainers': 'print_magnet_retainer', 'mega_base_fit_test': 'mega_base_fit_test',
     'printed_thread_test': 'printed_thread_test', 'standoff_screw_fit_test': 'standoff_screw_fit_test',
     'tube_socket_test_key_set': 'tube_socket_test_key_set',
+    'dial_plug_taper_test': 'dial_plug_taper_test',
 }
 
 

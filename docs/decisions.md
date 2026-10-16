@@ -7,7 +7,43 @@ Working notes on how the test key's dimensions were arrived at, most
 recent first. Terminology (WIDTH / HEIGHT / DEPTH) is defined in
 `tooth_terms_diagram.png` in this folder.
 
+## REOPENED 2026-10-16 — the plug was sized for the wrong part of the socket
+
+**What happened (Paul, 2026-10-16).** On the door, dial A's printed plug
+(PETG-CF gear-shaft, the locked 7.73mm / 2.00 / 1.04mm star below) snapped
+off inside its socket; the next `home A` turned 1.15 dial turns without
+meeting the stop or any load. With the broken head lying in the socket
+(photo, 2026-10-16) the star was plainly far smaller than the socket's star.
+
+**New measurements (Paul, calipers, 2026-10-16).**
+- The socket's star at its mouth: **10mm tip to tip** across opposite slots.
+- The real key's 7.73mm tip section **flares out to ~10mm**, and those outer
+  fins are **0.95mm** wide. Paul had assumed the flare never touched the
+  star; it does, and it's what engages.
+- Where the socket (or the key) narrows from 10mm to 7.73mm: not
+  measurable by hand.
+
+**Correction** (to the v0.2 note below): the 12.5mm photo estimate was too
+big, but the 7.73mm that replaced it is only the key's TIP section, which
+reaches deeper than our plug does. The plug sits 2–7mm below the door face,
+in the socket's 10mm section, so its 7.73mm teeth only touched the slots
+near their tips. That explains the "rotational play" of every round below
+(v0.3, v0.4 and the height sweep). Making the teeth taller deepened the
+valleys and shrank the core to 3.38mm, which is probably why it snapped.
+The "CLOSED" verdict below is withdrawn.
+
+**Next: taper test keys** (`cad/dial_plug_taper_test.scad` →
+`dial_plug_taper_test.stl`, six hand keys, plain PETG). Same 5mm plug at the
+same depth as the robot's: 8 fins, 10.0mm tip to tip − 0.35 clearance, fins
+0.95mm wide, core 4.94mm (the key's hub) − 0.35, tapering at the plug's end
+to the key's 7.73mm (− 0.35) over T = 0, 1, 2, 3, 4, 5mm. Paul snug-tests
+each one: does it go all the way in (handle on the door face, else the gap),
+and how much play? The winner goes onto the gear-shaft, printed in plain
+PETG (Paul, 2026-10-16: the PETG-CF was brittle).
+
 ## CLOSED — tooth geometry locked in: HEIGHT 2.00mm, WIDTH 1.04mm
+
+> **Withdrawn 2026-10-16** (entry above): this geometry fits the key's tip, not the socket's 10mm mouth where the plug sits.
 
 Printed a second height-sweep plate (1.80 / 1.85 / 1.90 / 1.95 /
 2.00mm, all at width 1.04mm). All five felt equivalent by hand on the
