@@ -96,4 +96,34 @@ module taper_key_set() {
             taper_key(tapers[i], taper_labels[i]);
 }
 
-taper_key_set();
+// ---- Depth probes (Paul, 2026-10-16) ------------------------------------
+// The same plug, two and three times as long (10 and 15mm), same six end
+// tapers, and NO collar: the round collar hides the socket, and Paul wants
+// to see how far each one goes in before it bottoms out. The fins start
+// straight off a shorter hex handle. Insertion depth = plug length minus the
+// gap between the handle's face and the door face (calipers). Labels:
+// "T<n>" over "L10" / "L15". Print file: print_dial_plug_depth_test.scad.
+depth_handle_len = 16;
+
+module depth_key(taper_len, length, labels) {
+    difference() {
+        union() {
+            cylinder(d = handle_d, h = depth_handle_len, $fn = 6);
+            translate([0, 0, depth_handle_len - eps])
+                tapered_star_plug(fin_tip_d, end_tip_d, core_d, fins, fin_w, length + eps, taper_len);
+        }
+        engraving(labels);
+    }
+}
+
+depth_lengths = [10, 15];
+depth_len_labels = ["L10", "L15"];
+
+module depth_key_set() {
+    for (j = [0 : len(depth_lengths) - 1])
+        for (i = [0 : len(tapers) - 1])
+            translate([(i - (len(tapers) - 1) / 2) * spacing, (j - 0.5) * spacing, 0])
+                depth_key(tapers[i], depth_lengths[j], [taper_labels[i], depth_len_labels[j]]);
+}
+
+if (is_undef(DEPTH_SET)) taper_key_set();

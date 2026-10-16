@@ -41,6 +41,14 @@ each one: does it go all the way in (handle on the door face, else the gap),
 and how much play? The winner goes onto the gear-shaft, printed in plain
 PETG (Paul, 2026-10-16: the PETG-CF was brittle).
 
+**Depth probes** (Paul's request, 2026-10-16; `cad/print_dial_plug_depth_test.scad`
+→ `dial_plug_depth_test.stl`, 12 keys): the same plug at 10mm and 15mm long
+(two and three times), the same six end tapers, and no collar, so the
+socket stays visible. Each goes in until it bottoms out; insertion depth =
+plug length − gap between the hex handle and the door face. For reference,
+the real key goes in 15.5mm and the star starts 3.14mm below the door face
+(Paul, 2026-10-05).
+
 ## CLOSED — tooth geometry locked in: HEIGHT 2.00mm, WIDTH 1.04mm
 
 > **Withdrawn 2026-10-16** (entry above): this geometry fits the key's tip, not the socket's 10mm mouth where the plug sits.
