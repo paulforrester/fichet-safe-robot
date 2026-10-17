@@ -509,10 +509,19 @@ module dd_profile(d, flat) {
     intersection() { circle(d = d, $fn = 64); square([d + 1, flat], center = true); }
 }
 
-// Print frame: z = 0 at the tail (lugs on the bed), plug up.
-// local z = lug_z1 - assembly z.
+// Print frame (2026-10-17, Paul): PLUG TIP on the bed, tail up. Tail-down
+// stood a 31mm part on ~11 mm^2 of lugs and stub; the plug tip gives ~27
+// (use a brim). Plug-down, every step going up is inward (journal 7.85 ->
+// double-D 7.0 -> stub 3.0), so the double-D needs no chamfer; the only
+// overhang is the lugs' 1.3mm ledge at the very top.
 module dial_shaft(plug_l = plug_len) {
-    dd_lz0 = lug_z1 - cap_z0;          // 3.2: double-D starts (chamfered)
+    L = lug_z1 - (plug_z0 - plug_l);   // 31.7 (5mm plug) / 33.7 (7mm)
+    translate([0, 0, L]) mirror([0, 0, 1]) dial_shaft_tail_frame(plug_l);
+}
+// The same shaft with its tail at z = 0, plug toward +z (local z = lug_z1 -
+// assembly z): the frame dial_gear_shaft() and the coupon build in.
+module dial_shaft_tail_frame(plug_l = plug_len) {
+    dd_lz0 = lug_z1 - cap_z0;          // 3.2: double-D starts
     dd_lz1 = lug_z1 - shaft_dd_z0;     // 8.7: journal starts
     j_lz1  = lug_z1 - fin_z0;          // 27.7: fins start
     union() {
@@ -522,12 +531,8 @@ module dial_shaft(plug_l = plug_len) {
             translate([-lug_r, -lug_w/2, 0]) cube([2*lug_r, lug_w, lug_t]);
             cylinder(r = lug_r, h = lug_t, $fn = 48);
         }
-        // double-D, 45deg chamfer up from the stub so it prints without an overhang
-        intersection() {
-            translate([0, 0, dd_lz0]) linear_extrude(height = dd_lz1 - dd_lz0 + eps_c) dd_profile(dd_d, dd_flat);
-            translate([0, 0, dd_lz0]) cylinder(h = dd_lz1 - dd_lz0 + eps_c, r1 = stub_d/2,
-                                               r2 = stub_d/2 + dd_lz1 - dd_lz0 + eps_c, $fn = 48);
-        }
+        // double-D, full length (5.5mm) since the plug-down print (no chamfer)
+        translate([0, 0, dd_lz0]) linear_extrude(height = dd_lz1 - dd_lz0 + eps_c) dd_profile(dd_d, dd_flat);
         translate([0, 0, dd_lz1]) cylinder(d = journal_d, h = j_lz1 - dd_lz1 + eps_c, $fn = 64);
         translate([0, 0, j_lz1])
             tapered_star_plug(plug_fin_dia_v - fit_clearance_v, plug_end_dia_v - fit_clearance_v,
@@ -578,7 +583,7 @@ module dial_shaft_cap() {
 // (z = 0 at the gear's rear face, plug toward +z): for the assembly checks.
 module dial_gear_shaft(plug_l = plug_len) {
     dial_gear();
-    translate([0, 0, gear_z1 - lug_z1]) dial_shaft(plug_l);
+    translate([0, 0, gear_z1 - lug_z1]) dial_shaft_tail_frame(plug_l);
     translate([0, 0, gear_z1 - cap_z1]) rotate([0, 0, 90]) dial_shaft_cap();
 }
 
@@ -593,9 +598,11 @@ module twist_lock_coupon() {
         for (k = [0 : i]) rotate([0, 0, 90 + (k - i/2)*14])
             translate([7.5, 0, -eps_c]) rotate([0, 0, 45]) cube([1.6, 1.6, gear_face + spacer_h + 2*eps_c], center = false);
     }
-    translate([0, 20, 0]) intersection() {
-        dial_shaft();
-        cylinder(d = 20, h = (lug_z1 - shaft_dd_z0) + 5);
+    // the tail stands on its journal end (lugs up, as on the full shaft)
+    th = (lug_z1 - shaft_dd_z0) + 5;
+    translate([0, 20, th]) mirror([0, 0, 1]) intersection() {
+        dial_shaft_tail_frame();
+        cylinder(d = 20, h = th);
     }
     for (k = [0 : 1]) translate([18 + k*18, 20, 0]) dial_shaft_cap();
 }
@@ -1033,7 +1040,7 @@ for (i = [0 : 2]) {
 //  - front_assembly(): door face down (PETG). rear_assembly(): INNER face
 //    down (the face with the spring pockets/screw countersinks), legs up (PETG).
 //    electronics_deck(): flat (PETG).
-//  - dial_shaft(): tail (lugs) down, plug up; dial_gear(): rear (pocket) face down;
+//  - dial_shaft(): plug tip down, tail up, with a brim; dial_gear(): rear (pocket) face down;
 //    dial_shaft_cap(): nubs up. Plain PETG (the PETG-CF plug snapped, 2026-10-16).
 //    motor_pinion(): hub down, teeth up, PETG-CF. Turn elephant-foot
 //    compensation on for both, or the bottom layer of the teeth binds.

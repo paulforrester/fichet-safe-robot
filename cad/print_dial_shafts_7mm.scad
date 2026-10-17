@@ -1,5 +1,6 @@
 // 3 dial shafts with the 7mm T2 plug (2026-10-17): plug + journal +
-// double-D + twist-lock tail. Tail (lugs) on the bed, plug up. Plain PETG.
+// double-D + twist-lock tail. PLUG TIP on the bed, tail up, with a brim
+// (small footprint). Plain PETG.
 // They go into the bearings from the DOOR side, tail first.
 // NOTE: a misaligned 7mm plug cannot be pushed back far enough for the unit to
 // sit flat (dial_layout_check.py): it holds that side ~0.9mm off the door
