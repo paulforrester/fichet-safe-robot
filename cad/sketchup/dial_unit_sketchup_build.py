@@ -53,8 +53,7 @@ PIN_HUB_H = 4.0; PIN_HUB_R_VISUAL = 5.9        # (real hub is 6.0; 5.9 keeps it 
 CAVITY_TOP = PIN_Z1 + PIN_HUB_H + 0.5          # 35.5
 SLED_T = 6.0; MOTOR_FACE = CAVITY_TOP + SLED_T # 41.5
 SHAFT_LEN = 24.0; SHAFT_TIP = MOTOR_FACE - SHAFT_LEN
-SPRING_R = 8.6 / 2; GEAR_SPRING_D = 2.0; SLED_SPRING_D = 3.0
-CAP_T, LUG_T = 1.4, 1.2   # twist-lock cap and shaft lugs (2026-10-17); the spring now sits on the cap
+SPRING_R = 8.6 / 2; GEAR_SPRING_D = 1.0; SLED_SPRING_D = 3.0   # gear pocket 1mm deep (revision 2026-10-17.2)
 DECK_H = 48.0 + 6.0; DECK_Z = MOTOR_FACE + DECK_H; DECK_T = 5.0
 LEG_R = 6.0; PILOT_R = 5.4 / 2; PILOT_D = 12.0
 M6_CLR_R = 6.4 / 2; CSK_R = 14.0 / 2; CSK_D = (14.0 - 6.4) / 2
@@ -365,41 +364,18 @@ def deck():
     return F
 
 
-def _tail_loops(lug_r=2.8, lug_w=1.6, stub_r=1.5, n=12):
-    """shaft tail section (two lugs along x + the stub), and the two lugs' front faces"""
-    ha = math.asin((lug_w / 2) / lug_r); hb = math.asin((lug_w / 2) / stub_r)
-    def arc(r, a0, a1):
-        return [[r * math.cos(a0 + (a1 - a0) * i / n), r * math.sin(a0 + (a1 - a0) * i / n)] for i in range(n + 1)]
-    rl = arc(lug_r, -ha, ha); sa = arc(stub_r, hb, math.pi - hb)
-    ll = arc(lug_r, math.pi - ha, math.pi + ha); sb = arc(stub_r, math.pi + hb, 2 * math.pi - hb)
-    tail = rl + sa + ll + sb                                   # CCW outline
-    stub_r_pts = arc(stub_r, -hb, hb)                          # stub arcs inside each lug
-    stub_l_pts = arc(stub_r, math.pi - hb, math.pi + hb)
-    lug_r_face = rl + stub_r_pts[::-1]                         # right lug front face (outside the stub)
-    lug_l_face = ll + stub_l_pts[::-1]
-    stub = sa + stub_l_pts[1:-1] + sb + stub_r_pts[1:-1]       # full stub circle, same points
-    return tail, lug_r_face, lug_l_face, stub
-
-
 def gear_shaft():
-    """2026-10-17: gear + shaft + twist-lock cap, assembled and locked, as ONE review solid.
-    Local frame: z=0 gear rear (spring) face, plug toward +z. The cap fills the pocket from
-    0.6 to 2.0 (shown merged with the gear); the shaft's tail (stub + lugs) sticks out 1.2mm
-    behind the gear. The double-D inside the gear isn't shown (merged)."""
+    """Revision 2026-10-17.2: gear + shaft, wedged on their tapered hex by an M3 countersunk screw,
+    as ONE review solid (the hex, the screw and the gap behind the shaft's end are inside it).
+    Local frame: z=0 gear rear (spring) face, plug toward +z. The spring pocket is 1mm deep; its
+    floor is where the screw head sits flush and the spring rests."""
     g = gear_profile(M_GEAR, NG, XG, PA, BL)
     spr = circle(0, 0, SPRING_R, 24); sp = circle(0, 0, SPACER_R, 32); jr = circle(0, 0, JOURNAL_R, 32)
     star = tooth_profile(STAR_TIP_D / 2, STAR_ROOT_D / 2, 8, STAR_W)
     star_end = tooth_profile(STAR_END_D / 2, STAR_ROOT_D / 2, 8, STAR_W)
-    tail, lug_rf, lug_lf, stub = _tail_loops()
-    zcap = GEAR_SPRING_D - CAP_T                              # 0.6: cap's rear face (spring seat)
-    zt0 = -LUG_T                                              # -1.2: shaft's rear end
     zj = GEAR_FACE + SPACER_H; zp = zj + (GEAR_Z0 - SPACER_H - PLUG_Z0) + PLUG_FIN_GAP; zt = zj + (GEAR_Z0 - SPACER_H - PLUG_Z0) + PLUG_LEN
-    F = [hface(tail, zt0, False)]
-    F += wall(tail, zt0, 0.0, outward=True)
-    F.append(hface(lug_rf, 0.0, True)); F.append(hface(lug_lf, 0.0, True))
-    F += wall(stub, 0.0, zcap, outward=True)
-    F.append(hface(spr, zcap, False, [stub]))                 # cap rear face around the stub
-    F += wall(spr, 0.0, zcap, outward=False)                  # pocket wall above the cap
+    F = [hface(spr, GEAR_SPRING_D, False)]                   # pocket floor (screw head + spring seat)
+    F += wall(spr, 0.0, GEAR_SPRING_D, outward=False)
     F.append(hface(g, 0.0, False, [spr]))
     F += wall(g, 0.0, GEAR_FACE, outward=True)
     F.append(hface(g, GEAR_FACE, True, [sp]))
@@ -544,7 +520,7 @@ mats = {
     'front': get_mat('Front plate PETG', 74, 88, 104),
     'sled': get_mat('Motor sled PETG', 120, 136, 152),
     'deck': get_mat('Electronics deck PETG', 160, 172, 184),
-    'gearshaft': get_mat('Gear + shaft + cap PETG', 230, 145, 56),
+    'gearshaft': get_mat('Gear + shaft PETG', 230, 145, 56),
     'pinion': get_mat('Pinion PETG-CF', 106, 168, 79),
     'motor': get_mat('NEMA17 dummy', 40, 40, 44, 150),
     'bearing': get_mat('608 bearing steel', 190, 192, 196),
@@ -558,7 +534,7 @@ mats = {
 }
 names = {
     'front': 'Front plate (base) + bosses + legs', 'sled': 'Motor sled + deck legs', 'deck': 'Electronics deck',
-    'gearshaft': 'Dial gear-shaft (28T gear + shaft + twist-lock cap)', 'pinion': 'Motor pinion (14T)', 'motor': 'NEMA17 17HE19-2004S (dummy)',
+    'gearshaft': 'Dial gear-shaft (28T gear + shaft on a tapered hex, M3 countersunk screw)', 'pinion': 'Motor pinion (14T)', 'motor': 'NEMA17 17HE19-2004S (dummy)',
     'bearing': '608 bearing', 'rmag': 'Rubber pot magnet 22x6 (Wukong)', 'retainer': 'Magnet retainer', 'door': 'Safe door (reference, dial holes)', 'mega': 'Arduino Mega + RAMPS envelope (placeholder)',
     'post9': 'Mega insert post 9mm', 'post74': 'Mega insert post 7.5mm', 'rest': 'Mega rest post',
 }
@@ -566,15 +542,15 @@ report = {}
 for key, fn in PARTS.items():
     cd, ns = make_def(names[key], fn(), mats[key])
     report[key] = {'faces': len(cd.get_entities().get_faces()), 'softened': ns, 'manifold': cd.is_manifold()}
-spr_len = (CAVITY_TOP + SLED_SPRING_D) - (GEAR_Z1 - GEAR_SPRING_D + CAP_T)
-cd, ns = make_def('Spring (placeholder, 15.6mm installed, on the cap)', spring_placeholder(spr_len), mats['spring'])
+spr_len = (CAVITY_TOP + SLED_SPRING_D) - (GEAR_Z1 - GEAR_SPRING_D)
+cd, ns = make_def('Spring (placeholder, 16.0mm installed, on the gear pocket floor)', spring_placeholder(spr_len), mats['spring'])
 report['spring'] = {'faces': len(cd.get_entities().get_faces()), 'manifold': cd.is_manifold()}
 session_state['layout'] = {'H': H, 'MOT': MOT, 'MAGS': magnet_pts(), 'motor_dir': P['motor_dir'], 'motor_rot': P['motor_rot'],
                            'mega_rotation': P['mega_rotation'], 'mega_offset': P['mega_offset'],
                            'posts': MEGA_BOLT_ROT, 'post_r': POST_R, 'rest': MEGA_REST_ROT, 'POST_H': POST_H}
 session_state['z'] = {'GEAR_Z1': GEAR_Z1, 'CAVITY_TOP': CAVITY_TOP, 'MOTOR_FACE': MOTOR_FACE, 'DECK_Z': DECK_Z,
                       'DECK_T': DECK_T, 'LIP_H': LIP_H, 'BW': BW, 'NB': NB, 'NG': NG, 'NP': NP,
-                      'spring_z0': GEAR_Z1 - GEAR_SPRING_D + CAP_T}
+                      'spring_z0': GEAR_Z1 - GEAR_SPRING_D}
 result = report
 
 # ======================= PART 2: place the parts (assembled + exploded) =======================

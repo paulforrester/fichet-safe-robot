@@ -1,6 +1,6 @@
 # Fichet safe robot — build and operating manual
 
-> **Revision 2026-10-17.1** · key driver on the RAMPS E0 socket; UART pigtail replaces the hub board · log: `docs/revisions.md`
+> **Revision 2026-10-17.2** · gear-shaft on a tapered hex with an M3 screw (2026-10-17.2); key driver on the RAMPS E0 socket; UART pigtail · log: `docs/revisions.md`
 
 For Paul. Covers the robot as of **revision 2026-10-08.2**: dial unit v2, key
 turner v1, wiring with all four drivers on the RAMPS and the UART pigtail
@@ -86,10 +86,10 @@ the print notes in `cad/dial_unit_housing.scad` (end of file) and
 | `insert_coupon.stl` | optional: 3 insert posts, drawn 4.37 / 4.45 / 4.53 mm, should print ~4.25 / 4.33 / 4.41 (1 / 2 / 3 notches) (rev 2026-10-12.1) | 1 | PETG | flat base down |
 | `electronics_deck.stl` | deck v3.2: 3 M3 insert posts + 1 rest post for the Mega, 3 access holes, button beside its wire hole, barrel cradle by the RAMPS power terminal (rev 2026-10-13.1) | 1 | PETG | underside (motor side) down, as exported; posts up |
 | `board_spacers.stl` | 9 spacers for between the RAMPS and the Mega: 3 each of 8.4 / 8.8 / 9.2 mm (1 / 2 / 3 notches) | 1 plate | PETG | flat |
-| `twist_lock_coupon.stl` | **print first** (rev 2026-10-17.1): 3 gear hubs with the double-D bore drawn 0.2 / 0.3 / 0.4 mm over (1 / 2 / 3 rim notches), 1 shaft tail, 2 caps | 1 plate | plain PETG | as exported |
-| `dial_shafts_5mm.stl` (or `dial_shafts_7mm.stl`) | 3 dial shafts: T2 plug + journal + double-D + twist-lock tail (rev 2026-10-17.1) | 1 plate | **plain PETG** | **plug tip down**, tail up, as exported, **with a brim** (it stands on ~27 mm²). The 7 mm plug can't be pushed back far enough for the unit to sit flat until it seats (`docs/decisions.md`) |
-| `dial_gears.stl` | 3 dial gears (28T, double-D bore, front boss) + 4 twist-lock caps (1 spare) (rev 2026-10-17.1) | 1 plate | **plain PETG** | gear rear (pocket) face down; caps nubs up. **Elephant-foot compensation on**, or the bottom layer of the teeth binds |
-| `dial_drivetrain.stl` | the same on one plate: 3 gears, 3 shafts (5 mm), 3 caps, 3 pinions | 1 plate | pinions **PETG-CF**; the rest plain PETG | as above; pinion hub down. **Elephant-foot compensation on** |
+| `taper_hex_coupon.stl` | **print first** (rev 2026-10-17.2): 3 gear hubs with the tapered hex bore drawn 0.0 / 0.1 / 0.2 mm over (1 / 2 / 3 rim notches), each with the gear's back wall, countersink and pocket; 3 shaft tails. Test: §1.3 step 4 | 1 plate | plain PETG | as exported: hubs pocket face down, tails journal end down (brim) |
+| `dial_shafts_5mm.stl` (or `dial_shafts_7mm.stl`) | 3 dial shafts: T2 plug + journal + tapered hex tail with an M3 pilot (rev 2026-10-17.2). Can print before the coupon result: only the gears' bore depends on it | 1 plate | **plain PETG** | **plug tip down**, tail up, as exported, **with a brim** (it stands on ~27 mm²). The 7 mm plug can't be pushed back far enough for the unit to sit flat until it seats (`docs/decisions.md`) |
+| `dial_gears.stl` | 3 dial gears (28T, tapered hex bore, back wall with the M3 countersink, front boss, 1 mm spring pocket) (rev 2026-10-17.2). **After the coupon**: I set the bore from it | 1 plate | **plain PETG** | gear rear (pocket) face down. **Elephant-foot compensation on**, or the bottom layer of the teeth binds |
+| `dial_drivetrain.stl` | the same on one plate: 3 gears, 3 shafts (5 mm), 3 pinions | 1 plate | pinions **PETG-CF**; the rest plain PETG | as above; pinion hub down. **Elephant-foot compensation on** |
 | `magnet_retainers.stl` | 10 retainer discs (9 needed) | 1 plate | PETG | flat |
 | `key_turner_base.stl` | key-turner base + 3 legs | 1 | PETG | door face |
 | `key_turner_motor_plate.stl` | key motor plate | 1 | PETG | inner face |
@@ -128,7 +128,7 @@ magnet (§1.3a). The current STLs have 21.7 mm holes, for any future reprint
 |---|---|---|---|
 | 608 bearings (8 × 22 × 7) | 6 (2 per dial) | — | on hand |
 | Compression springs ≤ 8 mm OD, ~18–20 mm free, solid < 10 mm | 3 | — | ordered: QUARKZMAN 0.5 × 7 × 20 mm, 304 stainless, arriving 2026-10-07 (Paul). Count the coils on arrival |
-| M3 × 10 countersunk, hex socket (motor screws; the length includes the head) | 12 | 4 | on hand (kit has 55) |
+| M3 × 10 countersunk, hex socket (the length includes the head) | 15: 12 motor screws + 3 gear-shafts (rev 2026-10-17.2, self-tapping into the shaft) | 4 | on hand (kit has 55) |
 | M6 countersunk self-tapping, 16 mm | 6 | 3 | on hand. On the key turner, 16 mm works better than the 20 mm the CAD notes listed (Paul, 2026-10-06) |
 | M3 brass heat-set inserts (HANGLIFE, 4.2 mm OD, ~5 mm) | 3 | — | on hand |
 | M3 nylon screws, **16–20 mm** (Mega + RAMPS to the posts) | 3 | — | on hand (Paul). 16 mm gives 4 mm in the insert; longer than 21 mm would bottom in the post |
@@ -153,6 +153,26 @@ magnet (§1.3a). The current STLs have 21.7 mm holes, for any future reprint
 3. **First M6 into a printed leg: drive it by hand**, not with a power
    driver, and check the leg doesn't crack. The legs have ~3.3 mm of wall
    around the 5.4 mm pilot (`docs/bom.md`).
+4. **Gear-shaft taper coupon** (`taper_hex_coupon.stl`, rev 2026-10-17.2).
+   It tells me how big to draw the gears' bore. Hubs are marked by the
+   notches on their rim (1, 2, 3 = bore drawn 0.0 / 0.1 / 0.2 mm over).
+   1. Stand a tail on the bench, journal end down. Push hub 1 onto it,
+      pocket side up, firmly by hand. Does it turn or rock on the hex at
+      all? Measure the height from the bench to the hub's top face
+      (drawn: **14.5 mm**). Is there still a gap between the hub's
+      underside and the tail's step (drawn 1 mm)?
+   2. Pull it off and do the same with hubs 2 and 3 on the same tail.
+   3. Then put each hub on its own tail with an M3 × 10 countersunk, by
+      hand, **snug, not tight**. Does the screw bite and hold without
+      stripping? Is the head flush with the pocket floor? Any play now?
+      Height again. Any crack in the tail?
+   4. On one of them: back the screw out two turns and press its head
+      (thumb, or a tap with the screwdriver handle). Does the hub come
+      off?
+
+   Send me, for each hub: play by hand (yes/no), height by hand, gap
+   (yes/no), height with the screw, play with the screw, head flush; and
+   whether the hub came off in step 4.
 
 ### 1.3a Fitting the door magnets (both units)
 
@@ -261,22 +281,25 @@ Tell me if a different order works better, and I'll record it.
 2. **Bearings.** Press two 608s into each boss from the back (the boss top).
    A 2 mm lip on the door side stops the outer ring. It's a light press fit
    (22.15 mm pocket).
-3. **Shafts, gears, caps** (rev 2026-10-17.1: three parts per dial; the
-   plug is too wide to go through a bearing, so the shaft goes in from the
-   door side). For each dial:
-   1. **Shaft:** from the **door side**, tail (lugs) first, slide the shaft
+3. **Shafts, gears, screws** (rev 2026-10-17.2: the plug is too wide to go
+   through a bearing, so the shaft goes in from the door side, and the gear
+   is held on its tapered hex by one M3 × 10 countersunk; section drawing:
+   `docs/gear_shaft_section.png`). For each dial:
+   1. **Shaft:** from the **door side**, hex tail first, slide the shaft
       into its bearings until the plug is near the door face. It must slide
       freely.
-   2. **Gear:** from the back, slide the gear onto the shaft's double-D,
-      front boss first, until the boss sits on the rear bearing's inner ring.
-      That's the plug's forward position.
-   3. **Cap:** nubs toward the gear, slots over the two lugs, push it into
-      the gear's pocket, then turn it ¼ turn until its nubs drop into the
-      two notches in the pocket floor. Pull gently on the plug: the shaft
-      should stay in.
-   4. **To take it apart:** lift the cap off its notches (it has 0.6 mm of
-      play), turn it back ¼ until the slots line up with the lugs, and lift
-      it off.
+   2. **Gear:** from the back, front boss first, onto the shaft's hex
+      (turn it until the hexes line up), and push it on by hand.
+   3. **Screw:** from the back, through the gear into the shaft's tail, by
+      hand, **snug, not tight**: it self-taps into the shaft and pulls the
+      gear onto the taper. Hold the gear while you turn it. The head ends
+      flush with the pocket floor.
+   4. **Check:** hold the plug and try to turn the gear: no play at all.
+      Push the plug in from the door side and pull it back: shaft and gear
+      slide together, freely (the spring, step 6, brings them forward later).
+   5. **To take it apart:** take the screw out. If the gear doesn't pull
+      off, put the screw back two turns and press its head: the bearing
+      holds the gear and the shaft comes out of it.
    The plug can now be pushed back 5 mm (its fins stop on the front bearing).
 4. **Motors on the sled.** Each motor goes on the sled's outer face, its
    front boss in the recess. Four M3 × 10 countersunk screws go in from the
@@ -287,8 +310,8 @@ Tell me if a different order works better, and I'll record it.
    it stops. The D-shaped bore stops where the shaft's flat ends, and that
    sets its position. The grub screw is optional: the pinion is trapped
    between the sled and the boss tops.
-6. **Springs.** Sit one spring in each gear's rear pocket, on the cap
-   (around the shaft's tail).
+6. **Springs.** Sit one spring in each gear's rear pocket (1 mm deep), on
+   the pocket floor and the screw head.
 7. **Join sled to front.** Bring the sled down onto the three front legs.
    Each pinion has to mesh with its gear, and each spring has to go into
    the sled's pocket. The screw pattern is asymmetric, so it fits only one

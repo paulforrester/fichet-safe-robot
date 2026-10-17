@@ -1,6 +1,6 @@
 # Project revisions
 
-> **Revision 2026-10-17.1** · this file is the revision log · current ID in `REVISION`
+> **Revision 2026-10-17.2** · this file is the revision log · current ID in `REVISION`
 
 Every project document and drawing carries the project revision it was last
 brought up to date in, so a printed or downloaded copy can be told apart from
@@ -21,6 +21,24 @@ a newer one. The ID is the date plus a sequence number for that day:
   which also names the project revision it was built for.
 
 ## Log (most recent first)
+
+### 2026-10-17.2 — gear-shaft on a tapered hex with an M3 screw (twist-lock withdrawn)
+
+**Change** (`cad/dial_unit_housing.scad` section 8, `cad/tools/dial_layout_check.py`,
+review model script, `docs/housing_decisions.md`, manual §1.1–1.4, BOM).
+Paul's first print of the 2026-10-17.1 parts: the twist-lock caps were hard
+to impossible to fit, and the double-D had far too much play. His design
+replaces them: the shaft ends in a **tapered hex** (10° per flat, 6.6 → 5.1mm
+across the flats), the gear has the matching bore and a back wall, and an
+**M3×10 countersunk** from the back, self-tapping into the shaft, pulls the
+gear onto the taper (no play, and nothing to twist). The spring pocket is
+1mm deep; the spring sits on its floor and the flush screw head. The plug,
+the gear's outside and everything else are unchanged.
+
+**What to do:** print `taper_hex_coupon.stl` and do the test in manual §1.3
+step 4; send the numbers. The shafts (`dial_shafts_5mm.stl`) can print now.
+Print `dial_gears.stl` only after the coupon (I set the bore from it).
+Assembly: manual §1.4 step 3. Three more M3×10 countersunk from the kit.
 
 ### 2026-10-17.1 — dial plug re-sized (T2) and the gear-shaft in three parts
 

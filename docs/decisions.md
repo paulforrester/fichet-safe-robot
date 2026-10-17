@@ -1,11 +1,20 @@
 # Tube-socket test key — dimensional decision log
 
-> **Revision 2026-10-17.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
+> **Revision 2026-10-17.2** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
 
 
 Working notes on how the test key's dimensions were arrived at, most
 recent first. Terminology (WIDTH / HEIGHT / DEPTH) is defined in
 `tooth_terms_diagram.png` in this folder.
+
+## 2026-10-17 (evening) — Correction: the twist-lock is replaced by a tapered hex and an M3 screw
+
+Paul printed the twist-lock parts (revision 2026-10-17.1, below): the caps
+were hard to impossible to fit, and the double-D had far too much play. His
+design replaces both (revision 2026-10-17.2, `docs/housing_decisions.md`
+has the detail): a tapered hex (10° per flat) on the shaft and in the gear,
+pulled together by an M3×10 countersunk from the back, self-tapping into the
+shaft. The plug (T2) is unchanged. Fit coupon first: `taper_hex_coupon.stl`.
 
 ## 2026-10-17 (later) — Correction: the T2 gear-shaft couldn't be assembled; now three parts
 

@@ -1,5 +1,5 @@
-// 3 dial shafts with the 7mm T2 plug (2026-10-17): plug + journal +
-// double-D + twist-lock tail. PLUG TIP on the bed, tail up, with a brim
+// 3 dial shafts with the 7mm T2 plug (revision 2026-10-17.2): plug + journal +
+// tapered hex tail with an M3 pilot. PLUG TIP on the bed, tail up, with a brim
 // (small footprint). Plain PETG.
 // They go into the bearings from the DOOR side, tail first.
 // NOTE: a misaligned 7mm plug cannot be pushed back far enough for the unit to

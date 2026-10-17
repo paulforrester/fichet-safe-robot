@@ -1,6 +1,6 @@
 # RAMPS board + UART pigtail — what goes where
 
-> **Revision 2026-10-17.1** · all four drivers on the RAMPS (key in E0); UART pigtail replaces the hub board · log: `docs/revisions.md`
+> **Revision 2026-10-17.2** · all four drivers on the RAMPS (key in E0); UART pigtail replaces the hub board · log: `docs/revisions.md`
 
 A single bench sheet pulling together everything that gets fitted to the
 RAMPS, plus the UART pigtail, so nothing is missed. It restates
