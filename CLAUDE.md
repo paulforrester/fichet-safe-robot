@@ -115,6 +115,15 @@ RAMPS, UART pigtail); firmware written and host-tested
   plug that doesn't line up with its star is pushed back. So every session
   starts with a **seat routine** — turn each dial motor slowly, at most
   1/8 dial turn (45° dial = 90° motor), until the plug drops in — then home.
+- **Dial plug: being re-sized (2026-10-16).** Dial A's plug (PETG-CF) snapped
+  in its socket. The socket's star is **10mm tip to tip at its mouth**; the
+  plug copied the real key's 7.73mm *tip* section, which only engages deeper
+  (Paul's calipers; `docs/decisions.md`). Test keys:
+  `cad/dial_plug_taper_test.scad`. **Picked (2026-10-17): T2** — 10mm fins,
+  0.95 wide, tapering to 7.73 over the last 2mm; on the gear-shaft at 5mm
+  (default) and 7mm (Paul's variant), plain PETG. The fins can't pass the
+  front bearing's 8mm bore, so a plug can only be pushed back 5mm, not 7mm
+  (`dial_layout_check.py`).
 - **Dial torque: not measured yet.** Dial drivers run at **600 mA RMS**
   (door test 2026-10-14: at 1 A homing failed its repeat check; at 600 mA
   seat, calibration and homing passed on all three dials).

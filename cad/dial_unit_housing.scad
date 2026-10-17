@@ -46,14 +46,14 @@
 //   rear_assembly()    motor sled + 3 deck legs
 //   electronics_deck() Mega + RAMPS on 3 M3 insert posts + 1 rest post (v3.1, 2026-10-12)
 //   insert_coupon(), board_spacers()  small prints for the deck
-//   dial_gear_shaft()  x3, PETG-CF
+//   dial_gear_shaft()  x3, plain PETG (2026-10-16: the PETG-CF plug snapped)
 //   motor_pinion()     x3, PETG-CF
 //   dial_pattern_test() — 3 bosses only, to check the hole pattern on the
 //                       real door BEFORE printing the big parts (see notes).
 // ============================================================
 
 include <common_mounts.scad>
-use <tube_socket_test_key.scad>  // spline_plug()
+use <dial_plug_taper_test.scad>  // tapered_star_plug() (2026-10-17: T2 plug)
 
 $fn = 64;
 
@@ -188,14 +188,33 @@ spacer_h    = 1.5;
 gear_face   = 6;
 travel      = 7;     // plug can be pushed back this far (plug tip ends flush with the plate)
 
-// tooth geometry for the plug (restated from tube_socket_test_key.scad —
-// `use` doesn't import variables; same values as v1, locked in docs/decisions.md)
+// Plug geometry (2026-10-17, docs/decisions.md; restated from
+// dial_plug_taper_test.scad, `use` doesn't import variables). Correction:
+// until 2026-10-16 this was the real key's 7.73mm TIP star (2.00mm teeth,
+// 1.04 wide, 3.38mm core), which sat loose in the socket's 10mm mouth and
+// snapped (dial A, PETG-CF). Now: 8 fins 10mm tip to tip (socket, Paul's
+// calipers) - clearance, 0.95mm wide (the key's outer fins), on the key's
+// 4.94mm hub, tapering to the key's 7.73mm over the last 2mm. That's taper
+// T2, Paul's pick (2026-10-17): the shallowest taper that still seats fully.
+// T1 didn't. Kept at 5mm: the 8mm C8 key also fits, but needs more than the
+// 7mm travel below.
 tooth_count_v   = 8;
-key_tip_dia_v   = 7.73;
-tooth_height_v  = 2.00;
-tooth_width_v   = 1.04;
+plug_fin_dia_v  = 10.0;     // socket mouth, tip to tip (Paul, 2026-10-16)
+plug_end_dia_v  = 7.73;     // key tip section (calipers, docs/decisions.md)
+plug_core_dia_v = 4.94;     // key hub (calipers, docs/decisions.md)
+plug_fin_w_v    = 0.95;     // key's outer fins (Paul, 2026-10-16)
+plug_taper_v    = 2.0;      // T2 (Paul, 2026-10-17)
 fit_clearance_v = 0.35;
-plug_len        = 5.0;
+plug_len        = 5.0;      // Paul (2026-10-17) prints 5mm and 7mm (print_gear_shafts_7mm.scad)
+// The fins are 9.65mm across: unlike the old 7.38mm star they can't pass the
+// front bearing's 8mm bore, so pushing a plug back now stops when its fins
+// reach the bearing face (z = lip_h). The plug's first plug_fin_gap behind its
+// root stays round at the journal diameter: that part sits in the door's
+// recess, never in the star (the star starts 3.14mm below the door face,
+// Paul 2026-10-05), and it buys 1mm of travel. A misaligned plug only has to
+// go back until its tip rests on the star's face (tip depth - star_start_z).
+plug_fin_gap    = 1.0;
+star_start_z    = -3.14;    // door face to where the star begins (Paul's calipers, 2026-10-05)
 
 // gear-shaft in its FORWARD position (spacer against the rear bearing):
 gear_z0     = boss_h + spacer_h;        // 17.5, gear front face
@@ -441,10 +460,8 @@ module rear_assembly() { union() { motor_plate(); deck_standoff_legs(); } }
 // ============================================================
 // Gear-shaft. Print frame: z=0 is the gear's REAR face (spring side) on the
 // bed; the plug is the top. Assembly z = gear_z1 - local z.
-module dial_gear_shaft() {
-    root_d = (key_tip_dia_v - 2*tooth_height_v) - fit_clearance_v;
-    tip_d  = key_tip_dia_v - fit_clearance_v;
-    journal_len = gear_z0 - spacer_h - plug_z0;   // 18: from the spacer to the plug root
+module dial_gear_shaft(plug_l = plug_len) {
+    journal_len = gear_z0 - spacer_h - plug_z0 + plug_fin_gap;   // 19: to where the fins start
     difference() {
         union() {
             linear_extrude(height = gear_face, convexity = 10)
@@ -454,7 +471,9 @@ module dial_gear_shaft() {
             translate([0, 0, gear_face + spacer_h - eps_c])
                 cylinder(d = journal_d, h = journal_len + eps_c, $fn = 64);
             translate([0, 0, gear_face + spacer_h + journal_len - eps_c])
-                spline_plug(tip_d, root_d, tooth_count_v, plug_len + eps_c, tooth_width_v);
+                tapered_star_plug(plug_fin_dia_v - fit_clearance_v, plug_end_dia_v - fit_clearance_v,
+                                  plug_core_dia_v - fit_clearance_v, tooth_count_v, plug_fin_w_v,
+                                  plug_l - plug_fin_gap + eps_c, plug_taper_v);
         }
         translate([0, 0, -eps_c])
             cylinder(d = spring_pocket_d, h = gear_spring_depth + eps_c, $fn = 48);
@@ -829,6 +848,7 @@ echo(LAYOUT = [
     ["gear", [gear_m, gear_teeth, pinion_teeth, gear_x, pinion_x, gear_pa, gear_backlash, gear_cd]],
     ["gear_tip_r", gear_tip_r], ["pinion_tip_r", pinion_tip_r],
     ["z", [boss_h, gear_z0, gear_z1, pinion_z0, pinion_z1, cavity_top, motor_face_z, shaft_tip_z, deck_z, travel, plug_z0, plug_z1]],
+    ["plug", [plug_z0 - plug_fin_gap, star_start_z, lip_h, plug_fin_dia_v - fit_clearance_v, bearing_id]],
     ["spring", [spring_len_fwd, spring_len_back, spring_pocket_d]], ["pinion_hub_h", pinion_hub_h],
     ["boss_d", boss_d], ["bearing_pocket_d", bearing_pocket_d], ["leg_dia", leg_dia], ["m6_csk_top_d", m6_csk_top_d],
     ["m3_csk_top_d", m3_csk_top_d], ["boss_recess_d", boss_recess_d], ["front_plate_r", front_plate_r],
@@ -847,6 +867,10 @@ module print_rear_assembly()    translate([0, 0, -cavity_top]) rear_assembly();
 module print_electronics_deck() translate([0, 0, -deck_z]) electronics_deck();
 module print_insert_coupon()    insert_coupon();
 module print_board_spacers()    board_spacers();
+// Paul (2026-10-17): print the gear-shafts on their own, 5mm and 7mm plugs.
+module print_gear_shafts(plug_l = plug_len) {
+    for (i = [0 : 2]) translate([i*36, 0, 0]) dial_gear_shaft(plug_l);
+}
 module print_drivetrain() {
     for (i = [0 : 2]) {
         translate([i*36, 0, 0]) dial_gear_shaft();
@@ -879,7 +903,7 @@ for (i = [0 : 2]) {
 //  - front_assembly(): door face down (PETG). rear_assembly(): INNER face
 //    down (the face with the spring pockets/screw countersinks), legs up (PETG).
 //    electronics_deck(): flat (PETG).
-//  - dial_gear_shaft(): gear face down, plug up, PETG-CF (wear part).
+//  - dial_gear_shaft(): gear face down, plug up, plain PETG (PETG-CF snapped, 2026-10-16).
 //    motor_pinion(): hub down, teeth up, PETG-CF. Turn elephant-foot
 //    compensation on for both, or the bottom layer of the teeth binds.
 //  - Hardware: 6x 608 bearings, 3x compression springs (<= 8mm OD,

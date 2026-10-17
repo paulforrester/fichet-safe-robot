@@ -47,7 +47,7 @@ POCKET_R = 22.15 / 2; LIP_R = 19.5 / 2; BOSS_R = POCKET_R + 2.5
 BOSS_H = LIP_H + NB * BW                      # 16
 JOURNAL_R, SPACER_R, SPACER_H, GEAR_FACE, TRAVEL = 7.85 / 2, 5.5, 1.5, 6.0, 7.0
 GEAR_Z0 = BOSS_H + SPACER_H; GEAR_Z1 = GEAR_Z0 + GEAR_FACE
-PLUG_Z0, PLUG_LEN = -2.0, 5.0
+PLUG_Z0, PLUG_LEN = -2.0, 5.0; PLUG_FIN_GAP = 1.0   # fins start 1mm in front of the plug root (2026-10-17)
 PIN_Z0 = GEAR_Z0 - 0.5; PIN_FACE = GEAR_FACE + TRAVEL + 1; PIN_Z1 = PIN_Z0 + PIN_FACE
 PIN_HUB_H = 4.0; PIN_HUB_R_VISUAL = 5.9        # (real hub is 6.0; 5.9 keeps it inside the tooth roots for a clean face)
 CAVITY_TOP = PIN_Z1 + PIN_HUB_H + 0.5          # 35.5
@@ -79,7 +79,8 @@ WIRE_R = 4.0 / 2   # WIRE itself is placed off the board, after _mplace below
 BARREL_BODY_W = 14.48 + 0.6   # BARREL_C / BARREL_DIR: set after _mplace (v3.2, beside the RAMPS power terminal)
 BARREL_BODY_L = 13.0; BARREL_SADDLE_D = 2.0; TIE_W = 2.41 + 0.6; TIE_T = 1.03 + 0.6
 TIE_GAP = BARREL_BODY_W + 6.0
-STAR_TIP_D = 7.73 - 0.35; STAR_ROOT_D = (7.73 - 2 * 2.00) - 0.35; STAR_W = 1.04
+# Plug T2 (2026-10-17, docs/decisions.md): 10mm fins, 0.95 wide, on the 4.94 hub, tapering to 7.73 over the last 2mm
+STAR_TIP_D = 10.0 - 0.35; STAR_END_D = 7.73 - 0.35; STAR_ROOT_D = 4.94 - 0.35; STAR_W = 0.95; STAR_TAPER = 2.0
 
 
 def rot2(p, a):
@@ -368,7 +369,8 @@ def gear_shaft():
     g = gear_profile(M_GEAR, NG, XG, PA, BL)
     spr = circle(0, 0, SPRING_R, 24); sp = circle(0, 0, SPACER_R, 32); jr = circle(0, 0, JOURNAL_R, 32)
     star = tooth_profile(STAR_TIP_D / 2, STAR_ROOT_D / 2, 8, STAR_W)
-    zj = GEAR_FACE + SPACER_H; zp = zj + (GEAR_Z0 - SPACER_H - PLUG_Z0); zt = zp + PLUG_LEN
+    star_end = tooth_profile(STAR_END_D / 2, STAR_ROOT_D / 2, 8, STAR_W)
+    zj = GEAR_FACE + SPACER_H; zp = zj + (GEAR_Z0 - SPACER_H - PLUG_Z0) + PLUG_FIN_GAP; zt = zj + (GEAR_Z0 - SPACER_H - PLUG_Z0) + PLUG_LEN
     F = [hface(g, 0.0, False, [spr])]
     F += blind_hole_from_bottom([0, 0], SPRING_R, 24, 0.0, GEAR_SPRING_D)
     F += wall(g, 0.0, GEAR_FACE, outward=True)
@@ -377,8 +379,9 @@ def gear_shaft():
     F.append(hface(sp, zj, True, [jr]))
     F += wall(jr, zj, zp, outward=True)
     F.append(hface(jr, zp, True, [star]))
-    F += wall(star, zp, zt, outward=True)
-    F.append(hface(star, zt, True))
+    F += wall(star, zp, zt - STAR_TAPER, outward=True)
+    F += wall(star, zt - STAR_TAPER, zt, outward=True, loop2_top=star_end)
+    F.append(hface(star_end, zt, True))
     return F
 
 

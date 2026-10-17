@@ -86,7 +86,8 @@ the print notes in `cad/dial_unit_housing.scad` (end of file) and
 | `insert_coupon.stl` | optional: 3 insert posts, drawn 4.37 / 4.45 / 4.53 mm, should print ~4.25 / 4.33 / 4.41 (1 / 2 / 3 notches) (rev 2026-10-12.1) | 1 | PETG | flat base down |
 | `electronics_deck.stl` | deck v3.2: 3 M3 insert posts + 1 rest post for the Mega, 3 access holes, button beside its wire hole, barrel cradle by the RAMPS power terminal (rev 2026-10-13.1) | 1 | PETG | underside (motor side) down, as exported; posts up |
 | `board_spacers.stl` | 9 spacers for between the RAMPS and the Mega: 3 each of 8.4 / 8.8 / 9.2 mm (1 / 2 / 3 notches) | 1 plate | PETG | flat |
-| `dial_drivetrain.stl` | 3 gear-shafts + 3 pinions, one plate | 1 plate | **PETG-CF** | gear face / pinion hub. **Elephant-foot compensation on**, or the bottom layer of the teeth binds |
+| `dial_drivetrain.stl` | 3 gear-shafts + 3 pinions, one plate | 1 plate | **PETG-CF** pinions; gear-shafts **plain PETG** (2026-10-16) | gear face / pinion hub. **Elephant-foot compensation on**, or the bottom layer of the teeth binds |
+| `gear_shafts_5mm.stl` / `gear_shafts_7mm.stl` | 3 gear-shafts with the T2 plug, 5mm or 7mm (2026-10-17) | 1 plate | **plain PETG** (the PETG-CF plug snapped) | gear face. **Elephant-foot compensation on**. The 7mm plug can't be pushed back far enough for the unit to sit flat until it seats (`docs/decisions.md`) |
 | `magnet_retainers.stl` | 10 retainer discs (9 needed) | 1 plate | PETG | flat |
 | `key_turner_base.stl` | key-turner base + 3 legs | 1 | PETG | door face |
 | `key_turner_motor_plate.stl` | key motor plate | 1 | PETG | inner face |

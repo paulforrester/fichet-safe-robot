@@ -194,6 +194,13 @@ def main():
         fails += not ok; print(f'  {"ok  " if ok else "FAIL"} {txt}')
 
     bh, gz0, gz1, pz0, pz1, ctop, mface, tip, deckz, travel, plug0, plug1 = L['z']
+    fin0, star0, lip, fin_d, bore_d = L['plug']
+    back_need = star0 - plug1                       # tip back to the star's face
+    back_max = min(travel, lip - fin0) if fin_d > bore_d else travel
+    for pl in (7,):                                 # Paul's variant (print_gear_shafts_7mm.scad): reported only
+        need = star0 - (plug0 - pl)
+        print(f'  info  {pl}mm plug: must go back {need:.2f}, can go back {back_max:.2f} '
+              f'({"OK" if need + 0.5 <= back_max else f"unit held {need - back_max:.2f}mm off the door until it seats"})')
     sp_fwd, sp_back, _ = L['spring']
     print('\naxial stack (z from the door face):')
     rows = [(gz0 - 1.5 >= bh, f'gear front face {gz0} clear of the bearing bosses (top {bh}) — spacer only touches the bearing'),
@@ -201,7 +208,10 @@ def main():
             (pz0 <= gz0 and gz1 + travel <= pz1, f'gear ({gz0}-{gz1}) stays on the pinion ({pz0}-{pz1}) over the full {travel}mm travel'),
             (pz0 - 0.5 <= tip <= pz1 - 10, f'motor shaft tip at {tip} (+/-0.5) lands inside the pinion ({pz0}-{pz1})'),
             (gz1 + travel < ctop - 0.21 - 0.5, f'gear rear at full travel ({gz1 + travel}) clear of the sled face {ctop} (countersunk motor-screw heads within 0.21mm of it)'),
-            (plug1 + travel >= -0.01, f'plug tip at full travel {plug1 + travel:.1f} (>= 0: plate can sit flush on the door)'),
+            (back_need + 0.5 <= back_max,
+             f'misaligned plug: must go back {back_need:.2f} (tip {plug1} to the star face {star0}); fins reach the '
+             f'front bearing after {back_max:.2f} (travel {travel}), margin {back_max - back_need:.2f} (>= 0.5)'),
+            (fin_d > bore_d, f'fins {fin_d:.2f} wider than the bearing bore {bore_d}: travel limited by the fins (this check)'),
             (sp_back >= 9, f'spring length {sp_fwd} forward / {sp_back} pushed back (needs solid length < {sp_back})')]
     # the pinion is located by the end of the shaft's flat, and can float between the
     # bearing-boss tops (forward) and the sled face (back): check mesh at both extremes
