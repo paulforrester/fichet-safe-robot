@@ -1,9 +1,9 @@
 # CLAUDE.md — Fichet-Bauche safe combination robot
 
 Context for any Claude session working in this repo. Read this first, then
-the doc that matches your task (table below). Last updated 2026-10-16.
+the doc that matches your task (table below). Last updated 2026-10-17.
 
-> **Project revision 2026-10-13.1** — all four TMC2209 drivers are on the
+> **Project revision 2026-10-17.1** — all four TMC2209 drivers are on the
 > RAMPS (the key in the **E0** socket); there is no remote driver board or
 > inter-unit signal cable, only the key motor's own cable. The UART junction
 > is a six-lead **UART pigtail** (R1 in the TX2 lead, one splice), not a
@@ -12,7 +12,10 @@ the doc that matches your task (table below). Last updated 2026-10-16.
 > (2026-10-12.1), **v3.2** (2026-10-13.1: barrel cradle by the RAMPS power terminal, open saddle): no Mega base plate; the Mega + RAMPS sit on 3 M3 heat-set
 > insert posts (+1 rest post), M3 nylon screws from the top; access holes over
 > all 3 motor-plate joints, clear of the board (they work, Paul 2026-10-13); start button beside its wire hole on the board's lower edge, no lead groove (2026-10-13.1). The motor plate's inspection windows can't be seen through
-> once assembled: inspect the gears from the side. The current
+> once assembled: inspect the gears from the side. **2026-10-17.1:** each dial's
+> gear-shaft is three parts — the shaft (T2 plug, journal, double-D, lugs) goes
+> into its bearings **from the door side**, the gear slides onto the double-D
+> from the back, and a ¼-turn **twist-lock cap** holds it (Paul's idea). The current
 > revision ID lives in `REVISION`; the log is `docs/revisions.md`. When a
 > design change affects how the robot is built, wired or run, bump `REVISION`,
 > add a `docs/revisions.md` entry, and run `python3 tools/check_revision.py`
@@ -111,6 +114,9 @@ RAMPS, UART pigtail); firmware written and host-tested
 - **Dial drive:** 14T pinion on the motor → 28T gear on the dial shaft
   (2:1). Under the 200-step assumption: 400 full steps per dial turn,
   **20 full steps per dial position**. Motor turns opposite to the dial.
+  Each dial is a **shaft + gear + twist-lock cap** (revision 2026-10-17.1:
+  the plug's fins can't pass a 608's 8mm bore, so the shaft goes in from the
+  door side; the double-D carries the torque, the cap only retains).
   Each dial shaft is **spring-loaded**: when the unit goes on the door, a
   plug that doesn't line up with its star is pushed back. So every session
   starts with a **seat routine** — turn each dial motor slowly, at most
