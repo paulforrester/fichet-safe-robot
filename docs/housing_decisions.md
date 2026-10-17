@@ -9,6 +9,20 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## 2026-10-17 (later): dial shaft prints plug-down
+
+Paul (2026-10-17): printed tail-down, the shaft (31.7mm tall) would stand
+on its lugs and stub, ~11 mm² of bed contact. **Correction:** it now prints
+**plug tip down** (`dial_shaft()`'s print frame; the assembly still uses the
+tail-down frame, `dial_shaft_tail_frame()`). The tip's star gives ~27 mm²;
+use a brim. Going up, every step is inward (journal 7.85 → double-D 7.0 →
+stub 3.0), so the double-D's 45° chamfer is gone and the double-D is its
+full 5.5mm. The only overhang is the lugs' 1.3mm ledge at the top. That's
+the face the cap bears on if the shaft is pulled, so check it isn't droopy.
+The plug's taper is at the bottom and widens upward at ~30° from vertical.
+The coupon's tail now stands on its journal end (48 mm²). No change in the
+assembly (the checks still pass).
+
 ## 2026-10-17: dial gear-shaft in three parts — shaft in from the door side, twist-lock cap (revision 2026-10-17.1)
 
 **Why.** The T2 plug (`docs/decisions.md`, 2026-10-17) has 9.65mm fins. The
@@ -20,8 +34,7 @@ shaft (2026-10-17).
 
 **Design** (`cad/dial_unit_housing.scad`, section 8):
 - `dial_shaft()`: plug, then the 7.85 journal, then a **double-D** (7.0
-  round, 5.2 across the flats; 3.5mm full plus a 45° chamfer, so it prints
-  tail-down without an overhang), then the tail: a 3.0 stub with two lugs
+  round, 5.2 across the flats, 5.5mm long), then the tail: a 3.0 stub with two lugs
   (5.6 across, 1.6 wide, 1.2 thick). Everything behind the plug is under the
   8mm bore, so the shaft goes in **from the door side, tail first**.
 - `dial_gear()`: the 28T gear, unchanged in place (17.5–23.5), with the old
