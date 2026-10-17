@@ -105,11 +105,14 @@ module taper_key_set() {
 // "T<n>" over "L10" / "L15". Print file: print_dial_plug_depth_test.scad.
 depth_handle_len = 16;
 
-module depth_key(taper_len, length, labels) {
+module depth_key(taper_len, length, labels, collar = 0) {
     difference() {
         union() {
             cylinder(d = handle_d, h = depth_handle_len, $fn = 6);
-            translate([0, 0, depth_handle_len - eps])
+            if (collar > 0)
+                translate([0, 0, depth_handle_len - eps])
+                    cylinder(d = collar_d, h = collar + eps, $fn = 96);
+            translate([0, 0, depth_handle_len + collar - eps])
                 tapered_star_plug(fin_tip_d, end_tip_d, core_d, fins, fin_w, length + eps, taper_len);
         }
         engraving(labels);
@@ -124,6 +127,22 @@ module depth_key_set() {
         for (i = [0 : len(tapers) - 1])
             translate([(i - (len(tapers) - 1) / 2) * spacing, (j - 0.5) * spacing, 0])
                 depth_key(tapers[i], depth_lengths[j], [taper_labels[i], depth_len_labels[j]]);
+}
+
+// ---- Collar keys (Paul, 2026-10-17) ----------------------------------------
+// The 10mm probes with a taper fitted very well. Two sets, both with the
+// first set's collar (2mm, 11.75mm) back between handle and plug:
+//   "C10": collar + 10mm plug (reaches 12mm from the handle face);
+//   "C8":  collar + 8mm plug (10mm - the collar: the same 10mm reach as L10).
+// Labels "T<n>" over "C10" / "C8". Print file: print_dial_plug_collar_test.scad.
+collar_lengths = [10, 10 - collar_len];
+collar_labels  = ["C10", "C8"];
+
+module collar_key_set() {
+    for (j = [0 : len(collar_lengths) - 1])
+        for (i = [0 : len(tapers) - 1])
+            translate([(i - (len(tapers) - 1) / 2) * spacing, (j - 0.5) * spacing, 0])
+                depth_key(tapers[i], collar_lengths[j], [taper_labels[i], collar_labels[j]], collar_len);
 }
 
 if (is_undef(DEPTH_SET)) taper_key_set();

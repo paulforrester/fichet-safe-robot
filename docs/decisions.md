@@ -49,6 +49,12 @@ plug length − gap between the hex handle and the door face. For reference,
 the real key goes in 15.5mm and the star starts 3.14mm below the door face
 (Paul, 2026-10-05).
 
+**Result (Paul, 2026-10-17):** the 10mm probes with a taper fit very well.
+Next, **collar keys** (`cad/print_dial_plug_collar_test.scad` →
+`dial_plug_collar_test.stl`, 12 keys, T0–T5): the first set's 2mm collar
+back on, with a 10mm plug ("C10", 12mm reach from the handle) and with an
+8mm plug ("C8", 10mm − the collar: the same 10mm reach as L10).
+
 ## CLOSED — tooth geometry locked in: HEIGHT 2.00mm, WIDTH 1.04mm
 
 > **Withdrawn 2026-10-16** (entry above): this geometry fits the key's tip, not the socket's 10mm mouth where the plug sits.
