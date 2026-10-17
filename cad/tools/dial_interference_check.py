@@ -9,7 +9,7 @@ Renders every part IN ITS ASSEMBLED POSITION from cad/dial_unit_assembled.scad
 screw heads), then intersects every pair with manifold3d and reports any
 pair that overlaps by more than a hair. Moving parts (gear-shafts, pinions,
 motor shafts) are re-rendered at several gear phases and at both ends of the
-gear-shaft's 7mm spring travel, so the check covers the whole range of motion
+gear-shaft's travel (5mm: the fins stop on the front bearing), so the check covers the whole range of motion
 — not one lucky pose.
 
 Touching faces (a leg standing on a plate, a spacer on a bearing ring) are
@@ -45,7 +45,11 @@ def render(part, retract, phase, d):
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--quick', action='store_true'); a = ap.parse_args()
-    poses = [(0, 0), (7, 0)] if a.quick else [(r, p) for r in (0, 3.5, 7) for p in (0, 6.4, 12.9, 19.3)]
+    # Plug pushed back 0..5mm: since the 10mm-fin plug (2026-10-17) the fins stop
+    # on the front bearing after 5mm, short of the 7mm spring travel
+    # (dial_layout_check.py checks that 5mm is enough for a misaligned plug).
+    # 5mm is fins-on-bearing contact (a ~0.6mm^3 touch at exactly 5): check to 4.8.
+    poses = [(0, 0), (4.8, 0)] if a.quick else [(r, p) for r in (0, 2.4, 4.8) for p in (0, 6.4, 12.9, 19.3)]
     worst = 0.0; bad = []
     with tempfile.TemporaryDirectory() as d:
         stat = {p: render(p, 0, 0, d) for p in STATIC}

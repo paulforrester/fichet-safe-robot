@@ -7,6 +7,31 @@ Working notes on how the test key's dimensions were arrived at, most
 recent first. Terminology (WIDTH / HEIGHT / DEPTH) is defined in
 `tooth_terms_diagram.png` in this folder.
 
+## 2026-10-17 — T2 picked; onto the gear-shaft, 5mm and 7mm
+
+**Result (Paul, 2026-10-17):** of the collar keys, **T2 C8** (collar + 8mm
+plug, fins tapering over the last 2mm) fits well; it's the shallowest
+taper that still goes all the way in. T1 C8 wouldn't go all the way. T3–T5
+also fit. Every C10 (collar + 10mm) bottomed out ~1mm before the collar
+seated, so the socket's usable depth from the collar is ~11mm. (The engraved
+labels are hard to read: make them bigger next time.)
+
+**Gear-shaft** (`cad/dial_unit_housing.scad`, `dial_gear_shaft()`): the T2
+plug, root 2mm below the door face as before, in two lengths Paul will
+print (`gear_shafts_5mm.stl` default, `gear_shafts_7mm.stl`), plain PETG.
+- **New constraint, found on the way:** the 9.65mm fins can't pass the front
+  bearing's 8mm bore, so a plug pushed back stops when its fins reach the
+  bearing face (z = 2mm), not at the 7mm spring travel. The fins now start
+  1mm in front of the plug root (that 1mm sits in the door's recess; the star
+  starts 3.14mm down), so a plug can go back 5mm.
+- A misaligned plug only has to go back until its tip rests on the star's
+  face. **5mm plug:** 3.86mm needed, 5mm available: OK.
+  **7mm plug:** 5.86mm needed, 5mm available. It holds that side of the unit
+  ~0.9mm off the door until the seat turn lets it drop in. Paul's test.
+- `dial_layout_check.py` now checks that (it used to check the tip came
+  flush with the plate at 7mm). `dial_interference_check.py` poses go to
+  5mm. SketchUp script updated (tapered plug, fins 1mm forward).
+
 ## REOPENED 2026-10-16 — the plug was sized for the wrong part of the socket
 
 **What happened (Paul, 2026-10-16).** On the door, dial A's printed plug
