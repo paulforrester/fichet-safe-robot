@@ -46,7 +46,7 @@
 //   rear_assembly()    motor sled + 3 deck legs
 //   electronics_deck() Mega + RAMPS on 3 M3 insert posts + 1 rest post (v3.1, 2026-10-12)
 //   insert_coupon(), board_spacers()  small prints for the deck
-//   dial_shaft() + dial_gear() + dial_shaft_cap()  x3, plain PETG (2026-10-17: three parts)
+//   dial_shaft() + dial_gear() + an M3x10 countersunk  x3, plain PETG (revision 2026-10-17.2)
 //   motor_pinion()     x3, PETG-CF
 //   dial_pattern_test() — 3 bosses only, to check the hole pattern on the
 //                       real door BEFORE printing the big parts (see notes).
@@ -249,13 +249,15 @@ shaft_tip_z   = motor_face_z - nema17_shaft_len;   // 17.5 — ends inside the p
 
 // spring: compression spring between the gear's rear face and the sled
 spring_pocket_d   = 8.6;  // for a spring up to ~8mm OD
-gear_spring_depth = 2;    // pocket in the gear's rear face
+gear_spring_depth = 1;    // pocket in the gear's rear face (2 until revision 2026-10-17.2:
+                          // the gear now needs the room for its back wall and screw, section 8)
 sled_spring_depth = 3;    // pocket in the sled's inner face
-// (2026-10-17: the spring sits on the twist-lock cap, cap_z1, and the plug can
-// only be pushed back push_max, the fins reaching the front bearing.)
+// (revision 2026-10-17.2: the spring sits on the gear's pocket floor and the
+// flush M3 head; the plug can only be pushed back push_max, the fins reaching
+// the front bearing.)
 push_max = min(travel, lip_h - (plug_z0 - plug_fin_gap));                       // 5
-spring_len_fwd = (cavity_top + sled_spring_depth) - (gear_z1 - gear_spring_depth + 1.4);   // 15.6 (1.4 = cap_t)
-spring_len_back = spring_len_fwd - push_max;                                    // 10.6
+spring_len_fwd = (cavity_top + sled_spring_depth) - (gear_z1 - gear_spring_depth);   // 16.0
+spring_len_back = spring_len_fwd - push_max;                                    // 11.0
 
 nema17_can_length = 48;   // 17HE19-2004S drawing: 48 MAX
 deck_clearance    = 6;
@@ -461,84 +463,115 @@ module rear_assembly() { union() { motor_plate(); deck_standoff_legs(); } }
 // ============================================================
 // 8. DRIVETRAIN PARTS (local print frames: flat face on the bed at z=0)
 // ============================================================
-// Gear-shaft, now THREE parts (2026-10-17). Correction: the one-piece
+// Gear-shaft in three parts. Correction (2026-10-17): the one-piece
 // gear-shaft went into its bearings from the back, plug first, and Paul
-// spotted (2026-10-17) that the T2 plug's 9.65mm fins can't pass a 608's 8mm
-// bore: it couldn't be assembled. (dial_interference_check.py only checks the
-// assembled poses, not the way in; dial_layout_check.py now checks that.) So:
-//  - dial_shaft(): plug + journal + double-D + tail. Goes in from the DOOR
-//    side, tail first: everything behind the plug is under 8mm.
-//  - dial_gear(): the 28T gear, its front boss (the old spacer, on the rear
-//    bearing's inner ring) and a double-D bore. Slides onto the shaft from
-//    the back; the double-D carries the torque both ways.
-//  - dial_shaft_cap(): Paul's twist-lock (2026-10-17). It goes over the
-//    tail's two lugs and turns 1/4; the spring then presses it onto the
-//    gear's pocket floor, its two nubs in two notches, so it can't turn back.
-//    It carries no torque (a bayonet only drives in its locking direction,
-//    and the dials are driven both ways); it only stops the shaft being
-//    pulled out forward, e.g. a plug stuck in its star as the unit comes off.
-dd_d       = 7.0;     // double-D round diameter: passes the 8mm bore
-dd_flat    = 5.2;     // across the flats (flat normals along y)
-tl_hole_comp = 0.2;   // = hole_comp (section 9, assigned further down: OpenSCAD can't read it here)
-dd_fit     = 0.3;     // gear bore drawn this much bigger: hole_comp 0.2 + 0.1 clearance.
-                      // ASSUMPTION: CONFIRM on print_twist_lock_coupon (0.2/0.3/0.4)
-stub_d     = 3.0;     // tail stub through the cap (small, so the lugs overlap the cap by 1mm)
-lug_r      = 2.8;     // lug tips (lugs along x): inside the spring's 6mm ID (0.5 x 7 x 20)
-lug_w      = 1.6;
-lug_t      = 1.2;
-lug_gap    = 0.6;     // cap to lugs: room to lift the cap over its nubs to unlock
-cap_d      = 8.2;     // sits in the gear's 8.6mm spring pocket
-cap_t      = 1.4;
-cap_bore_d = stub_d + 0.4 + tl_hole_comp;
-cap_slot_w = lug_w + 0.4 + tl_hole_comp;
-cap_slot_r = lug_r + 0.4;
-nub_r      = 3.6;     // nubs on the cap's front face, on the slot axis (cap frame)
-nub_d      = 0.8;
-nub_h      = 0.4;
-notch_d    = 1.2;     // notches in the gear's pocket floor, on the flat normals
-notch_h    = 0.6;
+// spotted that the T2 plug's 9.65mm fins can't pass a 608's 8mm bore: it
+// couldn't be assembled. (dial_interference_check.py only checks the
+// assembled poses, not the way in; dial_layout_check.py now checks that.)
+// Correction (revision 2026-10-17.2, Paul's design after printing the
+// 2026-10-17.1 twist-lock): its caps were hard to impossible to fit, and the
+// double-D had far too much play. Now:
+//  - dial_shaft(): plug + journal + a TAPERED HEX tail with an M3 pilot hole.
+//    Goes in from the DOOR side, tail first: everything behind the plug is
+//    under 8mm (hex corners trimmed to 7.2).
+//  - dial_gear(): the 28T gear, its front boss (on the rear bearing's inner
+//    ring), the matching tapered hex bore, a back wall with a countersink,
+//    and the spring pocket behind it.
+//  - one M3 countersunk screw from the back, through the wall, SELF-TAPPING
+//    into the shaft's pilot. It pulls the gear up the taper until it wedges:
+//    no play either way. The hex flats carry the torque; the screw only
+//    clamps. Its head sits flush with the pocket floor, under the spring.
+// No heat-set insert (Paul's first idea): the hex has to pass the 8mm bore,
+// so its tail end is ~5mm across the flats, and an M3 insert wants a 4.45mm
+// hole (section 9): under 0.5mm of wall, and setting it would heat the faces
+// that have to fit.
+// The gear's axial place is still its boss on the rear bearing. The taper
+// sets where the SHAFT sits in the gear: a bore 0.1mm bigger across the flats
+// (or a hex 0.1 smaller) lets the gear go 0.28mm further up the taper, so the
+// shaft (and the plug) sits 0.28mm further back. It can go 1mm back (0.35mm
+// across the flats) before the journal's shoulder reaches the gear's front
+// face and its tail end the back wall (both at once). The other way (bore
+// small) the plug sits deeper, which the spring takes, and less hex is
+// engaged: 2.3 of 3.3mm at 1mm. Paul's prints run outsides 0.1-0.3 small and
+// holes 0.2 small, so the bore is drawn only 0.1 over; taper_hex_coupon()
+// measures where it really seats.
+hex_af0      = 6.6;   // across the flats at the journal end (corners 7.62 < 8)
+hex_angle    = 10;    // per flat, from the axis: 0.28mm of seat per 0.1mm of size.
+                      // UNKNOWN whether PETG on PETG at 10deg lets go by itself (it
+                      // may stick: the manual's take-apart step pushes it off with the screw)
+hex_corner_trim = 0.4;   // shaft hex corners cut back to a cone this much under the corners
+                         // (diameter): the bore's corners print round, so the flats must wedge first
+hex_fit      = 0.1;   // gear bore drawn this much bigger across the flats than the shaft:
+                      // hole_comp 0.2 less the ~0.1 the shaft's outside prints small.
+                      // ASSUMPTION: CONFIRM on taper_hex_coupon (0.0 / 0.1 / 0.2)
+gear_wall    = 2.2;   // gear's back wall, with the countersink
+tail_gap     = 1.0;   // shaft's end to the back wall (drawn)
+m3_pilot_d   = 2.7;   // self-tap pilot: the same ratio to the thread as the bench-confirmed
+                      // M6 pilot (5.4 / 6 = 0.9, standoff_screw_fit_test). ASSUMPTION: coupon
+m3_clear_d   = 3.4;   // through the wall, and the pilot's mouth (no thread where the hex is thinnest)
+m3_lead_in   = 1.5;
+dial_csk_top_d = 7.0; // countersink mouth at the pocket floor; prints ~6.8 (hole_comp), so an
+                      // ISO 10642 head (6.72) sits flush and a DIN 7991 head (6.0) 0.4 below
+                      // (Paul's kit: standard not printed, see the motor screws, section 5)
+dial_screw_len = 10;  // M3x10 countersunk (length includes the head)
+dial_csk_depth = (dial_csk_top_d - m3_clear_d) / 2;   // 1.8 (90deg cone)
 // assembly z, forward position:
-shaft_dd_z0 = boss_h;                      // 16: journal ends at the rear bearing's rear face
-cap_z0      = gear_z1 - gear_spring_depth; // 21.5: cap on the pocket floor
-cap_z1      = cap_z0 + cap_t;              // 22.9: the spring now sits here
-lug_z0      = cap_z1 + lug_gap;            // 23.5
-lug_z1      = lug_z0 + lug_t;              // 24.7: the shaft's rear end
-fin_z0      = plug_z0 - plug_fin_gap;      // -3: where the fins start
+hex_z0       = boss_h - 1;                        // 15: the journal ends 1mm inside the rear bearing
+gear_wall_z1 = gear_z1 - gear_spring_depth;       // 22.5: pocket floor = screw head = spring seat
+gear_wall_z0 = gear_wall_z1 - gear_wall;          // 20.3: the wall's front face, end of the bore
+shaft_end_z  = gear_wall_z0 - tail_gap;           // 19.3: the shaft's rear end
+fin_z0       = plug_z0 - plug_fin_gap;            // -3: where the fins start
+screw_tip_z  = gear_wall_z1 - dial_screw_len;     // 12.5 (ISO head flush; DIN 0.4 deeper)
+pilot_z0     = screw_tip_z - 0.4 - 1 - 0.6;       // 10.5: deepest tip (DIN head, shaft 1mm back) + 0.6
+function hex_af(z) = hex_af0 - 2 * tan(hex_angle) * (z - hex_z0);
+hex_corner_max = hex_af0 / cos(30) - hex_corner_trim;   // 7.22
+assert(max(journal_d, hex_corner_max) <= bearing_id - 0.1, "shaft must pass the 8mm bore");
+assert((hex_af(shaft_end_z - m3_lead_in) - 3.0) / 2 >= 1.2, "thin wall at the first thread");
+assert(dial_csk_depth <= gear_wall - 0.3, "countersink goes through the back wall");
+assert(pilot_z0 > fin_z0 + 3, "pilot reaches the plug");
 
-module dd_profile(d, flat) {
-    intersection() { circle(d = d, $fn = 64); square([d + 1, flat], center = true); }
+// a hexagonal frustum, across the flats af_a at z = 0 and af_b at z = h,
+// corners on the x axis (the shaft and the bore share this orientation)
+module hex_frustum(af_a, af_b, h) {
+    cylinder(d1 = af_a / cos(30), d2 = af_b / cos(30), h = h, $fn = 6);
 }
 
-// Print frame: z = 0 at the tail (lugs on the bed), plug up.
-// local z = lug_z1 - assembly z.
+// Print frame (2026-10-17, Paul): PLUG TIP on the bed, tail up (use a brim).
+// Going up, every step is inward (journal 7.85 -> hex 7.22 corners, tapering),
+// so there are no overhangs; the pilot hole opens at the top.
 module dial_shaft(plug_l = plug_len) {
-    dd_lz0 = lug_z1 - cap_z0;          // 3.2: double-D starts (chamfered)
-    dd_lz1 = lug_z1 - shaft_dd_z0;     // 8.7: journal starts
-    j_lz1  = lug_z1 - fin_z0;          // 27.7: fins start
-    union() {
-        // tail: stub + two lugs
-        cylinder(d = stub_d, h = dd_lz0 + eps_c, $fn = 32);
-        intersection() {
-            translate([-lug_r, -lug_w/2, 0]) cube([2*lug_r, lug_w, lug_t]);
-            cylinder(r = lug_r, h = lug_t, $fn = 48);
+    L = shaft_end_z - (plug_z0 - plug_l);   // 26.3 (5mm plug) / 28.3 (7mm)
+    translate([0, 0, L]) mirror([0, 0, 1]) dial_shaft_tail_frame(plug_l);
+}
+// The same shaft with its tail end at z = 0, plug toward +z (local z =
+// shaft_end_z - assembly z): the frame dial_gear_shaft() and the coupon use.
+module dial_shaft_tail_frame(plug_l = plug_len) {
+    hex_lz1 = shaft_end_z - hex_z0;    // 4.3: journal starts
+    j_lz1   = shaft_end_z - fin_z0;    // 22.3: fins start
+    difference() {
+        union() {
+            // (run on eps_c into the journal at the same taper: sizes from hex_af() at the ends)
+            intersection() {
+                hex_frustum(hex_af(shaft_end_z), hex_af(hex_z0 - eps_c), hex_lz1 + eps_c);
+                cylinder(d1 = hex_af(shaft_end_z) / cos(30) - hex_corner_trim,
+                         d2 = hex_af(hex_z0 - eps_c) / cos(30) - hex_corner_trim, h = hex_lz1 + eps_c, $fn = 48);
+            }
+            translate([0, 0, hex_lz1]) cylinder(d = journal_d, h = j_lz1 - hex_lz1 + eps_c, $fn = 64);
+            translate([0, 0, j_lz1])
+                tapered_star_plug(plug_fin_dia_v - fit_clearance_v, plug_end_dia_v - fit_clearance_v,
+                                  plug_core_dia_v - fit_clearance_v, tooth_count_v, plug_fin_w_v,
+                                  plug_l - plug_fin_gap, plug_taper_v);
         }
-        // double-D, 45deg chamfer up from the stub so it prints without an overhang
-        intersection() {
-            translate([0, 0, dd_lz0]) linear_extrude(height = dd_lz1 - dd_lz0 + eps_c) dd_profile(dd_d, dd_flat);
-            translate([0, 0, dd_lz0]) cylinder(h = dd_lz1 - dd_lz0 + eps_c, r1 = stub_d/2,
-                                               r2 = stub_d/2 + dd_lz1 - dd_lz0 + eps_c, $fn = 48);
-        }
-        translate([0, 0, dd_lz1]) cylinder(d = journal_d, h = j_lz1 - dd_lz1 + eps_c, $fn = 64);
-        translate([0, 0, j_lz1])
-            tapered_star_plug(plug_fin_dia_v - fit_clearance_v, plug_end_dia_v - fit_clearance_v,
-                              plug_core_dia_v - fit_clearance_v, tooth_count_v, plug_fin_w_v,
-                              plug_l - plug_fin_gap, plug_taper_v);
+        translate([0, 0, -eps_c]) cylinder(d = m3_clear_d, h = m3_lead_in + eps_c, $fn = 24);
+        translate([0, 0, -eps_c]) cylinder(d = m3_pilot_d, h = shaft_end_z - pilot_z0 + eps_c, $fn = 24);
     }
 }
 
 // Print frame: z = 0 at the gear's rear face (spring pocket on the bed),
-// front boss up. local z = gear_z1 - assembly z.
-module dial_gear(fit = dd_fit) {
+// front boss up. local z = gear_z1 - assembly z. Going up: the pocket (its
+// floor a 0.8mm-wide bridge ring), the countersink (a 45deg cone), the wall,
+// then the bore, widening (no overhang).
+module dial_gear(fit = hex_fit) {
     difference() {
         union() {
             linear_extrude(height = gear_face, convexity = 10)
@@ -549,56 +582,57 @@ module dial_gear(fit = dd_fit) {
         gear_bore_cut(fit, gear_face + spacer_h);
     }
 }
+// h: rear face to the boss's front face (7.5)
 module gear_bore_cut(fit, h) {
-    translate([0, 0, -eps_c]) linear_extrude(height = h + 2*eps_c) dd_profile(dd_d + fit, dd_flat + fit);
-    translate([0, 0, -eps_c]) cylinder(d = spring_pocket_d, h = gear_spring_depth + eps_c, $fn = 48);
-    for (a = [90, 270]) rotate([0, 0, a])
-        translate([nub_r, 0, gear_spring_depth - eps_c]) cylinder(d = notch_d, h = notch_h + eps_c, $fn = 16);
+    pf = gear_spring_depth;             // 1: pocket floor
+    w1 = gear_z1 - gear_wall_z0;        // 3.2: the wall's front face
+    translate([0, 0, -eps_c]) cylinder(d = spring_pocket_d, h = pf + eps_c, $fn = 48);
+    translate([0, 0, pf - eps_c])
+        cylinder(d1 = dial_csk_top_d + 2*eps_c, d2 = m3_clear_d, h = dial_csk_depth + eps_c, $fn = 48);
+    translate([0, 0, -eps_c]) cylinder(d = m3_clear_d, h = w1 + 2*eps_c, $fn = 24);
+    translate([0, 0, w1])
+        hex_frustum(hex_af(gear_wall_z0) + fit, hex_af(gear_z1 - h - eps_c) + fit, h - w1 + eps_c);
 }
 
-// Print frame: z = 0 at the cap's rear (spring) face, nubs up.
-// local z = cap_z1 - assembly z. Fitted turned 90deg from its slots-on-lugs
-// position, so the nubs (on the slot axis) land in the notches.
-module dial_shaft_cap() {
-    difference() {
-        cylinder(d = cap_d, h = cap_t, $fn = 48);
-        translate([0, 0, -eps_c]) {
-            cylinder(d = cap_bore_d, h = cap_t + 2*eps_c, $fn = 32);
-            intersection() {
-                translate([-cap_slot_r, -cap_slot_w/2, 0]) cube([2*cap_slot_r, cap_slot_w, cap_t + 2*eps_c]);
-                cylinder(r = cap_slot_r, h = cap_t + 2*eps_c, $fn = 48);
-            }
-        }
-    }
-    for (a = [0, 180]) rotate([0, 0, a])
-        translate([nub_r, 0, cap_t - eps_c]) cylinder(d = nub_d, h = nub_h + eps_c, $fn = 16);
-}
-
-// The three, assembled and locked, in the old one-piece gear-shaft's frame
-// (z = 0 at the gear's rear face, plug toward +z): for the assembly checks.
+// Gear and shaft, assembled, in the gear's frame (z = 0 at the gear's rear
+// face, plug toward +z): for the assembly checks. The screw isn't drawn
+// (dial_layout_check.py checks its head, tip and thread).
 module dial_gear_shaft(plug_l = plug_len) {
     dial_gear();
-    translate([0, 0, gear_z1 - lug_z1]) dial_shaft(plug_l);
-    translate([0, 0, gear_z1 - cap_z1]) rotate([0, 0, 90]) dial_shaft_cap();
+    translate([0, 0, gear_z1 - shaft_end_z]) dial_shaft_tail_frame(plug_l);
 }
 
-// Fit coupon (print_twist_lock_coupon.scad): three gear hubs with the
-// double-D bore drawn 0.2 / 0.3 / 0.4 over (1, 2, 3 notches on the rim),
-// one shaft tail (lugs + double-D + 5mm of journal) and two caps.
-module twist_lock_coupon() {
-    fits = [0.2, 0.3, 0.4];
-    for (i = [0 : 2]) translate([i*18, 0, 0]) difference() {
-        cylinder(d = 15, h = gear_face + spacer_h, $fn = 64);
-        gear_bore_cut(fits[i], gear_face + spacer_h);
-        for (k = [0 : i]) rotate([0, 0, 90 + (k - i/2)*14])
-            translate([7.5, 0, -eps_c]) rotate([0, 0, 45]) cube([1.6, 1.6, gear_face + spacer_h + 2*eps_c], center = false);
+// Fit coupon (print_taper_hex_coupon.scad): three gear hubs, the bore drawn
+// 0.0 / 0.1 / 0.2mm over across the flats (1, 2, 3 notches on the rim), each
+// with the gear's back wall, countersink and pocket; and three shaft tails
+// (6mm of journal + the hex + the pilot), journal end down as the shafts
+// print. A hub pushed onto a standing tail: bench to the hub's top face =
+// coupon_height (14.5) when it seats where drawn.
+coupon_tail_z0 = hex_z0 - 6;                        // 9: the tails stop here (assembly z)
+coupon_height  = gear_z1 - coupon_tail_z0;          // 14.5
+module coupon_tail() {
+    th = shaft_end_z - coupon_tail_z0;              // 10.3
+    translate([0, 0, th]) mirror([0, 0, 1]) intersection() {
+        dial_shaft_tail_frame();
+        cylinder(d = 20, h = th);
     }
-    translate([0, 20, 0]) intersection() {
-        dial_shaft();
-        cylinder(d = 20, h = (lug_z1 - shaft_dd_z0) + 5);
-    }
-    for (k = [0 : 1]) translate([18 + k*18, 20, 0]) dial_shaft_cap();
 }
+module taper_hex_coupon() {
+    fits = [0.0, 0.1, 0.2];
+    hh = gear_face + spacer_h;
+    for (i = [0 : 2]) {
+        translate([i*18, 0, 0]) difference() {
+            cylinder(d = 15, h = hh, $fn = 64);
+            gear_bore_cut(fits[i], hh);
+            for (k = [0 : i]) rotate([0, 0, 90 + (k - i/2)*14])
+                translate([7.5, 0, -eps_c]) rotate([0, 0, 45]) cube([1.6, 1.6, hh + 2*eps_c], center = false);
+        }
+        translate([i*18, 18, 0]) coupon_tail();
+    }
+}
+echo(TAPER_HEX = [["af", hex_af(boss_h), hex_af(shaft_end_z)], ["corners_max", hex_corner_max],
+                  ["first_thread_wall", (hex_af(shaft_end_z - m3_lead_in) - 3.0) / 2],
+                  ["coupon_height", coupon_height], ["spring", spring_len_fwd, spring_len_back]]);
 
 // Pinion. Print frame: z=0 is the hub end (motor side) on the bed, teeth on
 // top. Assembly z = cavity_top - 0.5 - local z. The motor shaft enters from
@@ -969,7 +1003,9 @@ echo(LAYOUT = [
     ["gear_tip_r", gear_tip_r], ["pinion_tip_r", pinion_tip_r],
     ["z", [boss_h, gear_z0, gear_z1, pinion_z0, pinion_z1, cavity_top, motor_face_z, shaft_tip_z, deck_z, travel, plug_z0, plug_z1]],
     ["plug", [plug_z0 - plug_fin_gap, star_start_z, lip_h, plug_fin_dia_v - fit_clearance_v, bearing_id]],
-    ["shaft_tail", [journal_d, dd_d, 2*lug_r, stub_d, cap_d, spring_pocket_d]],
+    ["shaft_tail", [journal_d, hex_corner_max, hex_z0, shaft_end_z, gear_wall_z0, gear_wall_z1, hex_angle,
+                    hex_af(shaft_end_z - m3_lead_in), m3_lead_in, pilot_z0, screw_tip_z, dial_csk_depth, gear_wall,
+                    dial_csk_top_d, spring_pocket_d, gear_spring_depth]],
     ["spring", [spring_len_fwd, spring_len_back, spring_pocket_d]], ["pinion_hub_h", pinion_hub_h],
     ["boss_d", boss_d], ["bearing_pocket_d", bearing_pocket_d], ["leg_dia", leg_dia], ["m6_csk_top_d", m6_csk_top_d],
     ["m3_csk_top_d", m3_csk_top_d], ["boss_recess_d", boss_recess_d], ["front_plate_r", front_plate_r],
@@ -992,17 +1028,15 @@ module print_board_spacers()    board_spacers();
 module print_dial_shafts(plug_l = plug_len) {
     for (i = [0 : 2]) translate([i*16, 0, 0]) dial_shaft(plug_l);
 }
-module print_dial_gears() {      // 3 gears + 4 caps (one spare)
-    for (i = [0 : 2]) translate([i*36, 0, 0]) dial_gear();
-    for (k = [0 : 3]) translate([-8 + k*12, -24, 0]) dial_shaft_cap();
+module print_dial_gears(fit = hex_fit) {
+    for (i = [0 : 2]) translate([i*36, 0, 0]) dial_gear(fit);
 }
-module print_twist_lock_coupon() twist_lock_coupon();
+module print_taper_hex_coupon() taper_hex_coupon();
 module print_drivetrain() {
     for (i = [0 : 2]) {
         translate([i*36, 0, 0]) dial_gear();
         translate([i*36, 30, 0]) motor_pinion();
         translate([i*36, -24, 0]) dial_shaft();
-        translate([i*36 + 12, -24, 0]) dial_shaft_cap();
     }
 }
 
@@ -1019,8 +1053,7 @@ translate([gap, 0, -cavity_top]) rear_assembly();
 translate([2*gap, 0, -deck_z]) electronics_deck();
 for (i = [0 : 2]) {
     translate([-bound_r - 25, -45 + i*45, 0]) dial_gear();
-    translate([-bound_r - 25, -60 + i*45, 0]) dial_shaft();
-    translate([-bound_r - 13, -60 + i*45, 0]) dial_shaft_cap();
+    translate([-bound_r - 25, -67 + i*45, 0]) dial_shaft();   // 22mm from the gears (tip r 14.8 + 4.8)
     translate([-bound_r - 60, -45 + i*45, 0]) motor_pinion();
 }
 }
@@ -1033,13 +1066,14 @@ for (i = [0 : 2]) {
 //  - front_assembly(): door face down (PETG). rear_assembly(): INNER face
 //    down (the face with the spring pockets/screw countersinks), legs up (PETG).
 //    electronics_deck(): flat (PETG).
-//  - dial_shaft(): tail (lugs) down, plug up; dial_gear(): rear (pocket) face down;
-//    dial_shaft_cap(): nubs up. Plain PETG (the PETG-CF plug snapped, 2026-10-16).
+//  - dial_shaft(): plug tip down, tail up, with a brim; dial_gear(): rear (pocket) face down.
+//    Plain PETG (the PETG-CF plug snapped, 2026-10-16). Print taper_hex_coupon() first.
 //    motor_pinion(): hub down, teeth up, PETG-CF. Turn elephant-foot
 //    compensation on for both, or the bottom layer of the teeth binds.
 //  - Hardware: 6x 608 bearings, 3x compression springs (<= 8mm OD,
 //    ~18-20mm free, solid length < 10mm), 12x M3x10 COUNTERSUNK (motors;
-//    ISO 10642 / DIN 7991 — length includes the head),
+//    ISO 10642 / DIN 7991 — length includes the head) + 3 more (gear-shafts,
+//    self-tapping into the shaft: revision 2026-10-17.2),
 //    optional 3x M3x3/M3x4 GRUB screws for the pinions (never a cap screw —
 //    see pinion_round_len), 6x M6 countersunk ~16mm
 //    (6mm plate + 10mm engagement, both joints), 4x M3 (Mega base).

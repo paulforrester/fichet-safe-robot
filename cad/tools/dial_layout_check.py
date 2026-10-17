@@ -195,7 +195,8 @@ def main():
 
     bh, gz0, gz1, pz0, pz1, ctop, mface, tip, deckz, travel, plug0, plug1 = L['z']
     fin0, star0, lip, fin_d, bore_d = L['plug']
-    tj, tdd, tlug, tstub, tcap, tpocket = L['shaft_tail']
+    (tj, tcorner, hz0, send, wz0, wz1, hang, af_thr, lead, pz0_, stip, cskd, wall, csk_top,
+     tpocket, pdepth) = L['shaft_tail']
     back_need = star0 - plug1                       # tip back to the star's face
     back_max = min(travel, lip - fin0) if fin_d > bore_d else travel
     for pl in (7,):                                 # Paul's variant (print_gear_shafts_7mm.scad): reported only
@@ -213,11 +214,33 @@ def main():
              f'misaligned plug: must go back {back_need:.2f} (tip {plug1} to the star face {star0}); fins reach the '
              f'front bearing after {back_max:.2f} (travel {travel}), margin {back_max - back_need:.2f} (>= 0.5)'),
             (fin_d > bore_d, f'fins {fin_d:.2f} wider than the bearing bore {bore_d}: travel limited by the fins (this check)'),
-            (max(tj, tdd, tlug) <= bore_d - 0.1,
-             f'shaft behind the plug (journal {tj}, double-D {tdd}, lugs {tlug}) passes the {bore_d}mm bore: '
+            (max(tj, tcorner) <= bore_d - 0.1,
+             f'shaft behind the plug (journal {tj}, hex corners {tcorner:.2f}) passes the {bore_d}mm bore: '
              f'it goes in from the door side, tail first (2026-10-17)'),
-            (tlug + 0.2 <= 6.0, f'lug span {tlug} inside the spring ID 6.0 (0.5 x 7 x 20) with 0.1 each side'),
-            (tcap + 0.3 <= tpocket, f'twist-lock cap {tcap} in the {tpocket} spring pocket'),
+        ]
+    # tapered hex + M3 countersunk, self-tapping (revision 2026-10-17.2)
+    k = 2 * math.tan(math.radians(hang))           # across-flats change per mm of length
+    # where the gear wedges on the taper moves the SHAFT, not the gear (its boss is on the bearing):
+    # bore printed big / hex small -> shaft further back, until its journal shoulder reaches the
+    # gear's front face or its tail end the back wall; bore small -> shaft forward, less hex engaged
+    m_back = min(bh - hz0, wz0 - send)
+    eng = send - bh
+    tip_deep = stip - 0.4 - m_back                    # DIN head (0.4 deeper), shaft at its furthest back
+    thread = (send - lead) - stip                     # ISO head flush, as drawn
+    thread_fwd = thread - 1.0                        # shaft 1mm further forward
+    rows += [
+            (m_back >= 0.8,
+             f'taper {hang}deg/flat: the shaft can sit {m_back:.1f}mm further back (journal shoulder {bh - hz0:.1f}, '
+             f'tail gap {wz0 - send:.1f}) = bore up to {m_back * k:.2f}mm too big across the flats (>= 0.8mm)'),
+            (eng - 1.0 >= 2.0, f'hex engaged in the gear {eng:.1f}mm as drawn, {eng - 1:.1f} with the shaft 1mm '
+             f'further forward (bore {k:.2f} too small; >= 2)'),
+            ((af_thr - 3.0) / 2 >= 1.2, f'wall at the first thread {(af_thr - 3.0) / 2:.2f}mm (M3 major 3.0, hex {af_thr:.2f} AF; >= 1.2)'),
+            (tip_deep - pz0_ >= 0.5, f'screw tip at its deepest {tip_deep:.1f} (DIN head, shaft back {m_back:.1f}) vs pilot '
+             f'bottom {pz0_:.1f}: {tip_deep - pz0_:.1f}mm short (>= 0.5)'),
+            (thread_fwd >= 4.0, f'M3 thread engaged {thread:.1f}mm as drawn, {thread_fwd:.1f}mm with the shaft 1mm forward (>= 4)'),
+            (cskd <= wall - 0.3, f'countersink {cskd:.1f} deep in the {wall}mm back wall ({wall - cskd:.1f} straight)'),
+            (csk_top <= tpocket - 1.2 and wz1 <= gz1, f'screw head (<= 6.72, flush at {wz1}) inside the {tpocket} spring pocket '
+             f'({pdepth}mm deep), behind the gear face {gz1}: the spring sits on the floor and head'),
             (sp_back >= 9, f'spring length {sp_fwd} forward / {sp_back} pushed back (needs solid length < {sp_back})')]
     # the pinion is located by the end of the shaft's flat, and can float between the
     # bearing-boss tops (forward) and the sled face (back): check mesh at both extremes

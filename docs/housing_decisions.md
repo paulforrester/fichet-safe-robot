@@ -1,6 +1,6 @@
 # Housing — design decision log
 
-> **Revision 2026-10-17.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
+> **Revision 2026-10-17.2** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
 
 
 Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
@@ -8,6 +8,100 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `docs/decisions.md` (tube-socket test key geometry) and
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
+
+## 2026-10-17 (evening): gear-shaft on a tapered hex, M3 countersunk screw, no twist-lock (revision 2026-10-17.2)
+
+**Paul's report on the printed twist-lock parts** (2026-10-17, 20:39): the
+caps were hard to impossible to fit, and there was far too much play
+between shaft and gear. **Correction:** the twist-lock design (revision
+2026-10-17.1, two entries down) is withdrawn: its caps, lugs, notches and
+double-D are gone, and `twist_lock_coupon.stl` is deleted. Don't print the
+2026-10-17.1 shafts or gears.
+
+**Paul's design** (2026-10-17): a regular hex on the shaft with its walls
+sloped slightly, the mirror image in the gear, and a countersunk M3 from the
+back into the bottom of the shaft. He proposed an M3 heat-set insert there;
+it doesn't fit (below), so the screw self-taps into a pilot (Paul: "go for
+it", 2026-10-17).
+
+**Design** (`cad/dial_unit_housing.scad`, section 8; z from the door face):
+- **Shaft** (`dial_shaft()`): T2 plug, then the 7.85 journal to z 15 (1mm
+  inside the rear bearing), then a **tapered hex** to the shaft's end at
+  z 19.3: 6.6 → 5.08 across the flats, **10° per flat**. Its corners are cut
+  0.2mm back (7.22 max) so the flats wedge before the corners: the bore's
+  corners print round. Everything behind the plug is still under the 8mm
+  bore, so it goes in from the door side. **M3 pilot** in the end: Ø2.7
+  drawn, 8.8 deep (the bench-confirmed M6 pilot's ratio, 5.4/6 = 0.9,
+  ASSUMPTION); its first 1.5mm is Ø3.4, so no thread is cut where the hex is
+  thinnest (1.31mm of wall at the first thread).
+- **Gear** (`dial_gear()`): the same outside, place and boss (17.5–23.5,
+  boss on the rear bearing's inner ring at 16: still the forward stop). Bore:
+  the same taper drawn **0.1 over across the flats** (`hex_fit`,
+  ASSUMPTION: hole compensation 0.2 less ~0.1 for the shaft's outside
+  printing small), from the boss face to a **2.2mm back wall** (z 20.3–22.5),
+  1mm behind the shaft's end. The wall has a Ø3.4 hole and a 90°
+  countersink with a Ø7.0 mouth (prints ~6.8: an ISO 10642 head, 6.72, sits
+  flush; a DIN 7991 head, 6.0, 0.4 below; the kit's standard isn't known,
+  2026-10-06). **Spring pocket** Ø8.6 × **1mm** (was 2).
+- **Screw:** M3×10 countersunk (Paul's kit has 55). Thread in the shaft
+  5.3mm as drawn, 4.3 with the shaft 1mm forward; the tip stops 0.6mm short
+  of the pilot's bottom at worst (DIN head, shaft 1mm back).
+- **Spring** on the pocket floor and the flush head: 16.0mm installed,
+  11.0 pushed back 5mm (was 15.6 / 10.6).
+- **No insert:** the hex must pass the 8mm bore, so its end is ~5mm across
+  the flats, and an M3 insert wants a 4.45mm hole (deck posts, 4.25
+  measured): under 0.5mm of wall, and setting it heats the faces that fit.
+- **Where it seats moves the shaft, not the gear** (the gear's boss is on
+  the bearing): 0.1mm across the flats = 0.28mm along the axis. Bore big or
+  hex small: the shaft sits further back, up to 1.0mm (0.35mm across the
+  flats), when its journal's shoulder reaches the gear's front face and its
+  end the back wall, both at once. Bore small: the shaft sits further
+  forward (the plug deeper, which the spring takes) with 2.3 of 3.3mm of hex
+  still engaged at 1mm. Paul's prints run outsides 0.1–0.3 small and holes
+  0.2 small (deck coupons), so `taper_hex_coupon.stl` brackets the bore at
+  0.0 / 0.1 / 0.2 and its heights (drawn 14.5) say where each one seats.
+- **Unknown:** whether a 10° PETG taper lets go by itself. If it sticks, the
+  manual's take-apart step backs the screw out two turns and presses its
+  head: the bearing holds the gear and the shaft is pushed out. **Correction**
+  of my message to Paul (2026-10-17): I said 10° was steep enough not to
+  jam. I have no PETG-on-PETG friction figure to back that.
+
+**Checks.** `dial_layout_check.py`: ALL PASS, with new rows (way in:
+journal 7.85, hex corners 7.22 < 8; seat window 1.0mm back; hex engaged
+3.3 / 2.3; wall at the first thread 1.31; screw tip vs pilot 0.6; thread
+5.3 / 4.3; countersink 1.8 in the 2.2 wall; head in the pocket; spring 16 /
+11). `dial_interference_check.py`: NO INTERFERENCE, 0–4.8mm × 4 phases
+(largest 0.083 mm³). Shaft and bore measured on the rendered STLs at four
+heights: both on the drawn taper within 0.001mm, bore 0.1 over.
+**Correction during the work:** the first render's shaft taper came out
+9.8° (the `eps_c` overlap stretched the frustum); that measurement caught it.
+STLs watertight; the overview `dial_unit_housing.stl` now has its 12
+separate bodies (the plug-down shafts had overlapped their gears in it, from
+#50). SketchUp script: gear + shaft as one closed review solid, 1mm pocket,
+spring 16mm; faces close (every edge used twice); volume 3% over the SCAD
+part (its internal voids aren't modelled). Not rebuilt in SketchUp: the
+hex is inside the merged solid.
+
+**Drawing:** `docs/gear_shaft_section.png` (section across the flats, from
+`cad/tools/gear_shaft_section.py`, numbers read from the SCAD).
+
+**Print:** `taper_hex_coupon.stl` first (test: `docs/manual.md` §1.3 step 4).
+The shafts can print now (`dial_shafts_5mm.stl`): only the gears' bore
+depends on the coupon. Then `dial_gears.stl`, after I set `hex_fit`.
+
+## 2026-10-17 (later): dial shaft prints plug-down
+
+Paul (2026-10-17): printed tail-down, the shaft (31.7mm tall) would stand
+on its lugs and stub, ~11 mm² of bed contact. **Correction:** it now prints
+**plug tip down** (`dial_shaft()`'s print frame; the assembly still uses the
+tail-down frame, `dial_shaft_tail_frame()`). The tip's star gives ~27 mm²;
+use a brim. Going up, every step is inward (journal 7.85 → double-D 7.0 →
+stub 3.0), so the double-D's 45° chamfer is gone and the double-D is its
+full 5.5mm. The only overhang is the lugs' 1.3mm ledge at the top. That's
+the face the cap bears on if the shaft is pulled, so check it isn't droopy.
+The plug's taper is at the bottom and widens upward at ~30° from vertical.
+The coupon's tail now stands on its journal end (48 mm²). No change in the
+assembly (the checks still pass).
 
 ## 2026-10-17: dial gear-shaft in three parts — shaft in from the door side, twist-lock cap (revision 2026-10-17.1)
 
@@ -20,8 +114,7 @@ shaft (2026-10-17).
 
 **Design** (`cad/dial_unit_housing.scad`, section 8):
 - `dial_shaft()`: plug, then the 7.85 journal, then a **double-D** (7.0
-  round, 5.2 across the flats; 3.5mm full plus a 45° chamfer, so it prints
-  tail-down without an overhang), then the tail: a 3.0 stub with two lugs
+  round, 5.2 across the flats, 5.5mm long), then the tail: a 3.0 stub with two lugs
   (5.6 across, 1.6 wide, 1.2 thick). Everything behind the plug is under the
   8mm bore, so the shaft goes in **from the door side, tail first**.
 - `dial_gear()`: the 28T gear, unchanged in place (17.5–23.5), with the old

@@ -3,7 +3,7 @@
 Context for any Claude session working in this repo. Read this first, then
 the doc that matches your task (table below). Last updated 2026-10-17.
 
-> **Project revision 2026-10-17.1** — all four TMC2209 drivers are on the
+> **Project revision 2026-10-17.2** — all four TMC2209 drivers are on the
 > RAMPS (the key in the **E0** socket); there is no remote driver board or
 > inter-unit signal cable, only the key motor's own cable. The UART junction
 > is a six-lead **UART pigtail** (R1 in the TX2 lead, one splice), not a
@@ -12,10 +12,12 @@ the doc that matches your task (table below). Last updated 2026-10-17.
 > (2026-10-12.1), **v3.2** (2026-10-13.1: barrel cradle by the RAMPS power terminal, open saddle): no Mega base plate; the Mega + RAMPS sit on 3 M3 heat-set
 > insert posts (+1 rest post), M3 nylon screws from the top; access holes over
 > all 3 motor-plate joints, clear of the board (they work, Paul 2026-10-13); start button beside its wire hole on the board's lower edge, no lead groove (2026-10-13.1). The motor plate's inspection windows can't be seen through
-> once assembled: inspect the gears from the side. **2026-10-17.1:** each dial's
-> gear-shaft is three parts — the shaft (T2 plug, journal, double-D, lugs) goes
-> into its bearings **from the door side**, the gear slides onto the double-D
-> from the back, and a ¼-turn **twist-lock cap** holds it (Paul's idea). The current
+> once assembled: inspect the gears from the side. **2026-10-17.2:** each dial's
+> shaft (T2 plug, journal, **tapered hex**) goes into its bearings **from the
+> door side**; the gear (matching tapered hex bore) goes on from the back and
+> an **M3×10 countersunk**, self-tapping into the shaft, pulls it onto the
+> taper (Paul's design; it replaced the 2026-10-17.1 twist-lock cap, which
+> was too hard to fit, on a double-D with too much play). The current
 > revision ID lives in `REVISION`; the log is `docs/revisions.md`. When a
 > design change affects how the robot is built, wired or run, bump `REVISION`,
 > add a `docs/revisions.md` entry, and run `python3 tools/check_revision.py`
@@ -99,7 +101,7 @@ RAMPS, UART pigtail); firmware written and host-tested
 | `docs/photos/` | Door, dial holes, key reference photos |
 | `cad/*.scad` | OpenSCAD sources. `common_mounts.scad` (shared NEMA17, magnet, D-bore), `dial_unit_housing.scad`, `key_turner_housing.scad`; `print_*.scad` export one printable part each; `*_assembled.scad` for checks |
 | `cad/*.stl` | Rendered parts Paul prints |
-| `cad/tools/` | `dial_layout_check.py`, `dial_interference_check.py`, `key_turner_check.py`, `deck_check.py` (every deck feature vs every other, board outline vs access holes, STL), `stl_freshness_check.py` (every STL matches its source) — run after any CAD change |
+| `cad/tools/` | `dial_layout_check.py`, `dial_interference_check.py`, `key_turner_check.py`, `deck_check.py` (every deck feature vs every other, board outline vs access holes, STL), `stl_freshness_check.py` (every STL matches its source) — run after any CAD change; `gear_shaft_section.py` redraws `docs/gear_shaft_section.png` |
 | `cad/sketchup/` | Build scripts for SketchUp review models (run via the Trimble SketchUp connector, not locally) |
 
 ## Mechanical facts the software and wiring depend on
@@ -114,9 +116,11 @@ RAMPS, UART pigtail); firmware written and host-tested
 - **Dial drive:** 14T pinion on the motor → 28T gear on the dial shaft
   (2:1). Under the 200-step assumption: 400 full steps per dial turn,
   **20 full steps per dial position**. Motor turns opposite to the dial.
-  Each dial is a **shaft + gear + twist-lock cap** (revision 2026-10-17.1:
-  the plug's fins can't pass a 608's 8mm bore, so the shaft goes in from the
-  door side; the double-D carries the torque, the cap only retains).
+  Each dial is a **shaft + gear + M3 countersunk screw** (revision
+  2026-10-17.2: the plug's fins can't pass a 608's 8mm bore, so the shaft
+  goes in from the door side; a 10°-per-flat tapered hex carries the torque,
+  the screw pulls the gear onto it; the bore's fit comes from
+  `taper_hex_coupon.stl`, not yet printed).
   Each dial shaft is **spring-loaded**: when the unit goes on the door, a
   plug that doesn't line up with its star is pushed back. So every session
   starts with a **seat routine** — turn each dial motor slowly, at most
