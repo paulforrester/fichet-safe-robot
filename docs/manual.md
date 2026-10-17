@@ -1,6 +1,6 @@
 # Fichet safe robot — build and operating manual
 
-> **Revision 2026-10-13.1** · key driver on the RAMPS E0 socket; UART pigtail replaces the hub board · log: `docs/revisions.md`
+> **Revision 2026-10-17.1** · key driver on the RAMPS E0 socket; UART pigtail replaces the hub board · log: `docs/revisions.md`
 
 For Paul. Covers the robot as of **revision 2026-10-08.2**: dial unit v2, key
 turner v1, wiring with all four drivers on the RAMPS and the UART pigtail
@@ -86,8 +86,10 @@ the print notes in `cad/dial_unit_housing.scad` (end of file) and
 | `insert_coupon.stl` | optional: 3 insert posts, drawn 4.37 / 4.45 / 4.53 mm, should print ~4.25 / 4.33 / 4.41 (1 / 2 / 3 notches) (rev 2026-10-12.1) | 1 | PETG | flat base down |
 | `electronics_deck.stl` | deck v3.2: 3 M3 insert posts + 1 rest post for the Mega, 3 access holes, button beside its wire hole, barrel cradle by the RAMPS power terminal (rev 2026-10-13.1) | 1 | PETG | underside (motor side) down, as exported; posts up |
 | `board_spacers.stl` | 9 spacers for between the RAMPS and the Mega: 3 each of 8.4 / 8.8 / 9.2 mm (1 / 2 / 3 notches) | 1 plate | PETG | flat |
-| `dial_drivetrain.stl` | 3 gear-shafts + 3 pinions, one plate | 1 plate | **PETG-CF** pinions; gear-shafts **plain PETG** (2026-10-16) | gear face / pinion hub. **Elephant-foot compensation on**, or the bottom layer of the teeth binds |
-| `gear_shafts_5mm.stl` / `gear_shafts_7mm.stl` | 3 gear-shafts with the T2 plug, 5mm or 7mm (2026-10-17) | 1 plate | **plain PETG** (the PETG-CF plug snapped) | gear face. **Elephant-foot compensation on**. The 7mm plug can't be pushed back far enough for the unit to sit flat until it seats (`docs/decisions.md`) |
+| `twist_lock_coupon.stl` | **print first** (rev 2026-10-17.1): 3 gear hubs with the double-D bore drawn 0.2 / 0.3 / 0.4 mm over (1 / 2 / 3 rim notches), 1 shaft tail, 2 caps | 1 plate | plain PETG | as exported |
+| `dial_shafts_5mm.stl` (or `dial_shafts_7mm.stl`) | 3 dial shafts: T2 plug + journal + double-D + twist-lock tail (rev 2026-10-17.1) | 1 plate | **plain PETG** | tail (lugs) down, plug up. The 7 mm plug can't be pushed back far enough for the unit to sit flat until it seats (`docs/decisions.md`) |
+| `dial_gears.stl` | 3 dial gears (28T, double-D bore, front boss) + 4 twist-lock caps (1 spare) (rev 2026-10-17.1) | 1 plate | **plain PETG** | gear rear (pocket) face down; caps nubs up. **Elephant-foot compensation on**, or the bottom layer of the teeth binds |
+| `dial_drivetrain.stl` | the same on one plate: 3 gears, 3 shafts (5 mm), 3 caps, 3 pinions | 1 plate | pinions **PETG-CF**; the rest plain PETG | as above; pinion hub down. **Elephant-foot compensation on** |
 | `magnet_retainers.stl` | 10 retainer discs (9 needed) | 1 plate | PETG | flat |
 | `key_turner_base.stl` | key-turner base + 3 legs | 1 | PETG | door face |
 | `key_turner_motor_plate.stl` | key motor plate | 1 | PETG | inner face |
@@ -259,10 +261,23 @@ Tell me if a different order works better, and I'll record it.
 2. **Bearings.** Press two 608s into each boss from the back (the boss top).
    A 2 mm lip on the door side stops the outer ring. It's a light press fit
    (22.15 mm pocket).
-3. **Gear-shafts.** Slide each gear-shaft into its bearings from the back,
-   plug first. Its Ø11 spacer stops on the rear bearing's inner ring: that's
-   the plug's forward position. Each shaft slides 7 mm back from there; it
-   must slide freely.
+3. **Shafts, gears, caps** (rev 2026-10-17.1: three parts per dial; the
+   plug is too wide to go through a bearing, so the shaft goes in from the
+   door side). For each dial:
+   1. **Shaft:** from the **door side**, tail (lugs) first, slide the shaft
+      into its bearings until the plug is near the door face. It must slide
+      freely.
+   2. **Gear:** from the back, slide the gear onto the shaft's double-D,
+      front boss first, until the boss sits on the rear bearing's inner ring.
+      That's the plug's forward position.
+   3. **Cap:** nubs toward the gear, slots over the two lugs, push it into
+      the gear's pocket, then turn it ¼ turn until its nubs drop into the
+      two notches in the pocket floor. Pull gently on the plug: the shaft
+      should stay in.
+   4. **To take it apart:** lift the cap off its notches (it has 0.6 mm of
+      play), turn it back ¼ until the slots line up with the lugs, and lift
+      it off.
+   The plug can now be pushed back 5 mm (its fins stop on the front bearing).
 4. **Motors on the sled.** Each motor goes on the sled's outer face, its
    front boss in the recess. Four M3 × 10 countersunk screws go in from the
    sled's **inner** face. Before tightening, turn each motor in 90° steps so
@@ -272,15 +287,16 @@ Tell me if a different order works better, and I'll record it.
    it stops. The D-shaped bore stops where the shaft's flat ends, and that
    sets its position. The grub screw is optional: the pinion is trapped
    between the sled and the boss tops.
-6. **Springs.** Sit one spring in each gear's rear pocket (Ø8.6, 2 mm deep).
+6. **Springs.** Sit one spring in each gear's rear pocket, on the cap
+   (around the shaft's tail).
 7. **Join sled to front.** Bring the sled down onto the three front legs.
    Each pinion has to mesh with its gear, and each spring has to go into
    the sled's pocket. The screw pattern is asymmetric, so it fits only one
    way. Drive three M6 countersunk (~16 mm) from the sled's outer face into
    the legs, the first by hand.
 8. **Check by hand:**
-   - Push each plug in from the door side. It should go back about 7 mm and
-     spring forward again.
+   - Push each plug in from the door side. It should go back about 5 mm
+     (its fins stop on the front bearing) and spring forward again.
    - Turn each plug by hand from the door side, a full turn. It turns its
      motor through the gears, so expect the motor's slight notchiness, but
      no tight spot.

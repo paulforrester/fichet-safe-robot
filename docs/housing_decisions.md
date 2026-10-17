@@ -1,6 +1,6 @@
 # Housing — design decision log
 
-> **Revision 2026-10-13.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
+> **Revision 2026-10-17.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
 
 
 Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
@@ -8,6 +8,58 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `docs/decisions.md` (tube-socket test key geometry) and
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
+
+## 2026-10-17: dial gear-shaft in three parts — shaft in from the door side, twist-lock cap (revision 2026-10-17.1)
+
+**Why.** The T2 plug (`docs/decisions.md`, 2026-10-17) has 9.65mm fins. The
+one-piece gear-shaft went into its 608s from the back, plug first, and Paul
+spotted that the fins can't pass the 8mm bore. **Correction:** the T2
+gear-shaft STLs of earlier the same day (#48) can't be assembled; they're
+withdrawn. Paul asked for a twist-lock (¼-turn) fastener at the base of the
+shaft (2026-10-17).
+
+**Design** (`cad/dial_unit_housing.scad`, section 8):
+- `dial_shaft()`: plug, then the 7.85 journal, then a **double-D** (7.0
+  round, 5.2 across the flats; 3.5mm full plus a 45° chamfer, so it prints
+  tail-down without an overhang), then the tail: a 3.0 stub with two lugs
+  (5.6 across, 1.6 wide, 1.2 thick). Everything behind the plug is under the
+  8mm bore, so the shaft goes in **from the door side, tail first**.
+- `dial_gear()`: the 28T gear, unchanged in place (17.5–23.5), with the old
+  Ø11 × 1.5 spacer as its front boss (still bearing on the rear bearing's
+  inner ring: the forward stop), a double-D bore (drawn 0.3 over: 0.2 hole
+  compensation + 0.1 clearance, ASSUMPTION, `twist_lock_coupon.stl` tests
+  0.2/0.3/0.4), the Ø8.6 spring pocket and two Ø1.2 × 0.6 notches in its
+  floor on the flat normals. The double-D carries the torque both ways.
+  Pushing the plug back moves the shaft, and the journal's end pushes the
+  gear back.
+- `dial_shaft_cap()`: Ø8.2 × 1.4 disc, keyhole (Ø3.6 + two slots for the
+  lugs), two Ø0.8 × 0.4 nubs on the slot axis. Slots over the lugs, into the
+  pocket, ¼ turn: the lugs then sit 1.0mm over the cap (3.3 mm² of the
+  lugs' 8.8), and the nubs drop into the notches. The spring sits on the cap
+  and keeps it there; there's 0.6mm between cap and lugs, enough to lift the
+  nubs out to take it apart. The cap only stops the shaft being pulled out
+  forward (a plug stuck in its star as the unit comes off). It carries no
+  torque: a bayonet only drives in its locking direction, and the dials are
+  driven both ways, hardest when homing into the stop.
+- Lugs within the spring's 6.0 ID (0.5 × 7 × 20). The spring now sits on the
+  cap (z 22.9): 15.6mm installed, 10.6mm with the plug pushed back its 5mm
+  (before: 17 / 10).
+- **The pushback is 5mm, not 7:** the fins stop on the front bearing
+  (`dial_layout_check.py`, since 2026-10-17). A misaligned 5mm plug needs
+  3.86.
+
+**Checks.** `dial_layout_check.py`: ALL PASS, with new rows for the way in
+(journal 7.85, double-D 7.0, lugs 5.6 < 8), lugs inside the spring, cap in
+the pocket. `dial_interference_check.py`: the three parts, assembled and
+locked, over the 0–4.8mm pushback. STLs rendered and watertight; shaft
+profile measured by height (max 7.85 below the fins); lug-over-cap area
+computed with the cap turned (3.3 mm²). SketchUp script: the gear-shaft is
+one review solid (gear + shaft + cap, tail showing); its faces close (every
+edge used twice).
+
+**Print:** `twist_lock_coupon.stl` first. Then `dial_shafts_5mm.stl` (or
+`_7mm`) and `dial_gears.stl` (3 gears + 4 caps), plain PETG. Pinions
+unchanged.
 
 ## 2026-10-13: deck v3.2 — barrel cradle by the RAMPS power terminal, open saddle (revision 2026-10-13.1)
 

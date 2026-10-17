@@ -1,11 +1,39 @@
 # Tube-socket test key — dimensional decision log
 
-> **Revision 2026-10-13.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
+> **Revision 2026-10-17.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
 
 
 Working notes on how the test key's dimensions were arrived at, most
 recent first. Terminology (WIDTH / HEIGHT / DEPTH) is defined in
 `tooth_terms_diagram.png` in this folder.
+
+## 2026-10-17 (later) — Correction: the T2 gear-shaft couldn't be assembled; now three parts
+
+Paul spotted it (2026-10-17) before printing: the one-piece gear-shaft goes
+into its bearings from the back, **plug first**, and the T2 plug's 9.65mm
+fins can't pass a 608's 8mm bore. My checks only looked at the assembled
+unit, not the way in. Paul asked for a twist-lock (¼-turn) at the base of
+the shaft. The fix (`cad/dial_unit_housing.scad`, revision 2026-10-17.1;
+`docs/housing_decisions.md` has the detail):
+- **Shaft:** plug + journal + double-D + tail with two lugs. Everything
+  behind the plug is under 8mm (7.85 journal, 7.0 double-D, 5.6 lugs), so it
+  goes in **from the door side**, tail first.
+- **Gear:** 28T with a double-D bore and the old spacer as its front boss.
+  It slides onto the shaft from the back; the double-D carries the torque
+  both ways.
+- **Twist-lock cap (Paul's idea):** it goes over the lugs and turns ¼; the
+  spring presses its two nubs into two notches in the gear's pocket floor.
+  It only keeps the shaft from being pulled out forward. A bayonet carries
+  torque only in its locking direction, and the dials are driven both ways
+  (hardest into the stop when homing), so it doesn't drive.
+- **Fit coupon first:** `twist_lock_coupon.stl` (double-D bores drawn 0.2 /
+  0.3 / 0.4 over; 0.3 is the default, an ASSUMPTION from the hole
+  compensation).
+- `dial_layout_check.py` now checks the way in (everything behind the plug
+  under the bearing bore), the lugs inside the spring, and the cap in the
+  pocket. The spring now sits on the cap: 15.6mm installed, 10.6mm pushed
+  back.
+- `gear_shafts_5mm/7mm.stl` (#48) are withdrawn: don't print them.
 
 ## 2026-10-17 — T2 picked; onto the gear-shaft, 5mm and 7mm
 

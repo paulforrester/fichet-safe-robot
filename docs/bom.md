@@ -1,6 +1,6 @@
 # Bill of materials
 
-> **Revision 2026-10-13.1** · key driver on the RAMPS E0 socket; UART pigtail replaces the hub board · log: `docs/revisions.md`
+> **Revision 2026-10-17.1** · key driver on the RAMPS E0 socket; UART pigtail replaces the hub board · log: `docs/revisions.md`
 
 **Revision 2026-10-08.1 (2026-10-08):** the key driver moved to the RAMPS
 **E0** socket. Several parts that were ordered are **no longer used** (keep

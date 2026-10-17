@@ -195,6 +195,7 @@ def main():
 
     bh, gz0, gz1, pz0, pz1, ctop, mface, tip, deckz, travel, plug0, plug1 = L['z']
     fin0, star0, lip, fin_d, bore_d = L['plug']
+    tj, tdd, tlug, tstub, tcap, tpocket = L['shaft_tail']
     back_need = star0 - plug1                       # tip back to the star's face
     back_max = min(travel, lip - fin0) if fin_d > bore_d else travel
     for pl in (7,):                                 # Paul's variant (print_gear_shafts_7mm.scad): reported only
@@ -212,6 +213,11 @@ def main():
              f'misaligned plug: must go back {back_need:.2f} (tip {plug1} to the star face {star0}); fins reach the '
              f'front bearing after {back_max:.2f} (travel {travel}), margin {back_max - back_need:.2f} (>= 0.5)'),
             (fin_d > bore_d, f'fins {fin_d:.2f} wider than the bearing bore {bore_d}: travel limited by the fins (this check)'),
+            (max(tj, tdd, tlug) <= bore_d - 0.1,
+             f'shaft behind the plug (journal {tj}, double-D {tdd}, lugs {tlug}) passes the {bore_d}mm bore: '
+             f'it goes in from the door side, tail first (2026-10-17)'),
+            (tlug + 0.2 <= 6.0, f'lug span {tlug} inside the spring ID 6.0 (0.5 x 7 x 20) with 0.1 each side'),
+            (tcap + 0.3 <= tpocket, f'twist-lock cap {tcap} in the {tpocket} spring pocket'),
             (sp_back >= 9, f'spring length {sp_fwd} forward / {sp_back} pushed back (needs solid length < {sp_back})')]
     # the pinion is located by the end of the shaft's flat, and can float between the
     # bearing-boss tops (forward) and the sled face (back): check mesh at both extremes

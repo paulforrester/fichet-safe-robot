@@ -1,6 +1,6 @@
 # Project revisions
 
-> **Revision 2026-10-13.1** · this file is the revision log · current ID in `REVISION`
+> **Revision 2026-10-17.1** · this file is the revision log · current ID in `REVISION`
 
 Every project document and drawing carries the project revision it was last
 brought up to date in, so a printed or downloaded copy can be told apart from
@@ -21,6 +21,26 @@ a newer one. The ID is the date plus a sequence number for that day:
   which also names the project revision it was built for.
 
 ## Log (most recent first)
+
+### 2026-10-17.1 — dial plug re-sized (T2) and the gear-shaft in three parts
+
+**Change** (`cad/dial_unit_housing.scad` section 8, `cad/tools/dial_layout_check.py`,
+`dial_interference_check.py`, review model script; `docs/decisions.md`,
+`docs/housing_decisions.md`). Dial A's plug snapped on 2026-10-16: it copied
+the key's 7.73mm tip, but the socket's star is 10mm at its mouth. The new
+**T2 plug** (Paul's pick from the test keys) has 10mm fins (− clearance),
+0.95mm wide, tapering to 7.73mm over the last 2mm, in plain PETG. Its fins
+can't pass a 608's 8mm bore (Paul spotted it), so each dial's gear-shaft is
+now **three parts**: the shaft (plug, journal, double-D, two lugs) goes into
+its bearings from the door side; the gear slides onto the double-D from the
+back; a ¼-turn **twist-lock cap** (Paul's idea) holds it, nubs in the gear's
+notches. The plug can be pushed back 5mm (its fins stop on the front
+bearing), not 7. The spring now sits on the cap.
+
+**What to do:** print `twist_lock_coupon.stl` and check the fits. Then print
+`dial_shafts_5mm.stl` (or `_7mm`) and `dial_gears.stl`, plain PETG; the
+pinions are unchanged. Don't print `gear_shafts_5mm/7mm.stl` (withdrawn).
+Assembly: manual §1.4 step 3.
 
 ### 2026-10-13.1 — deck v3.2: barrel cradle by the RAMPS power terminal
 
