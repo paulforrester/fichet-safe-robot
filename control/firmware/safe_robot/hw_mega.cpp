@@ -195,25 +195,31 @@ void HwMega::enable(Axis ax, bool on) {
 }
 
 // ---------------------------------------------------------------- SG sampling
-void HwMega::sgStart(uint8_t) {
+// axes: the axes of this move (1 for a normal move, up to 3 for a lockstep
+// dial move); the reads go round them in turn.
+void HwMega::sgStart(const uint8_t* axes, uint8_t n) {
   sgState_ = SG_IDLE;
   sgMin_ = 0xFFFF;
   sgLast_ = micros();
+  sgN_ = n;
+  for (uint8_t k = 0; k < n; ++k) sgAxes_[k] = axes[k];
+  sgCur_ = 0;
 }
 
-// One SG_RESULT read in flight at a time. A sample is attributed to the step
-// index at which it was requested; only cruise-speed samples count towards
-// the minimum and go to the calibration sink (StallGuard is unreliable at
-// low speed, datasheet §11.5).
-void HwMega::sgPoll(uint8_t ax, uint32_t stepIndex, bool cruise, bool trace, SgSink* sink) {
+// One SG_RESULT read in flight at a time. A sample is attributed to the axis
+// and step index at which it was requested; only cruise-speed samples count
+// towards the minimum and go to the calibration sink (StallGuard is
+// unreliable at low speed, datasheet §11.5).
+void HwMega::sgPoll(uint32_t stepIndex, bool cruise, bool trace, SgSink* sink) {
   const uint32_t now = micros();
   if (sgState_ == SG_IDLE) {
     if (now - sgLast_ < 2000) return;
+    sgReqAx_ = sgAxes_[sgCur_];
     sgReqStep_ = stepIndex;
     sgReqCruise_ = cruise;
     while (TMC_SERIAL.available()) TMC_SERIAL.read();
     uint8_t req[4];
-    tmcReadRequest(ax, kRegSgResult, req);
+    tmcReadRequest(sgReqAx_, kRegSgResult, req);
     TMC_SERIAL.write(req, 4);  // buffered, interrupt-driven: doesn't block the step loop
     sgParser_.start(kRegSgResult);
     sgT0_ = now;
@@ -226,11 +232,11 @@ void HwMega::sgPoll(uint8_t ax, uint32_t stepIndex, bool cruise, bool trace, SgS
         const uint16_t v = sgParser_.value() & 0x3FF;
         if (sgReqCruise_) {
           if (v < sgMin_) sgMin_ = v;
-          if (sink) sink->sample(sgReqStep_, v);
+          if (sink) sink->sampleAxis(sgReqAx_, sgReqStep_, v);
         }
         if (trace && Serial.availableForWrite() > 24) {
           Serial.print(F("SG,"));
-          Serial.print("ABCK"[ax]);
+          Serial.print("ABCK"[sgReqAx_]);
           Serial.print(',');
           Serial.print(sgReqStep_ / s_.microsteps);
           Serial.print(',');
@@ -239,10 +245,15 @@ void HwMega::sgPoll(uint8_t ax, uint32_t stepIndex, bool cruise, bool trace, SgS
       }
       sgState_ = SG_IDLE;
       sgLast_ = now;
+      if (++sgCur_ >= sgN_) sgCur_ = 0;
       return;
     }
   }
-  if (now - sgT0_ > 5000) { sgState_ = SG_IDLE; sgLast_ = now; }  // no reply: try again later
+  if (now - sgT0_ > 5000) {  // no reply: try again later, on the next axis
+    sgState_ = SG_IDLE;
+    sgLast_ = now;
+    if (++sgCur_ >= sgN_) sgCur_ = 0;
+  }
 }
 
 void HwMega::sgFinish() {
@@ -257,23 +268,32 @@ void HwMega::sgFinish() {
 }
 
 // ---------------------------------------------------------------- motion
+// r.axis, plus r.withMask's axes (firmware v0.6, `load`) stepped in lockstep:
+// each step pulses every axis's STEP pin, so they share one ramp.
 MoveResult HwMega::move(const MoveRequest& r) {
   MoveResult res;
   if (r.steps == 0) return res;
-  const AxisPins& p = kPins[r.axis];
+  uint8_t axes[AX_COUNT];
+  uint8_t na = 0;
+  axes[na++] = r.axis;
+  for (uint8_t a = 0; a < AX_COUNT; ++a)
+    if (((r.withMask >> a) & 1) && a != r.axis) axes[na++] = a;
   const bool logicalFwd = r.steps > 0;
-  const bool motorFwd = logicalFwd != (bool)s_.ax[r.axis].invert;
-  digitalWrite(p.dir, motorFwd ? HIGH : LOW);
+  for (uint8_t k = 0; k < na; ++k) {
+    const bool motorFwd = logicalFwd != (bool)s_.ax[axes[k]].invert;
+    digitalWrite(kPins[axes[k]].dir, motorFwd ? HIGH : LOW);
+  }
   delayMicroseconds(5);  // DIR-to-STEP setup is 20 ns min (datasheet p. 63)
-  if (digitalRead(p.diag) == HIGH) { res.diagHighAtStart = true; return res; }
+  for (uint8_t k = 0; k < na; ++k)
+    if (digitalRead(kPins[axes[k]].diag) == HIGH) { res.diagHighAtStart = true; return res; }
 
   const uint32_t n = (uint32_t)(r.steps > 0 ? r.steps : -r.steps);
   const int8_t sign = r.steps > 0 ? 1 : -1;
   Ramp ramp;
   ramp.begin(n, r.startSps, r.maxSps, r.accelSps2);
-  if (r.sampleSG) sgStart(r.axis);
+  if (r.sampleSG) sgStart(axes, na);
   noInterrupts();
-  g_diag[r.axis] = false;
+  for (uint8_t k = 0; k < na; ++k) g_diag[axes[k]] = false;
   interrupts();
 
   const uint32_t t0 = ::millis();
@@ -284,21 +304,25 @@ MoveResult HwMega::move(const MoveRequest& r) {
     while ((int32_t)(micros() - next) < 0) {
       if (r.sampleSG) {
         const bool cruise = i >= ramp.accelSteps() && i + ramp.accelSteps() < n;
-        sgPoll(r.axis, i, cruise, r.traceSG, r.sgSink);
+        sgPoll(i, cruise, r.traceSG, r.sgSink);
       }
     }
     if ((int32_t)(micros() - next) > (int32_t)dt) next = micros();  // fell behind: don't sprint
-    digitalWrite(p.step, HIGH);
+    for (uint8_t k = 0; k < na; ++k) digitalWrite(kPins[axes[k]].step, HIGH);
     delayMicroseconds(2);  // STEP high >= 100 ns (datasheet p. 63)
-    digitalWrite(p.step, LOW);
+    for (uint8_t k = 0; k < na; ++k) digitalWrite(kPins[axes[k]].step, LOW);
     next += dt;
 
     if (i < r.ignoreStallSteps) {
-      g_diag[r.axis] = false;
-    } else if (r.stopOnStall && g_diag[r.axis]) {
-      res.stalled = true;
-      ++i;
-      break;
+      for (uint8_t k = 0; k < na; ++k) g_diag[axes[k]] = false;
+    } else if (r.stopOnStall) {
+      for (uint8_t k = 0; k < na; ++k)
+        if (g_diag[axes[k]]) res.stalledMask |= (uint8_t)(1u << axes[k]);
+      if (res.stalledMask) {
+        res.stalled = true;
+        ++i;
+        break;
+      }
     }
     if ((i & 31) == 0) {
       if (pollSerial()) { res.aborted = true; ++i; break; }

@@ -131,9 +131,15 @@ RAMPS, UART pigtail); firmware written and host-tested
   (Paul's calipers; `docs/decisions.md`). Test keys:
   `cad/dial_plug_taper_test.scad`. **Picked (2026-10-17): T2** — 10mm fins,
   0.95 wide, tapering to 7.73 over the last 2mm; on the gear-shaft at 5mm
-  (default) and 7mm (Paul's variant), plain PETG. The fins can't pass the
+  (CAD default) and 7mm, plain PETG. **In use: 7mm** (Paul, 2026-10-18: the
+  5mm didn't stay engaged). The fins can't pass the
   front bearing's 8mm bore, so a plug can only be pushed back 5mm, not 7mm
-  (`dial_layout_check.py`).
+  (`dial_layout_check.py`); Paul seats the plugs by hand when placing the unit.
+- **Placing the unit** (2026-10-18): it floats a little on its plugs before
+  the magnets hold it, and an off-centre plug loads its dial (calibration
+  errors, stalls). Firmware v0.6 `load` shows each dial's load live while
+  Paul nudges it. Locating rings into the door's recesses are a possible
+  mechanical fix (needs the recess diameter and depth).
 - **Dial torque: not measured yet.** Dial drivers run at **600 mA RMS**
   (door test 2026-10-14: at 1 A homing failed its repeat check; at 600 mA
   seat, calibration and homing passed on all three dials).
@@ -245,10 +251,12 @@ deck); the start button mounts from under the deck (7.4mm hole, 10 x 2.5mm
 recess, 4mm wire hole beside the endstop block; revision 2026-10-09.1,
 `docs/housing_decisions.md`): check it on the reprinted deck.
 
-## Firmware — `control/firmware/` (v0.5, 2026-10-16; read its README)
+## Firmware — `control/firmware/` (v0.6, 2026-10-18; read its README)
 
 Host-tested; v0.4 ran through bench bring-up stages 1–4b (2026-10-10 to
-14), **v0.5 not yet on hardware**. Sequence as in
+14), v0.5 on the door 2026-10-17/18 (the settle fixed B's homing drift),
+**v0.6 not yet on hardware** (v0.6 adds `load`: all dials turn together,
+each one's load printed every 0.5 s, for centring the unit). Sequence as in
 `control/sequence.md`: session start = ping/configure drivers → key home
 (rest stop, search 180°) → key calibration → seat (clockwise) → one free
 clockwise calibration turn per dial (StallGuard threshold + click positions)

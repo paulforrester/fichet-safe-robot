@@ -293,7 +293,8 @@ Tell me if a different order works better, and I'll record it.
    3. **Screw:** from the back, through the gear into the shaft's tail, by
       hand, **snug, not tight**: it self-taps into the shaft and pulls the
       gear onto the taper. Hold the gear while you turn it. The head ends
-      flush with the pocket floor.
+      flush with the pocket floor. Draw a paint-pen line across the head and
+      the gear: a broken line shows a screw backing off (C's did, 2026-10-18).
    4. **Check:** hold the plug and try to turn the gear: no play at all.
       Push the plug in from the door side and pull it back: shaft and gear
       slide together, freely (the spring, step 6, brings them forward later).
@@ -406,12 +407,24 @@ From the notes at the end of `cad/key_turner_housing.scad`:
 
 1. **12 V off**, key motor cable unplugged from E0.
 2. **Key** in the lock by hand, at its start position (bow vertical).
-3. **Dial unit:** pointer tab **up** (it points at the top pair of holes).
-   Bring it straight onto the door over the three dial holes and let the
-   magnets take it. A plug that doesn't line up with its star is pushed
-   back on its spring; the plate still seats flat. The robot's seat routine
-   turns each plug slowly until it drops in.
-4. **Key turner:** turn the cap so its two roof marks are **top and bottom**
+3. **Dial unit:** first check the three gear screws are snug (the paint
+   line across each head and its gear unbroken): a loose one lets that
+   shaft slip in its gear, and the dial seems to lose its stop (2026-10-18).
+   Pointer tab **up** (it points at the top pair of holes). Bring it
+   straight onto the door over the three dial holes, and seat each plug in
+   its star by hand. (A plug that doesn't line up is pushed back on its
+   spring and holds that side of the unit off the door; `seat` turns each
+   plug slowly until it drops in.)
+4. **Centre it before the magnets hold it** (firmware v0.6). Seated on its
+   plugs the unit floats a little, and an off-centre plug is pressed
+   sideways in its star, which loads that dial (calibration errors or a
+   stall). Plug in USB, then 12 V (the motors are already plugged in), and
+   type `load 10`: the three dials turn together for 20 s and every half
+   second a line `LOAD,ms,A,…,B,…,C,…` gives each dial's load, **higher =
+   lighter**. Nudge the unit left/right, up/down and in twist until all
+   three read their highest, let the magnets take it, and `load 3` to check
+   it stayed. Then `calibrate` (the dials aren't homed after `load`).
+5. **Key turner:** turn the cap so its two roof marks are **top and bottom**
    (its slot is then vertical, like the bow). Slide the unit straight on
    over the key. The keyhole is about 125 mm left of the dial-cluster
    centre, and the base reaches 43 mm toward the dials, so the two units
@@ -421,8 +434,8 @@ From the notes at the end of `cad/key_turner_housing.scad`:
    cap may slide out while you hold the unit. If it does, put the cap on the
    bow first (marks top and bottom), then slide the unit on. Turn the hub
    by hand (motor unpowered) until its groove takes the cap's tongue.
-5. Plug the key motor cable into the RAMPS E0 motor header. Zip-tie it at the
-   key turner and near the RAMPS, clear of the cap.
+6. **12 V off**, then plug the key motor cable into the RAMPS E0 motor
+   header. Zip-tie it at the key turner and near the RAMPS, clear of the cap.
 
 ### 1.7 Mechanical items still open
 
@@ -1136,6 +1149,7 @@ first time ever, `calibrate` first).
 | `!` or `abort` | stop the current move now, drivers off |
 | `release` | all drivers off (also lets go of the key after a success) |
 | `reset yes` | erase the stored progress |
+| `load [turns]` | placing the dial unit: all dials turn together, each one's load printed every 0.5 s (higher = lighter); un-homes the dials |
 | `seat`, `home [A\|B\|C]`, `learn`, `goto a b c`, `try`, `key <deg>`, `jog`, `sg`, `set` | bench commands: `control/firmware/README.md` and `control/bringup.md` |
 
 **LED:** fast blink running · slow blink idle, paused or done · steady

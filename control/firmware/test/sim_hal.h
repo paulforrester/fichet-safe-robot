@@ -58,6 +58,7 @@ struct SimHal : public core::Hal {
   uint32_t seed = 12345;
   int32_t lagMin = 20, lagSpan = 11;  // StallGuard detection lag, usteps (1.25-1.9 full steps)
   int32_t sgDialBase = 300, sgDetentAmp = 25, sgNoise = 4, sgKeyBase = 240, sgAtStop = 20, sgUnloaded = 340;
+  int32_t sgExtraLoad[3] = {0, 0, 0};  // a dial's extra load (unit off centre on the door): SG lower by this
   // ---- driver/bus faults
   bool present[4] = {true, true, true, true};
   bool diagStuck[4] = {false, false, false, false};
@@ -188,13 +189,22 @@ struct SimHal : public core::Hal {
   core::MoveResult move(const core::MoveRequest& r) override {
     moves.push_back(r);
     core::MoveResult res;
-    const int ax = r.axis;
+    // The move's axes: r.axis, then r.withMask's (a lockstep dial move, `load`).
+    int axes[4];
+    int na = 0;
+    axes[na++] = r.axis;
+    for (int a = 0; a < 4; ++a)
+      if (((r.withMask >> a) & 1) && a != r.axis) axes[na++] = a;
     if (r.timeoutMs == 0) violations.push_back("move without timeout");
-    if (std::abs(r.steps) > (ax == 3 ? 3000 : 8000)) violations.push_back("move over its bound");
-    if (!enabled[ax]) violations.push_back("move on a disabled driver");
-    if (ax < 3 && std::abs(keyPhys()) > 20) violations.push_back("dial moved with the key out");
-    if ((gstatFlags[ax] & core::GSTAT_RESET) && !resetHidden) violations.push_back("move on a driver that has reset");
-    if (diagStuck[ax]) { res.diagHighAtStart = true; return res; }
+    for (int k = 0; k < na; ++k) {
+      const int ax = axes[k];
+      if (na > 1 && ax == 3) violations.push_back("key in a lockstep move");
+      if (std::abs(r.steps) > (ax == 3 ? 3000 : (na > 1 ? 6400 * 20 : 8000))) violations.push_back("move over its bound");
+      if (!enabled[ax]) violations.push_back("move on a disabled driver");
+      if (ax < 3 && std::abs(keyPhys()) > 20) violations.push_back("dial moved with the key out");
+      if ((gstatFlags[ax] & core::GSTAT_RESET) && !resetHidden) violations.push_back("move on a driver that has reset");
+      if (diagStuck[ax]) { res.diagHighAtStart = true; return res; }
+    }
     if (abortAtMove >= 0 && moveCount == abortAtMove) { ++moveCount; res.aborted = true; return res; }
     ++moveCount;
     const int dir = r.steps >= 0 ? 1 : -1;
@@ -202,70 +212,80 @@ struct SimHal : public core::Hal {
     core::Ramp ramp;
     ramp.begin((uint32_t)n, r.startSps, r.maxSps, r.accelSps2);
     const int32_t acc = (int32_t)ramp.accelSteps();
-    const int32_t lag = lagMin + (int32_t)(rnd() % lagSpan);
-    int32_t blocked = 0;
+    int32_t lag[4], blocked[4] = {0, 0, 0, 0};
+    for (int k = 0; k < na; ++k) lag[k] = lagMin + (int32_t)(rnd() % lagSpan);
     uint16_t sgMin = 0xFFFF;
+    double tUs = 0;  // lockstep moves advance the clock as they go (the `load` meter reads it)
+    const uint32_t now0 = now;
     res.stepsDone = r.steps;
     for (int32_t i = 0; i < n; ++i) {
-      if (ax == resetOnMove && i == n / 2) {
-        driverReset(resetAxis >= 0 ? resetAxis : ax);
+      if (r.axis == resetOnMove && i == n / 2) {
+        driverReset(resetAxis >= 0 ? resetAxis : r.axis);
         resetOnMove = resetAxis = -1;
       }
-      bool isBlocked;
-      bool unloaded = false;
-      if (ax < 3) {
-        Dial& dl = dial[ax];
-        if (!dl.engaged) {
-          cmd[ax] += dir;
-          if (--dl.engageLeft <= 0) { dl.engaged = true; dl.off = cmd[ax] - dl.wheel0; dl.floor = 0; }
-          isBlocked = false;
-          unloaded = true;
+      if (na > 1) {
+        tUs += 1e6 / ramp.speedAt((uint32_t)i);
+        now = now0 + (uint32_t)(tUs / 1000);
+      }
+      for (int k = 0; k < na; ++k) {
+        const int ax = axes[k];
+        bool isBlocked;
+        bool unloaded = false;
+        if (ax < 3) {
+          Dial& dl = dial[ax];
+          if (!dl.engaged) {
+            cmd[ax] += dir;
+            if (--dl.engageLeft <= 0) { dl.engaged = true; dl.off = cmd[ax] - dl.wheel0; dl.floor = 0; }
+            isBlocked = false;
+            unloaded = true;
+          } else {
+            cmd[ax] += dir;
+            if (dialHasStop[ax]) {
+              // Clockwise past the stop point: the next stop is one turn on.
+              while (cmd[ax] - dl.off >= dl.floor + turn) dl.floor += turn;
+              if (cmd[ax] - dl.off < dl.floor - kSlip) dl.off -= 64;  // pole slip at the stop
+            }
+            const int32_t raw = cmd[ax] - dl.off;
+            isBlocked = dialHasStop[ax] && raw < dl.floor && dir < 0;
+          }
         } else {
           cmd[ax] += dir;
-          if (dialHasStop[ax]) {
-            // Clockwise past the stop point: the next stop is one turn on.
-            while (cmd[ax] - dl.off >= dl.floor + turn) dl.floor += turn;
-            if (cmd[ax] - dl.off < dl.floor - kSlip) dl.off -= 64;  // pole slip at the stop
-          }
-          const int32_t raw = cmd[ax] - dl.off;
-          isBlocked = dialHasStop[ax] && raw < dl.floor && dir < 0;
+          const int32_t hi = keyLimit();
+          if (cmd[ax] - keyOff > hi + kSlip) keyOff += 64;
+          else if (keyRestStop && cmd[ax] - keyOff < -kSlip) keyOff -= 64;
+          const int32_t raw = cmd[ax] - keyOff;
+          isBlocked = (raw > hi && dir > 0) || (keyRestStop && raw < 0 && dir < 0);
         }
-      } else {
-        cmd[ax] += dir;
-        const int32_t hi = keyLimit();
-        if (cmd[ax] - keyOff > hi + kSlip) keyOff += 64;
-        else if (keyRestStop && cmd[ax] - keyOff < -kSlip) keyOff -= 64;
-        const int32_t raw = cmd[ax] - keyOff;
-        isBlocked = (raw > hi && dir > 0) || (keyRestStop && raw < 0 && dir < 0);
+        if (isBlocked) ++blocked[k]; else blocked[k] = 0;
+        if (isBlocked && !r.stopOnStall) violations.push_back("pressed into a stop with stall detection off");
+        // SG_RESULT now: low once the load has built up against a stop.
+        int32_t sg;
+        if (blocked[k] >= lag[k]) sg = sgAtStop;
+        else if (unloaded) sg = sgUnloaded;
+        else if (ax < 3) {
+          const double ph = 2 * M_PI * (wheel(ax) - detentPhase[ax]) / usPerPos;
+          sg = sgDialBase - sgExtraLoad[ax] - (int32_t)std::lround(dir * sgDetentAmp * std::sin(ph));
+        } else {
+          sg = sgKeyBase;
+        }
+        sg += (int32_t)(rnd() % (2 * sgNoise + 1)) - sgNoise;
+        if (sg < 0) sg = 0;
+        const bool cruise = i >= acc && i + acc < n;
+        if (r.sampleSG && cruise && (i + 1) % 16 == 0) {
+          if (sg < sgMin) sgMin = (uint16_t)sg;
+          if (r.sgSink) r.sgSink->sampleAxis((uint8_t)ax, (uint32_t)i, (uint16_t)sg);
+        }
+        const bool diagOn = r.stopOnStall && i >= r.ignoreStallSteps && ramp.speedAt((uint32_t)i) >= sgMinSps;
+        if (diagOn && sg <= 2 * (int32_t)sgthrs[ax]) {
+          res.stalled = true;
+          res.stalledMask |= (uint8_t)(1u << ax);
+        }
       }
-      if (isBlocked) ++blocked; else blocked = 0;
-      if (isBlocked && !r.stopOnStall) violations.push_back("pressed into a stop with stall detection off");
-      // SG_RESULT now: low once the load has built up against a stop.
-      int32_t sg;
-      if (blocked >= lag) sg = sgAtStop;
-      else if (unloaded) sg = sgUnloaded;
-      else if (ax < 3) {
-        const double ph = 2 * M_PI * (wheel(ax) - detentPhase[ax]) / usPerPos;
-        sg = sgDialBase - (int32_t)std::lround(dir * sgDetentAmp * std::sin(ph));
-      } else {
-        sg = sgKeyBase;
-      }
-      sg += (int32_t)(rnd() % (2 * sgNoise + 1)) - sgNoise;
-      if (sg < 0) sg = 0;
-      const bool cruise = i >= acc && i + acc < n;
-      if (r.sampleSG && cruise && (i + 1) % 16 == 0) {
-        if (sg < sgMin) sgMin = (uint16_t)sg;
-        if (r.sgSink) r.sgSink->sample((uint32_t)i, (uint16_t)sg);
-      }
-      const bool diagOn = r.stopOnStall && i >= r.ignoreStallSteps && ramp.speedAt((uint32_t)i) >= sgMinSps;
-      if (diagOn && sg <= 2 * (int32_t)sgthrs[ax]) {
-        res.stalled = true;
-        res.stepsDone = dir * (i + 1);
-        break;
-      }
+      if (res.stalled) { res.stepsDone = dir * (i + 1); break; }
     }
     res.sgMin = r.sampleSG ? sgMin : 0xFFFF;
-    now += (uint32_t)(1000.0f * std::abs(res.stepsDone) / r.maxSps) + 5;
+    if (na > 1) now = now0 + (uint32_t)(tUs / 1000) + 5;
+    else now += (uint32_t)(1000.0f * std::abs(res.stepsDone) / r.maxSps) + 5;
     return res;
   }
 

@@ -205,6 +205,23 @@ its ~100° stop (Paul, 2026-10-06). Nothing left to do by hand here.
 **4b. On the door** (12 V off while placing): dial unit on, all three motors
 plugged in (A = top-left = X, B = top-right = Y, C = bottom = Z). The key
 turner is not needed yet. 12 V on. `set axes 7`.
+0. **Placing the unit** (firmware v0.6, Paul's idea, 2026-10-18). Seated on
+   its plugs before the magnets hold it, the unit floats a little, and an
+   off-centre plug is pressed sideways in its star: that dial is loaded, and
+   its calibration can show errors or stall. So, with the plugs seated and
+   the unit not yet clamped (placed with 12 V off, motors already plugged
+   in; then 12 V on): `load 10`. All three dials turn clockwise
+   together for 10 turns (20 s), and every half second it prints
+   `LOAD,ms,A,mean,pct,B,mean,pct,C,mean,pct`. **Higher = lighter.** Nudge
+   the unit left/right, up/down and in twist, and watch the numbers: centred
+   is where all three are at their highest. `pct` is against each dial's last
+   calibration (a little over 100 when free), which may itself have been made
+   off centre, so compare the dials with each other and with their own best.
+   Then let the magnets take it, `load 3` to check it didn't shift, then
+   `calibrate`. `!` stops it; a stall stops it and names the dial. Afterwards
+   the dials aren't homed (`calibrate` or `home`).
+   **Send back:** the `LOAD` lines from one centred and one clearly
+   off-centre placement, so we know how big the effect is.
 1. **Direction**: `jog A 10`. Watch dial A's big gear, or a tape flag on it.
    Did the *dial* turn clockwise or anticlockwise, seen from in front of the
    safe? Same for `jog B 10` and `jog C 10`.
@@ -262,6 +279,10 @@ turner is not needed yet. 12 V on. `set axes 7`.
    relaxed drive, like the good first homes above.
    **Re-check with v0.5:** `calibrate`, then `home B` 3 times. Pass 2 should
    now stay near 40 every time.
+   **Result (Paul, 2026-10-18, v0.5, new drivetrain: 5 mm T2 plugs on the
+   tapered hex):** `calibrate` homed all three dials at pass 2 = 40. `home B`
+   3 times: pass 2 42, 46, 42, no `HOMEREP` (10-14, without the settle: 47–49
+   and two `HOMEREP`s). The settle works for B.
 5. **The settle.** Watch the three big gears at the end of `calibrate`, when
    `EV,…,SETTLED,7` prints. Does any of them turn as its motor lets go, and
    how far? A and C should hardly move (their position 1 comes from their
@@ -291,6 +312,30 @@ turner is not needed yet. 12 V on. `set axes 7`.
    (19 clicks on) is only ~1.5 full steps (~1.4° of dial) short of one full
    turn from the stop, where the stop catches again when the dial turns back.
    Does every `goto 1 1 1` end with `# dials at 1 1 1`, or with `JAM`?
+
+**Door results, 2026-10-18 (Paul), and what they led to:**
+- With the 5 mm plugs Paul felt them not staying engaged in the stars.
+  `goto 6 6 6`, `release`, then counting the clicks back to the stop by hand
+  (should be 5): A 4, B 4, C 3; repeated, 4 4 3 and 4 4 2.
+- Position 1 moved between calibrations: A 15.8 → 19.7–20.2 full steps
+  (10-14: 14.3–15.9); C 7.1–7.3 (10-14: 17.4–18.7), once not found; B 7.6
+  when its clicks showed (2 calibrations of 3).
+- Then C had no stop at all by hand: its gear's M3 screw wasn't tight, so its
+  shaft slipped in the gear (Paul fixed it). Check the three screws before
+  each session (manual §1.6).
+- Paul fitted the 7 mm plugs: with them, a dial shaft doesn't turn when
+  released.
+- **Not explained yet:** A and B one click short. Hypothesis (no
+  measurement yet): play between gear and dial, mostly the plug in its star,
+  makes every clockwise move fall short, and position 1 (found from the
+  clicks, to within one click) can then land on the stop. With the 7 mm
+  plugs and tight screws, repeat: from `goto 6 6 6` + `release`, count back
+  (expect 5); after `home A`/`B`/`C` + `release`, count back (expect 0); and
+  each gear's free rock around its click, motors off, in gear teeth (one
+  tooth ≈ 13° of dial).
+- Placing the unit: seated without the magnets it floats, and wherever the
+  magnets clamp it an off-centre dial is loaded; its calibration then shows
+  errors, sometimes a stall (Paul). → step 0, `load` (firmware v0.6).
 
 **Send back**: the `HOME` lines from 4 (v0.5); for 5, which gears moved and
 how far; for 6, both runs' `CAL` and `OFFSET` lines, labelled "key out" and

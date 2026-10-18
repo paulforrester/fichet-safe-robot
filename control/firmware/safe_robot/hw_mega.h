@@ -36,8 +36,8 @@ class HwMega : public core::Hal {
  private:
   bool pollSerial();        // true if '!' (abort) arrived
   void pollButton();
-  void sgStart(uint8_t ax);
-  void sgPoll(uint8_t ax, uint32_t stepIndex, bool cruise, bool trace, core::SgSink* sink);
+  void sgStart(const uint8_t* axes, uint8_t n);
+  void sgPoll(uint32_t stepIndex, bool cruise, bool trace, core::SgSink* sink);
   void sgFinish();
 
   core::Settings& s_;
@@ -59,4 +59,7 @@ class HwMega : public core::Hal {
   uint16_t sgMin_ = 0xFFFF;
   uint32_t sgReqStep_ = 0;  // step index when the pending read was sent
   bool sgReqCruise_ = false;
+  uint8_t sgReqAx_ = 0;     // axis the pending read went to
+  uint8_t sgAxes_[core::AX_COUNT] = {0, 0, 0, 0};  // the move's axes, read in turn
+  uint8_t sgN_ = 1, sgCur_ = 0;
 };

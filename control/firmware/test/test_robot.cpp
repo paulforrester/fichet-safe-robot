@@ -777,6 +777,151 @@ TEST(calibrate_command_stores_what_a_run_needs) {
   noViolations(h);
 }
 
+// ---------------------------------------------------------------- `load` (v0.6)
+// Paul (2026-10-18): placing the unit off centre loads one dial, and its
+// calibration can stall. `load` turns every dial together and prints each
+// one's load every 0.5 s, so the unit can be nudged until all run light.
+namespace {
+// The fields of a LOAD/LOADSUM line for dial ch: {mean, pct} (LOAD) or {mean, low, pct} (LOADSUM).
+std::vector<int> loadFields(const std::string& line, char ch, int n) {
+  std::vector<int> v;
+  const std::string key = std::string(",") + ch + ",";
+  size_t p = line.find(key);
+  if (p == std::string::npos) return v;
+  p += key.size();
+  for (int i = 0; i < n; ++i) {
+    v.push_back(std::atoi(line.c_str() + p));
+    p = line.find(',', p);
+    if (p == std::string::npos) break;
+    ++p;
+  }
+  return v;
+}
+}  // namespace
+
+TEST(load_turns_the_dials_together_and_reports_live) {
+  SimHal h;
+  Settings s = makeSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("calibrate");
+  CHECK(h.has("# calibration saved"));
+  const size_t before = h.moves.size();
+  h.lines.clear();
+  r.handleLine("load 3");
+  // One move, all three dials in lockstep, clockwise, exactly 3 dial turns.
+  CHECK_EQ(h.moves.size(), before + 1);
+  const MoveRequest& m = h.moves.back();
+  CHECK_EQ((int)m.axis, (int)AX_A);
+  CHECK_EQ((int)m.withMask, 0x06);
+  CHECK_EQ(m.steps, 3 * 6400);
+  CHECK(m.stopOnStall && m.sampleSG && m.timeoutMs > 0);
+  // ~6 s of turning at 1 motor rev/s: about a dozen half-second reports, each with all three dials.
+  const int n = h.count("LOAD,");
+  CHECK(n >= 9 && n <= 13);
+  for (auto& l : h.lines) {
+    if (l.rfind("LOAD,", 0) != 0) continue;
+    for (char ch : {'A', 'B', 'C'}) {
+      std::vector<int> f = loadFields(l, ch, 2);
+      CHECK_EQ((int)f.size(), 2);
+      if (f.size() == 2) {
+        CHECK(f[0] > 270 && f[0] < 330);   // the sim's free-running SG (300 +- ripple)
+        CHECK(f[1] > 95 && f[1] < 125);    // vs the baseline (the heaviest point of a click)
+      }
+    }
+  }
+  CHECK(h.has("LOADSUM,"));
+  CHECK(h.has("# load done"));
+  CHECK_EQ(h.count("ERR,"), 0);
+  // The dials count as not homed: the unit may have moved under them.
+  r.handleLine("goto 2 2 2");
+  CHECK(h.last("# goto").find("not homed: A B C") != std::string::npos);
+  noViolations(h);
+}
+
+TEST(load_shows_which_dial_is_loaded) {
+  SimHal h;
+  Settings s = makeSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("calibrate");
+  h.sgExtraLoad[1] = 60;  // unit nudged off centre: dial B's plug pressed sideways
+  h.lines.clear();
+  r.handleLine("load 2");
+  const std::string sum = h.last("LOADSUM,");
+  std::vector<int> a = loadFields(sum, 'A', 3), b = loadFields(sum, 'B', 3), c = loadFields(sum, 'C', 3);
+  CHECK(a.size() == 3 && b.size() == 3 && c.size() == 3);
+  if (a.size() == 3 && b.size() == 3 && c.size() == 3) {
+    CHECK(b[0] < a[0] - 45 && b[0] < c[0] - 45);
+    CHECK(b[2] < a[2] - 15);  // percent of its own baseline drops too
+  }
+  CHECK(!h.has("# load stopped"));
+  noViolations(h);
+}
+
+TEST(load_stops_on_a_stall_and_names_the_dial) {
+  SimHal h;
+  Settings s = makeSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("calibrate");
+  h.sgExtraLoad[2] = 250;  // dial C jammed: SG far under its threshold
+  h.lines.clear();
+  r.handleLine("load 5");
+  CHECK(h.has("# load stopped: dial C stalled"));
+  CHECK(std::abs(h.moves.back().steps) == 5 * 6400);
+  CHECK_EQ(h.count("ERR,"), 0);   // information while placing the unit, not a fault
+  CHECK_EQ(r.state(), ST_IDLE);
+  noViolations(h);
+}
+
+TEST(load_refuses_bad_turns) {
+  SimHal h;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  const size_t m0 = h.moves.size();
+  r.handleLine("load 0");
+  r.handleLine("load 21");
+  CHECK_EQ(h.moves.size(), m0);
+  CHECK_EQ(h.count("# load [turns"), 2);
+  // After a key move (it turns and comes back to rest), the dials may turn.
+  r.handleLine("key 30");
+  r.handleLine("load 1");
+  CHECK(h.has("# load done"));
+  noViolations(h);
+}
+
+TEST(load_works_without_a_calibration) {
+  // Fresh EEPROM: no baseline, no thresholds. It still turns (clockwise never
+  // meets a stop) and reports, with -1 for the percentage.
+  SimHal h;
+  Settings s = makeSettings();
+  for (int a = 0; a < 3; ++a) s.ax[a].sgthrs = 0;
+  s.axesMask = 0x07;
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("load 1");
+  CHECK(h.has("LOAD,"));
+  std::vector<int> f = loadFields(h.last("LOAD,"), 'B', 2);
+  CHECK(f.size() == 2 && f[1] == -1);
+  CHECK(h.has("# load done"));
+  noViolations(h);
+}
+
+TEST(load_abort_stops_and_releases) {
+  SimHal h;
+  Settings s = makeSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("calibrate");
+  h.abortAtMove = h.moveCount;  // the load move
+  r.handleLine("load 5");
+  CHECK(h.last("ERR,").find("ABORT") != std::string::npos);
+  for (int a = 0; a < 4; ++a) CHECK(!h.enabled[a]);
+  noViolations(h);
+}
+
 // ---------------------------------------------------------------- driver resets (GSTAT)
 // A driver whose supply dips (12 V terminal, a loose socket, a 5 V glitch) comes back
 // with its power-on registers: no StallGuard. The firmware must notice before

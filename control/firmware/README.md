@@ -1,9 +1,43 @@
 # Firmware — Fichet safe robot (Mega 2560 + RAMPS 1.4 + 4 × TMC2209)
 
-> **Revision 2026-10-17.2** · key driver on the RAMPS E0 socket; firmware v0.5 (2026-10-16: settle after homing, dials 600 mA) · log: `../../docs/revisions.md`
+> **Revision 2026-10-17.2** · key driver on the RAMPS E0 socket; firmware v0.6 (2026-10-18: `load`, live dial load for placing the unit) · log: `../../docs/revisions.md`
 
 Implements the sequence in `control/sequence.md` on the pin map in
 `control/wiring.md`. Bring it up on the bench with `control/bringup.md`.
+
+## v0.6 (2026-10-18): `load`, the dials' load live while placing the unit
+
+Paul (2026-10-18, on the door): seated without its magnets the unit floats a
+little on its plugs, and wherever the magnets then clamp it, a plug that is
+off centre in its star is pressed sideways. That dial's load goes up, and its
+calibration can show errors or stall. His idea: turn all three dials
+together and show each one's load live, so the unit can be nudged until all
+three run light.
+
+- **`load [turns]`** (1–20, default 5): every fitted dial turns clockwise
+  (the way it never meets its stop) by that many dial turns, all three in
+  lockstep (2 s per dial turn at the default speed). Every 0.5 s it prints
+  `LOAD,ms,A,mean,pct,B,mean,pct,C,mean,pct`: each dial's mean StallGuard
+  reading over that half second, and that as a percentage of the baseline
+  from its last `calibrate` (-1 if there is none). **Higher = lighter.** The
+  percentage sits a little over 100 when free (the baseline is the heaviest
+  point of a click; the mean averages over clicks); a dial pressed off centre
+  reads lower than the other two. At the end, `LOADSUM,ms,A,mean,low,pct,…`:
+  the mean over the run, the lowest half-second mean, the percentage.
+- It stops on a stall of any dial (`# load stopped: dial C stalled…`, no
+  error state) when a threshold is set, on `!`, or after the turns. Afterwards
+  the dials count as **not homed** (the unit may have moved under them):
+  `calibrate` or `home` next.
+- **Lockstep moves** (`MoveRequest::withMask`): one ramp, every axis's STEP
+  pin pulsed together, the move stopped by any axis's DIAG
+  (`MoveResult::stalledMask` says which). SG_RESULT reads go round the axes
+  in turn, one read in flight at a time as before (~2 ms apart, so each of
+  three dials is read ~150 times a second). Sinks get the axis through
+  `SgSink::sampleAxis()`; the calibration sinks are unchanged.
+- The `LOAD` line is printed from inside the move. It is ~40 characters,
+  which fits the Mega's 64-byte serial buffer, so printing it doesn't hold up
+  the steps (UNVERIFIED on hardware: if the turning stutters every half
+  second, tell me).
 
 ## v0.5 (2026-10-16): dials settle after homing; dial current 600 mA
 
@@ -311,6 +345,7 @@ a move must stop with `DRVFAULT`).
 | `calibrate` | key (from its start position) + seat + one free turn per dial + homing + settle; prints `CAL`/`OFFSET`, saves to EEPROM |
 | `seat`, `home [A\|B\|C]`, `learn` | bench: run one part of the session start (`home` ends with a settle of the dials it homed) |
 | `goto a b c` | bench: dials to positions (1–20) after `home` (says which dials aren't homed) |
+| `load [turns]` | placing the unit (v0.6): all dials turn clockwise together for 1–20 turns (default 5), printing `LOAD` every 0.5 s; un-homes the dials |
 | `try` | bench: one key attempt at the current dial setting |
 | `key <deg>` | bench: turn the key clockwise up to `deg` (stops on stall), then back |
 | `jog <A\|B\|C\|K> <fullsteps>` | bench: bounded move (±800 full steps), stops on stall |
@@ -329,6 +364,7 @@ HOME,ms,dial,pass,distFull,stalled,sgMin     LEARN,ms,try,keySteps,keyDeg,stalle
 NSTOP,ms,keySteps,keyDeg,spreadDeg           RECHECK,ms,index,dial,discrepancyFull,nDeg,ok
 CAL,ms,axis,baseline,sgthrs,amp,resid,clicksTrusted    OFFSET,ms,dial,offsetFull,fromClicks
 GSTAT,ms,axis,gstat,when     a driver reset or fault, just before ERR DRVFAULT (see "Driver resets")
+LOAD,ms,A,mean,pct,B,mean,pct,C,mean,pct     LOADSUM,ms,A,mean,low,pct,...     `load` (v0.6)
 EV,ms,name,detail    ERR,ms,code,text    DRV,...    CFG,...    SG,...    # human text
 ```
 
@@ -353,7 +389,7 @@ The first is live mode (type commands in it); the second re-analyses a run.
 
 ## Verified here (cloud session, no hardware)
 
-- **Host tests**: `make -C control/firmware/test` — 57 tests, ~36,500 checks,
+- **Host tests**: `make -C control/firmware/test` — 63 tests, ~36,700 checks,
   0 failures. Built with `-Wall -Wextra -Werror` (g++ 13 and clang 18) and
   also run under AddressSanitizer + UBSan. They cover:
   - the serpentine order: a bijection, and each step moves one dial by one
@@ -396,18 +432,25 @@ The first is live mode (type commands in it); the second re-analyses a run.
   - the simulator also polices the firmware: no dial moves with the key out,
     every move bounded and with a timeout, never a move on a disabled driver,
     never a move on a driver that has reset, never pressing into a stop with
-    stall detection off, current never above 1.2 A.
+    stall detection off, current never above 1.2 A;
+  - `load` (v0.6): one lockstep move of all three dials, exactly the turns
+    asked, clockwise, a `LOAD` line every 0.5 s with all three dials; a dial
+    with extra load (the simulator's `sgExtraLoad`) reads lower in mean and
+    percentage; a stall stops it and names the dial without an error state;
+    out-of-range turns are refused; no calibration → percentages -1; `!`
+    aborts and releases; the dials are un-homed afterwards.
 - **Logger**: `python3 -m pytest control/firmware/tools` (3 tests). A
   simulated full run (`make -C control/firmware/test simlog`, 1,787 attempts)
   replays through `logger.py`, and its offline classes match the firmware's on
   every attempt.
 - **AVR build**: compiles for the ATmega2560 with avr-gcc 7.3 + Arduino AVR
   core 1.8.6 + TMCStepper 0.7.3 (Ubuntu packages; the Arduino download
-  servers are blocked here): 53.5 KB flash (20.4 %), 1.4 KB static RAM
-  (16.7 %), no warnings from this code (v0.5, 2026-10-16).
+  servers are blocked here): 56.3 KB flash (22.0 %), 1.4 KB static RAM
+  (17.0 %), no warnings from this code (v0.6, 2026-10-18).
 
 **Not verified**: anything on hardware beyond bring-up stages 1–4b (v0.4,
-2026-10-10 to 14); v0.5 hasn't run on hardware yet. The simulator's lock is my model of
+2026-10-10 to 14; v0.5 on the door 2026-10-17/18); v0.6 (`load`) hasn't run
+on hardware yet. The simulator's lock is my model of
 the description in `control/sequence.md` and Paul's checks, not the real lock;
 in particular its StallGuard click ripple is an assumption. Motor
 directions, how SG_RESULT really looks on these dials, the 50 % threshold
