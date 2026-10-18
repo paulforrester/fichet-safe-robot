@@ -6,7 +6,8 @@
             and runs/<stamp>_attempts.csv (one row per ATT line). Lines you
             type are sent to the robot (start, resume, pause, status, ! ...),
             so you don't need the Arduino Serial Monitor (only one program can
-            have the port open).
+            have the port open). Up/down arrows step through the last 100
+            commands, as in bash (kept in ~/.safe_robot_history).
   replay:   python3 logger.py --replay runs/<stamp>_raw.log
             Rebuilds the attempts CSV from a raw log.
   analyse:  python3 logger.py --analyse runs/<stamp>_attempts.csv
@@ -30,6 +31,7 @@ import threading
 ATT_FIELDS = ["ms", "index", "a", "b", "c", "key_steps", "key_deg", "stalled", "sg_min", "cls", "n_deg"]
 CSV_FIELDS = ["host_time"] + ATT_FIELDS + ["delta_deg"]
 SHOW = ("EV,", "ERR,", "SUCCESS,", "NSTOP,", "RECHECK,", "HOME,", "LEARN,", "DRV,", "#", "CFG,", "SG,", "CAL,", "OFFSET,",
+        "LOAD,", "LOADSUM,",
         "GSTAT,")
 
 
@@ -124,6 +126,44 @@ def print_analysis(summary, rows, top=20):
         print(f"  {r['index']:5d}  {r['a']:>2}-{r['b']:>2}-{r['c']:>2}  {r['delta_deg']:+6.1f}  {r.get('cls',''):9s} {r['offline_cls']}")
 
 
+HISTORY_FILE = os.path.expanduser("~/.safe_robot_history")
+HISTORY_LEN = 100
+
+
+class History:
+    """Command history for live mode (Paul, 2026-10-18): up/down arrows step
+    through the last HISTORY_LEN commands, like bash, via the readline module
+    (GNU readline on Linux, libedit on macOS: both do the arrows), and the
+    list is kept between sessions."""
+
+    def __init__(self, rl, path=HISTORY_FILE, length=HISTORY_LEN):
+        self.rl, self.path = rl, path
+        rl.set_history_length(length)
+        try:
+            rl.read_history_file(path)
+        except (OSError, IOError):
+            pass
+
+    def add(self, cmd):
+        # input() already put it in the list; a command typed again straight
+        # after itself is kept once, as bash's ignoredups does
+        n = self.rl.get_current_history_length()
+        if n >= 2 and self.rl.get_history_item(n - 1) == cmd == self.rl.get_history_item(n):
+            self.rl.remove_history_item(n - 1)
+        try:
+            self.rl.write_history_file(self.path)
+        except (OSError, IOError):
+            pass
+
+
+def setup_history():
+    try:
+        import readline
+    except ImportError:  # e.g. Windows without pyreadline: commands still work, no arrows
+        return None
+    return History(readline)
+
+
 def live(port, baud, outdir):
     import serial  # pyserial
 
@@ -134,9 +174,19 @@ def live(port, baud, outdir):
     ser = serial.Serial(port, baud, timeout=0.2)
     print(f"logging to {raw_path} and {csv_path}; type commands, Ctrl-C to quit")
 
+    history = setup_history()
+
     def keyboard():
-        for cmd in sys.stdin:
-            ser.write(cmd.strip().encode() + (b"" if cmd.strip() == "!" else b"\n"))
+        while True:
+            try:
+                cmd = input().strip()
+            except (EOFError, KeyboardInterrupt):
+                break
+            if not cmd:
+                continue
+            if history:
+                history.add(cmd)
+            ser.write(cmd.encode() + (b"" if cmd == "!" else b"\n"))
 
     threading.Thread(target=keyboard, daemon=True).start()
     n = 0

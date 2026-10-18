@@ -235,7 +235,9 @@ Decisions made while writing the firmware, on top of the sequence above:
   (on RAMPS Y_MIN). The button also pauses a run and resumes a stored one.
 - **Order of the 8,000**: serpentine. Consecutive attempts differ in one dial
   by one position, so each attempt turns one dial one click, and no dial ever
-  wraps from position 20 back to 1 (a wheel with a hard stop couldn't).
+  wraps from position 19 back to 0. (Positions are 0–19 from firmware v0.6,
+  1–20 before. A dial can wrap clockwise past its stop, and from v0.6 `goto`
+  does when that's shorter, but the run doesn't need to.)
 - **Key home every attempt**: retract until the key stalls at its rest
   (anticlockwise) stop, so every angle is measured from the same point.
   The rest stop exists: the key can't turn anticlockwise from where it goes
@@ -248,8 +250,12 @@ Decisions made while writing the firmware, on top of the sequence above:
   measures each motor's free-running StallGuard reading and sets its own
   stall threshold (stall = reading down to 50 % of it). Each dial makes one
   free clockwise turn for this. From the same turn's 18° click ripple it
-  finds where the clicks are, so position 1 = the first click clockwise of
-  the stop. Where the first click sits relative to the stop can't be measured
+  finds where the clicks are, so position 0 = the first click clockwise of
+  the stop (1 before v0.6). **Correction (2026-10-18):** on the door this
+  put position 0 on the stop and each target on the near side of its click;
+  the offsets are to be measured by hand (bring-up 4b step 8) and used with
+  the click-finding off. Every position is now also approached turning
+  clockwise (play in the drive). Where the first click sits relative to the stop can't be measured
   by hand (Paul: evenly spaced, 18° apart). The key is measured over 60° of
   free travel from rest. Datasheet §11.4 recommends this kind of
   in-application threshold. Bench stages 3–4 check the assumptions (the
@@ -268,7 +274,7 @@ Decisions made while writing the firmware, on top of the sequence above:
   are homed, their drivers switch off for 0.5 s and on again, so each dial
   falls into its nearest click. On the door, dial B's drive gives a little
   under the homing push and relaxes when its motor lets go, and B's clicks
-  don't show in StallGuard, so its position 1 is a fixed offset that may sit
+  don't show in StallGuard, so its position 0 is a fixed offset that may sit
   off its click (bring-up 4b, 2026-10-14). Switching on again pulls a motor
   to its nearest holding point, one every 4 full steps (TMC2209 DS §3.6.1),
   so a dial ends within 2 full steps (1.8° of dial) of its click. Its step

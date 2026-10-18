@@ -205,6 +205,23 @@ its ~100° stop (Paul, 2026-10-06). Nothing left to do by hand here.
 **4b. On the door** (12 V off while placing): dial unit on, all three motors
 plugged in (A = top-left = X, B = top-right = Y, C = bottom = Z). The key
 turner is not needed yet. 12 V on. `set axes 7`.
+0. **Placing the unit** (firmware v0.6, Paul's idea, 2026-10-18). Seated on
+   its plugs before the magnets hold it, the unit floats a little, and an
+   off-centre plug is pressed sideways in its star: that dial is loaded, and
+   its calibration can show errors or stall. So, with the plugs seated and
+   the unit not yet clamped (placed with 12 V off, motors already plugged
+   in; then 12 V on): `load 10`. All three dials turn clockwise
+   together for 10 turns (20 s), and every half second it prints
+   `LOAD,ms,A,mean,pct,B,mean,pct,C,mean,pct`. **Higher = lighter.** Nudge
+   the unit left/right, up/down and in twist, and watch the numbers: centred
+   is where all three are at their highest. `pct` is against each dial's last
+   calibration (a little over 100 when free), which may itself have been made
+   off centre, so compare the dials with each other and with their own best.
+   Then let the magnets take it, `load 3` to check it didn't shift, then
+   `calibrate`. `!` stops it; a stall stops it and names the dial. Afterwards
+   the dials aren't homed (`calibrate` or `home`).
+   **Send back:** the `LOAD` lines from one centred and one clearly
+   off-centre placement, so we know how big the effect is.
 1. **Direction**: `jog A 10`. Watch dial A's big gear, or a tape flag on it.
    Did the *dial* turn clockwise or anticlockwise, seen from in front of the
    safe? Same for `jog B 10` and `jog C 10`.
@@ -262,6 +279,10 @@ turner is not needed yet. 12 V on. `set axes 7`.
    relaxed drive, like the good first homes above.
    **Re-check with v0.5:** `calibrate`, then `home B` 3 times. Pass 2 should
    now stay near 40 every time.
+   **Result (Paul, 2026-10-18, v0.5, new drivetrain: 5 mm T2 plugs on the
+   tapered hex):** `calibrate` homed all three dials at pass 2 = 40. `home B`
+   3 times: pass 2 42, 46, 42, no `HOMEREP` (10-14, without the settle: 47–49
+   and two `HOMEREP`s). The settle works for B.
 5. **The settle.** Watch the three big gears at the end of `calibrate`, when
    `EV,…,SETTLED,7` prints. Does any of them turn as its motor lets go, and
    how far? A and C should hardly move (their position 1 comes from their
@@ -279,23 +300,72 @@ turner is not needed yet. 12 V on. `set axes 7`.
    key. A clear difference would suggest the key changes what the dials
    drive (`control/sequence.md`, "Does a combination dialled with the key
    already in count?"). The same numbers are only weak reassurance.
-7. **Position 20, and does anything add up over full turns?** (Paul's
-   question, 2026-10-16: is there an error per step?)
-   a. `calibrate`, then `home A`, `home B`, `home C`. Note each `HOME` pass 1:
-      that's the reference.
-   b. Five times: `goto 20 20 20`, then `goto 1 1 1`. Each dial turns 19
-      clicks out and back, 5 times.
+7. **Does anything add up over full turns?** (Paul's question, 2026-10-16:
+   is there an error per step?) Positions are 0–19 from firmware v0.6, and
+   `goto` takes the shorter way round.
+   a. `calibrate` (or `home`, with the offsets from step 8). Then `home A`,
+      `home B`, `home C`. Note each `HOME` pass 1: that's the reference.
+   b. Five times: `goto 10 10 10`, then `goto 0 0 0` (10 clicks out and 10
+      back: a tie, so it goes back). Then five times `goto 19 19 19`,
+      `goto 0 0 0` (the second goes one click on, clockwise past the stop).
    c. `home A`, `home B`, `home C` again. Each pass 1 should match (a) within
       ~2 full steps. 4 or more means steps were lost along the way.
-   Dial C's first click is ~18.5 full steps from its stop, so its position 20
-   (19 clicks on) is only ~1.5 full steps (~1.4° of dial) short of one full
-   turn from the stop, where the stop catches again when the dial turns back.
-   Does every `goto 1 1 1` end with `# dials at 1 1 1`, or with `JAM`?
+   Does every `goto` end with `# dials at …`, or with `JAM`?
+8. **Find each dial's position 0 by hand** (firmware v0.6). On 2026-10-18
+   the offsets the firmware found from the clicks put position 0 on the
+   stop, and every position fell back one click when released (results
+   below). So measure them. All three dials at once:
+   1. `set detentcal 0` (use the offsets you set, not the clicks).
+   2. `set offA 20`, `set offB 20`, `set offC 20`, then `home`, then
+      `goto 5 5 5`, then `release`. By hand, count each dial's clicks back to
+      its stop (with the right offset: **5**; fewer means the offset is too
+      small, more means too big).
+   3. Repeat step 2 with 30, 40, 50 and 60.
+   **Send back:** a little table, offset → clicks for A / B / C. The offsets
+   that give 5 are inside each dial's first click; I'll take the middle,
+   then you check position 0 (`home`, `release`: no click before the stop)
+   and that a position reached going back (`goto 10 10 10`, `goto 5 5 5`,
+   `release`) also counts 5. Those offsets then go into `config.h`.
+   (`set` lasts until a reset: after one, `set detentcal 0` and the offsets
+   again.)
+
+**Door results, 2026-10-18 (Paul), and what they led to:**
+- With the 5 mm plugs Paul felt them not staying engaged in the stars.
+  `goto 6 6 6`, `release`, then counting the clicks back to the stop by hand
+  (should be 5): A 4, B 4, C 3; repeated, 4 4 3 and 4 4 2.
+- Position 1 moved between calibrations: A 15.8 → 19.7–20.2 full steps
+  (10-14: 14.3–15.9); C 7.1–7.3 (10-14: 17.4–18.7), once not found; B 7.6
+  when its clicks showed (2 calibrations of 3).
+- Then C had no stop at all by hand: its gear's M3 screw wasn't tight, so its
+  shaft slipped in the gear (Paul fixed it). Check the three screws before
+  each session (manual §1.6).
+- Paul fitted the 7 mm plugs: with them, a dial shaft doesn't turn when
+  released.
+- (Positions above are 1–20, as the firmware numbered them before v0.6.)
+- Later the same day (Paul, 7 mm plugs, screws tight, after a clean
+  `calibrate`: offsets A 20.5, B 9.1, C 3.1): `goto 1 1 1` didn't move;
+  `goto 2 2 2` turned the motors but not far enough to reach the first
+  click, and on `release` each dial went back to where it started. Every
+  other position landed one click short (dial A tried at all 20). So
+  position 1 was on the stop and each target sat on the near side of its
+  click. Paul also asked for positions 0–19, `goto` the shorter way round,
+  and command history: firmware v0.6. Next: step 8.
+- **Not explained yet:** A and B one click short. Hypothesis (no
+  measurement yet): play between gear and dial, mostly the plug in its star,
+  makes every clockwise move fall short, and position 1 (found from the
+  clicks, to within one click) can then land on the stop. With the 7 mm
+  plugs and tight screws, repeat: from `goto 6 6 6` + `release`, count back
+  (expect 5); after `home A`/`B`/`C` + `release`, count back (expect 0); and
+  each gear's free rock around its click, motors off, in gear teeth (one
+  tooth ≈ 13° of dial).
+- Placing the unit: seated without the magnets it floats, and wherever the
+  magnets clamp it an off-centre dial is loaded; its calibration then shows
+  errors, sometimes a stall (Paul). → step 0, `load` (firmware v0.6).
 
 **Send back**: the `HOME` lines from 4 (v0.5); for 5, which gears moved and
 how far; for 6, both runs' `CAL` and `OFFSET` lines, labelled "key out" and
 "key in"; for 7, the `HOME` lines from a and c and any `goto` that didn't end
-with `# dials at …`.
+with `# dials at …`; for 8, the table of offset → clicks for A / B / C.
 
 ---
 
@@ -390,4 +460,5 @@ measured spread and start the real run with `resume`.
 | Magnets holding under real loads | 5, 6 |
 | The firmware notices a driver reset (GSTAT check, v0.3) | 6 |
 | Dial current | 600 mA (2026-10-14: at 1 A homing failed its repeat check). The dial torque itself is still not measured |
-| Dial position 20 clear of the stop on the way back (C's first click is ~18.5 full steps out); no steps lost over full turns | 4b.7 |
+| No steps lost over full turns, including `goto` wrapping clockwise past the stop (positions 0–19 from v0.6) | 4b.7 |
+| Each dial's position 0 (offset from the stall point), measured by hand; whether the approach direction matters | 4b.8 |

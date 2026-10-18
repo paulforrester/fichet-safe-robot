@@ -1,4 +1,5 @@
 // End-to-end tests: the real sequencer (core::Robot) against SimHal.
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <map>
@@ -67,7 +68,7 @@ TEST(run_finds_the_combination) {
   CHECK_EQ(r.progress().state, RUN_SUCCESS);
   CHECK_EQ(r.progress().successIndex, secretIndex(h));
   const std::string ok = h.last("SUCCESS,");
-  CHECK(field(ok, 3) == "3" && field(ok, 4) == "6" && field(ok, 5) == "18");  // 1-based positions
+  CHECK(field(ok, 3) == "2" && field(ok, 4) == "5" && field(ok, 5) == "17");  // positions 0..19 (v0.6)
   // Every index before the success was tried, in order, exactly once
   // (re-checks every 200 attempts don't repeat attempts).
   std::vector<int> idx = attIndices(h);
@@ -87,6 +88,7 @@ TEST(each_attempt_moves_one_dial_one_position) {
   h.secret[0] = 0; h.secret[1] = 3; h.secret[2] = 9;
   Settings s = tunedSettings();
   s.recheckEvery = 0;
+  s.dialApproachFull = 0;  // one move per position change (the approach is tested below)
   Robot r(h, s);
   r.boot();
   r.handleLine("start");
@@ -357,8 +359,11 @@ TEST(bench_commands) {
   CHECK(h.has("NSTOP,"));
   r.handleLine("goto 4 5 6");
   CHECK(h.has("# dials at 4 5 6"));
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 4 + d);  // 0 = the first click (v0.6)
   r.handleLine("try");
   CHECK(h.last("ATT,").find(",-1,4,5,6,") != std::string::npos);
+  r.handleLine("goto 20 0 0");
+  CHECK(h.last("# position out of range").find("0..19") != std::string::npos);
   r.handleLine("jog K 10");
   r.handleLine("jog K -10");
   r.handleLine("sg A 40");
@@ -774,6 +779,230 @@ TEST(calibrate_command_stores_what_a_run_needs) {
   CHECK(r2.busy());
   runUntilIdle(r2);
   CHECK_EQ(r2.state(), ST_SUCCESS);
+  noViolations(h);
+}
+
+// ---------------------------------------------------------------- goto (v0.6, Paul 2026-10-18)
+TEST(goto_takes_the_shorter_way_round) {
+  SimHal h;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("home");
+  r.handleLine("goto 19 19 19");
+  CHECK(h.has("# dials at 19 19 19"));
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 19);
+  // 19 -> 0: one click clockwise (past the stop), not 19 back.
+  size_t m0 = h.moves.size();
+  r.handleLine("goto 0 0 0");
+  CHECK(h.has("# dials at 0 0 0"));
+  CHECK_EQ(h.moves.size(), m0 + 3);
+  for (size_t i = m0; i < h.moves.size(); ++i) CHECK_EQ(h.moves[i].steps, 320);
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 0);
+  // ...and the firmware knows it's at 0 (its count wrapped back into the first turn).
+  r.handleLine("learn");
+  r.handleLine("try");
+  CHECK(h.last("ATT,").find(",-1,0,0,0,") != std::string::npos);
+  // The count is back in the first turn: 0 -> 1 is one click, and a re-home finds the stop where the count says.
+  m0 = h.moves.size();
+  r.handleLine("goto 1 1 1");
+  for (size_t i = m0; i < h.moves.size(); ++i) CHECK_EQ(h.moves[i].steps, 320);
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 1);
+  {
+    std::string offA;
+    for (auto& l : h.lines) if (l.rfind("OFFSET,", 0) == 0 && field(l, 2) == "A") offA = l;
+    CHECK(!offA.empty());
+    const double off = std::atof(field(offA, 3).c_str());  // position 0, full steps from the stall
+    h.lines.clear();
+    r.handleLine("home A");
+    std::string first;
+    for (auto& l : h.lines) if (l.rfind("HOME,", 0) == 0 && field(l, 3) == "1") { first = l; break; }
+    const double dist = std::atof(field(first, 4).c_str());
+    CHECK(std::fabs(dist - (off + 20)) <= 3);  // position 1 = one click past position 0
+    r.handleLine("home");
+  }
+  // 10 -> 0 is a tie (10 either way): back, anticlockwise.
+  r.handleLine("goto 10 10 10");
+  m0 = h.moves.size();
+  r.handleLine("goto 0 0 0");
+  CHECK(h.moves[m0].steps < 0);
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 0);
+  // 2 -> 15: forward (13 clicks). Going back round would cross the stop anticlockwise: never.
+  r.handleLine("goto 2 2 2");
+  m0 = h.moves.size();
+  r.handleLine("goto 15 15 15");
+  CHECK(h.moves[m0].steps > 0);
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 15);
+  CHECK_EQ(h.count("ERR,"), 0);
+  noViolations(h);
+}
+
+TEST(every_position_is_reached_turning_clockwise) {
+  // The approach (CFG_DIAL_APPROACH_FULL): a move that would end turning
+  // anticlockwise overshoots and comes back clockwise, never into the stop.
+  SimHal h;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("home");
+  r.handleLine("goto 8 8 8");
+  size_t m0 = h.moves.size();
+  r.handleLine("goto 3 3 3");
+  CHECK_EQ(h.moves.size(), m0 + 6);  // per dial: back past it, then forward onto it
+  for (size_t i = m0; i < h.moves.size(); i += 2) {
+    CHECK_EQ(h.moves[i].steps, -5 * 320 - 20 * 16);
+    CHECK_EQ(h.moves[i + 1].steps, 20 * 16);
+  }
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 3);
+  // To position 0 the overshoot is cut short so the dial never presses into its stop.
+  r.handleLine("goto 0 0 0");
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 0);
+  CHECK_EQ(h.count("ERR,"), 0);
+  noViolations(h);
+}
+
+// ---------------------------------------------------------------- `load` (v0.6)
+// Paul (2026-10-18): placing the unit off centre loads one dial, and its
+// calibration can stall. `load` turns every dial together and prints each
+// one's load every 0.5 s, so the unit can be nudged until all run light.
+namespace {
+// The fields of a LOAD/LOADSUM line for dial ch: {mean, pct} (LOAD) or {mean, low, pct} (LOADSUM).
+std::vector<int> loadFields(const std::string& line, char ch, int n) {
+  std::vector<int> v;
+  const std::string key = std::string(",") + ch + ",";
+  size_t p = line.find(key);
+  if (p == std::string::npos) return v;
+  p += key.size();
+  for (int i = 0; i < n; ++i) {
+    v.push_back(std::atoi(line.c_str() + p));
+    p = line.find(',', p);
+    if (p == std::string::npos) break;
+    ++p;
+  }
+  return v;
+}
+}  // namespace
+
+TEST(load_turns_the_dials_together_and_reports_live) {
+  SimHal h;
+  Settings s = makeSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("calibrate");
+  CHECK(h.has("# calibration saved"));
+  const size_t before = h.moves.size();
+  h.lines.clear();
+  r.handleLine("load 3");
+  // One move, all three dials in lockstep, clockwise, exactly 3 dial turns.
+  CHECK_EQ(h.moves.size(), before + 1);
+  const MoveRequest& m = h.moves.back();
+  CHECK_EQ((int)m.axis, (int)AX_A);
+  CHECK_EQ((int)m.withMask, 0x06);
+  CHECK_EQ(m.steps, 3 * 6400);
+  CHECK(m.stopOnStall && m.sampleSG && m.timeoutMs > 0);
+  // ~6 s of turning at 1 motor rev/s: about a dozen half-second reports, each with all three dials.
+  const int n = h.count("LOAD,");
+  CHECK(n >= 9 && n <= 13);
+  for (auto& l : h.lines) {
+    if (l.rfind("LOAD,", 0) != 0) continue;
+    for (char ch : {'A', 'B', 'C'}) {
+      std::vector<int> f = loadFields(l, ch, 2);
+      CHECK_EQ((int)f.size(), 2);
+      if (f.size() == 2) {
+        CHECK(f[0] > 270 && f[0] < 330);   // the sim's free-running SG (300 +- ripple)
+        CHECK(f[1] > 95 && f[1] < 125);    // vs the baseline (the heaviest point of a click)
+      }
+    }
+  }
+  CHECK(h.has("LOADSUM,"));
+  CHECK(h.has("# load done"));
+  CHECK_EQ(h.count("ERR,"), 0);
+  // The dials count as not homed: the unit may have moved under them.
+  r.handleLine("goto 2 2 2");
+  CHECK(h.last("# goto").find("not homed: A B C") != std::string::npos);
+  noViolations(h);
+}
+
+TEST(load_shows_which_dial_is_loaded) {
+  SimHal h;
+  Settings s = makeSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("calibrate");
+  h.sgExtraLoad[1] = 60;  // unit nudged off centre: dial B's plug pressed sideways
+  h.lines.clear();
+  r.handleLine("load 2");
+  const std::string sum = h.last("LOADSUM,");
+  std::vector<int> a = loadFields(sum, 'A', 3), b = loadFields(sum, 'B', 3), c = loadFields(sum, 'C', 3);
+  CHECK(a.size() == 3 && b.size() == 3 && c.size() == 3);
+  if (a.size() == 3 && b.size() == 3 && c.size() == 3) {
+    CHECK(b[0] < a[0] - 45 && b[0] < c[0] - 45);
+    CHECK(b[2] < a[2] - 15);  // percent of its own baseline drops too
+  }
+  CHECK(!h.has("# load stopped"));
+  noViolations(h);
+}
+
+TEST(load_stops_on_a_stall_and_names_the_dial) {
+  SimHal h;
+  Settings s = makeSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("calibrate");
+  h.sgExtraLoad[2] = 250;  // dial C jammed: SG far under its threshold
+  h.lines.clear();
+  r.handleLine("load 5");
+  CHECK(h.has("# load stopped: dial C stalled"));
+  CHECK(std::abs(h.moves.back().steps) == 5 * 6400);
+  CHECK_EQ(h.count("ERR,"), 0);   // information while placing the unit, not a fault
+  CHECK_EQ(r.state(), ST_IDLE);
+  noViolations(h);
+}
+
+TEST(load_refuses_bad_turns) {
+  SimHal h;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  const size_t m0 = h.moves.size();
+  r.handleLine("load 0");
+  r.handleLine("load 21");
+  CHECK_EQ(h.moves.size(), m0);
+  CHECK_EQ(h.count("# load [turns"), 2);
+  // After a key move (it turns and comes back to rest), the dials may turn.
+  r.handleLine("key 30");
+  r.handleLine("load 1");
+  CHECK(h.has("# load done"));
+  noViolations(h);
+}
+
+TEST(load_works_without_a_calibration) {
+  // Fresh EEPROM: no baseline, no thresholds. It still turns (clockwise never
+  // meets a stop) and reports, with -1 for the percentage.
+  SimHal h;
+  Settings s = makeSettings();
+  for (int a = 0; a < 3; ++a) s.ax[a].sgthrs = 0;
+  s.axesMask = 0x07;
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("load 1");
+  CHECK(h.has("LOAD,"));
+  std::vector<int> f = loadFields(h.last("LOAD,"), 'B', 2);
+  CHECK(f.size() == 2 && f[1] == -1);
+  CHECK(h.has("# load done"));
+  noViolations(h);
+}
+
+TEST(load_abort_stops_and_releases) {
+  SimHal h;
+  Settings s = makeSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("calibrate");
+  h.abortAtMove = h.moveCount;  // the load move
+  r.handleLine("load 5");
+  CHECK(h.last("ERR,").find("ABORT") != std::string::npos);
+  for (int a = 0; a < 4; ++a) CHECK(!h.enabled[a]);
   noViolations(h);
 }
 

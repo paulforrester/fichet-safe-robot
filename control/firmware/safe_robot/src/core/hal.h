@@ -15,6 +15,9 @@ class SgSink {
  public:
   virtual ~SgSink() {}
   virtual void sample(uint32_t stepIndex, uint16_t sg) = 0;
+  // A lockstep move of several axes (MoveRequest::withMask) reports which
+  // axis each sample came from here; single-axis sinks just take sample().
+  virtual void sampleAxis(uint8_t ax, uint32_t stepIndex, uint16_t sg) { (void)ax; sample(stepIndex, sg); }
 };
 
 // One bounded move. Steps are microsteps in the axis's *logical* direction:
@@ -32,6 +35,11 @@ struct MoveRequest {
   SgSink* sgSink = nullptr;   // also hand cruise samples to this (calibration)
   uint16_t ignoreStallSteps = 0;  // ignore DIAG for this many microsteps at the start
   uint32_t timeoutMs = 1000;  // wall-clock bound
+  // Other axes stepped in lockstep with `axis` (bit a = axis a): the same
+  // steps, the same logical direction, the same ramp. Dials only (firmware
+  // v0.6, `load`). The move stops when any of them stalls; SG reads go round
+  // the axes in turn, one in flight at a time.
+  uint8_t withMask = 0;
 };
 
 struct MoveResult {
@@ -42,6 +50,7 @@ struct MoveResult {
   bool diagHighAtStart = false;  // DIAG already high: wire off or driver error
   bool driverFault = false;  // set by the core, not the Hal: GSTAT showed a fault before or after the move
   uint16_t sgMin = 0xFFFF; // lowest SG_RESULT seen at cruise speed (0xFFFF = none)
+  uint8_t stalledMask = 0; // which axes' DIAG stopped the move (bit a = axis a)
 };
 
 // GSTAT bits (TMC2209 datasheet, GSTAT, p. 24), as Hal::gstat() returns them.

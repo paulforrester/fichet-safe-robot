@@ -31,6 +31,65 @@ void sort3(int32_t* v, uint8_t n) {  // insertion sort, n is small
   for (uint8_t i = 1; i < n; ++i)
     for (uint8_t j = i; j > 0 && v[j] < v[j - 1]; --j) { int32_t t = v[j]; v[j] = v[j - 1]; v[j - 1] = t; }
 }
+
+// `load` (firmware v0.6, Paul 2026-10-18): while the dials turn together,
+// each dial's cruise SG_RESULT is averaged over kLoadWindowMs and printed as
+// a LOAD line, so the unit can be nudged on the door until every dial runs
+// light (a dial pressed off centre reads lower). The line is short and
+// printed from inside the move: at 115200 baud it fits the serial buffer,
+// so printing it doesn't hold up the steps.
+const uint32_t kLoadWindowMs = 500;
+
+class LoadMeter : public SgSink {
+ public:
+  LoadMeter(Hal& hal, uint8_t mask, const uint16_t* baseline) : hal_(hal), mask_(mask), base_(baseline) {
+    for (uint8_t d = 0; d < 3; ++d) { wSum_[d] = tSum_[d] = 0; wN_[d] = tN_[d] = 0; low_[d] = 0xFFFF; }
+  }
+  void sample(uint32_t, uint16_t) override {}  // lockstep moves report per axis (sampleAxis)
+  void sampleAxis(uint8_t ax, uint32_t, uint16_t sg) override {
+    if (ax >= 3) return;
+    const uint32_t t = hal_.millis();
+    if (!started_) { started_ = true; w0_ = t; }
+    wSum_[ax] += sg; ++wN_[ax];
+    tSum_[ax] += sg; ++tN_[ax];
+    if (t - w0_ >= kLoadWindowMs) { report(t); w0_ = t; }
+  }
+  void summary() {
+    Line l;
+    l.p(CP("LOADSUM,")).u(hal_.millis());
+    for (uint8_t d = 0; d < 3; ++d) {
+      if (!((mask_ >> d) & 1)) continue;
+      const int32_t m = tN_[d] ? (int32_t)(tSum_[d] / tN_[d]) : -1;
+      l.sep().c(kAxisChar[d]).sep().i(m).sep().i(low_[d] == 0xFFFF ? -1 : (int32_t)low_[d]).sep().i(pct(d, m));
+    }
+    hal_.emit(l.str());
+  }
+
+ private:
+  int32_t pct(uint8_t d, int32_t mean) const {
+    return (mean < 0 || !base_[d]) ? -1 : (int32_t)((mean * 100 + base_[d] / 2) / base_[d]);
+  }
+  void report(uint32_t t) {
+    Line l;
+    l.p(CP("LOAD,")).u(t);
+    for (uint8_t d = 0; d < 3; ++d) {
+      if (!((mask_ >> d) & 1)) continue;
+      const int32_t m = wN_[d] ? (int32_t)(wSum_[d] / wN_[d]) : -1;
+      if (m >= 0 && (uint32_t)m < low_[d]) low_[d] = (uint16_t)m;
+      l.sep().c(kAxisChar[d]).sep().i(m).sep().i(pct(d, m));
+      wSum_[d] = 0; wN_[d] = 0;
+    }
+    hal_.emit(l.str());
+  }
+  Hal& hal_;
+  uint8_t mask_;
+  const uint16_t* base_;
+  bool started_ = false;
+  uint32_t w0_ = 0;
+  uint32_t wSum_[3], tSum_[3];
+  uint16_t wN_[3], tN_[3];
+  uint16_t low_[3];
+};
 }  // namespace
 
 uint32_t positionHash(const Settings& s) {
@@ -77,7 +136,7 @@ void Robot::boot() {
   } else if (prog_.state == RUN_SUCCESS) {
     const Combo c = comboAt(prog_.successIndex, s_.positions);
     l.clear(); l.p(CP("# SUCCESS recorded at index ")).u(prog_.successIndex).p(CP(": dials "))
-        .u(c.d[0] + 1).c('-').u(c.d[1] + 1).c('-').u(c.d[2] + 1).p(CP(" (from home). `reset yes` to clear."));
+        .u(c.d[0]).c('-').u(c.d[1]).c('-').u(c.d[2]).p(CP(" (from home). `reset yes` to clear."));
     emit(l);
   }
 }
@@ -112,9 +171,10 @@ void Robot::handleLine(const char* line) {
     const char* const lines[] = {
       CP("# commands: status | cfg | ping | start | resume [force] | pause | release | reset yes"),
       CP("#   calibrate | seat | home [A|B|C] | learn | goto a b c | try | key <deg> | jog <A|B|C|K> <n>"),
+      CP("#   load [turns]: all dials turn together, each one's load printed every 0.5 s (placing the unit)"),
       CP("#   sg <A|B|C|K> <fullsteps> | set <name> <value> | abort (or '!': stops at once)"),
     };
-    for (uint8_t i = 0; i < 3; ++i) { l.clear(); l.p(lines[i]); emit(l); }
+    for (uint8_t i = 0; i < 4; ++i) { l.clear(); l.p(lines[i]); emit(l); }
     return;
   }
   if (TOKEQ(cmd, "cfg")) { printCfg(); return; }
@@ -211,7 +271,7 @@ void Robot::handleLine(const char* line) {
     return;
   }
   if (TOKEQ(cmd, "goto")) {
-    if (!tok[3]) { l.p(CP("# goto a b c (1..20), after `home`")); emit(l); return; }
+    if (!tok[3]) { l.p(CP("# goto a b c (0..19, 0 = first click), after `home`")); emit(l); return; }
     if (!(homed_[0] && homed_[1] && homed_[2])) {
       // Any error switches every motor off and un-homes every dial.
       l.p(CP("# goto: not homed:"));
@@ -223,11 +283,13 @@ void Robot::handleLine(const char* line) {
     Combo c;
     for (uint8_t d = 0; d < 3; ++d) {
       const long v = atol(tok[d + 1]);
-      if (v < 1 || v > s_.positions) { l.p(CP("# position out of range")); emit(l); return; }
-      c.d[d] = (uint8_t)(v - 1);
+      if (!tok[d + 1][0] || tok[d + 1][0] < '0' || tok[d + 1][0] > '9' || v < 0 || v >= s_.positions) {
+        l.p(CP("# position out of range (0..")).u(s_.positions - 1).c(')'); emit(l); return;
+      }
+      c.d[d] = (uint8_t)v;
     }
     if (keyHomed_ && keyPos_ != 0) { l.p(CP("# key not at rest")); emit(l); return; }
-    if (gotoCombo(c)) { l.p(CP("# dials at ")).u(c.d[0] + 1).c(' ').u(c.d[1] + 1).c(' ').u(c.d[2] + 1); emit(l); }
+    if (gotoCombo(c)) { l.p(CP("# dials at ")).u(c.d[0]).c(' ').u(c.d[1]).c(' ').u(c.d[2]); emit(l); }
     return;
   }
   if (TOKEQ(cmd, "try")) {
@@ -253,6 +315,12 @@ void Robot::handleLine(const char* line) {
     emit(l);
     MoveResult b = doMove(AX_KEY, -r.stepsDone, s_.ax[AX_KEY].rps, true, false);
     checkMove(b, AX_KEY, false, true);
+    return;
+  }
+  if (TOKEQ(cmd, "load")) {
+    const long t = tok[1] ? atol(tok[1]) : 5;
+    if (t < 1 || t > 20) { l.p(CP("# load [turns, 1..20, default 5]")); emit(l); return; }
+    loadRun((int32_t)t);
     return;
   }
   if (TOKEQ(cmd, "jog") || TOKEQ(cmd, "sg")) {
@@ -316,6 +384,7 @@ void Robot::cmdSet(const char* name, int32_t v) {
   else if (TOKEQ(name, "seatrps100")) s_.seatRps = v / 100.0f;
   else if (TOKEQ(name, "sgmin100")) s_.sgMinRps = v / 100.0f;
   else if (TOKEQ(name, "settlems")) s_.settleMs = (uint16_t)(v < 0 ? 0 : v > 5000 ? 5000 : v);
+  else if (TOKEQ(name, "approach")) s_.dialApproachFull = (uint16_t)(v < 0 ? 0 : v > 40 ? 40 : v);
   else if (TOKEQ(name, "settleonms")) s_.settleOnMs = (uint16_t)(v < 0 ? 0 : v > 5000 ? 5000 : v);
   else ok = false;
   if (ok) { l.p(CP("# set ")).s(name).c('=').i(v).p(CP(" (RAM only; copy to config.h)")); }
@@ -382,11 +451,11 @@ void Robot::runStep() {
     const Combo c = comboAt(idx, s_.positions);
     Line l;
     l.p(CP("SUCCESS,")).u(hal_.millis()).sep().u(idx);
-    for (uint8_t d = 0; d < 3; ++d) l.sep().u(c.d[d] + 1);
+    for (uint8_t d = 0; d < 3; ++d) l.sep().u(c.d[d]);
     l.sep().deci(keyUsToDeci(s_, keyPos_));
     for (uint8_t d = 0; d < 3; ++d) {
-      const int16_t door = (int16_t)(s_.labelAtHome[d] - 1) + (int16_t)s_.labelStep[d] * c.d[d];
-      l.sep().u((uint32_t)((door % s_.positions + s_.positions) % s_.positions) + 1);
+      const int16_t door = (int16_t)s_.labelAtHome[d] + (int16_t)s_.labelStep[d] * c.d[d];
+      l.sep().u((uint32_t)((door % s_.positions + s_.positions) % s_.positions));
     }
     emit(l);
     l.clear(); l.p(CP("# key held where it stopped. Check the door, then `release`."));
@@ -620,8 +689,13 @@ bool Robot::homeDial(uint8_t d, int32_t expectDist, int32_t* discrepancy) {
   }
   dialPos_[d] = 0;  // the stall point is zero
   homed_[d] = true;
-  // Position 1 = the first click at least 3 full steps clockwise of the stall
-  // point (so a dial at position 1 doesn't lean on its stop).
+  // Position 0 = the first click at least 3 full steps clockwise of the stall
+  // point (so a dial at position 0 doesn't lean on its stop). Correction
+  // (2026-10-18): on the door this put position 0 on (or before) the stop:
+  // the 3 full steps don't allow for the play between motor and dial, and
+  // the click centre comes from a model (calib.h) not yet checked. Until the
+  // offsets are measured (bring-up 4b step 8), use `set detentcal 0` and
+  // `set offA/B/C` (CFG_HOME_OFFSET_x).
   const bool clicks = s_.detentAutocal && notchOk_[d];
   offsetFromClicks_[d] = clicks;
   offsetUs_[d] = clicks ? detentOffset(notchAbs_[d], absCount_[d], usPerPosition(s_), 3 * s_.microsteps,
@@ -804,6 +878,48 @@ bool Robot::calibrateDials() {
   return configureAll(false);  // push the new thresholds before homing on them
 }
 
+// `load` (Paul, 2026-10-18): placing the unit off centre on the door presses
+// a plug sideways in its star, which loads that dial and can make calibration
+// stall. Every fitted dial turns clockwise (the way it never meets its stop)
+// for `turns` dial turns, all together, and LoadMeter prints each one's load
+// every 0.5 s while the unit is nudged. Bounded by the turns, stopped by any
+// stall (when a threshold is set) or '!'. Afterwards the dials count as not
+// homed: the unit may have moved under them.
+bool Robot::loadRun(int32_t turns) {
+  uint8_t mask = 0;
+  for (uint8_t d = 0; d < 3; ++d) if (fitted(d)) mask |= (uint8_t)(1u << d);
+  Line l;
+  if (!mask) { l.p(CP("# no dial driver fitted (set axes)")); emit(l); return false; }
+  if (keyHomed_ && keyPos_ != 0) { error(CP("KEYOUT"), CP("refusing to turn dials with the key out of rest")); return false; }
+  if (!pingAll() || !configureAll(false)) return false;
+  l.p(CP("# load: ")).i(turns).p(CP(" dial turns clockwise, together:"));
+  for (uint8_t d = 0; d < 3; ++d) if ((mask >> d) & 1) l.c(' ').c(kAxisChar[d]);
+  emit(l);
+  l.clear();
+  l.p(CP("# LOAD,ms,dial,mean,% of its calibration: higher = lighter. Nudge the unit; '!' stops"));
+  emit(l);
+  float rps = 1e9f;
+  for (uint8_t d = 0; d < 3; ++d) if (((mask >> d) & 1) && s_.ax[d].rps < rps) rps = s_.ax[d].rps;
+  LoadMeter meter(hal_, mask, cal_.baseline);
+  MoveResult r = doMoveDials(mask, turns * turnUs(), rps, &meter);
+  for (uint8_t d = 0; d < 3; ++d) if ((mask >> d) & 1) homed_[d] = false;
+  meter.summary();
+  uint8_t first = 0;
+  while (!((mask >> first) & 1)) ++first;
+  if (!checkMove(r, (Axis)first, false, true)) return false;
+  if (r.stalled) {
+    l.clear();
+    l.p(CP("# load stopped: dial"));
+    for (uint8_t d = 0; d < 3; ++d) if ((r.stalledMask >> d) & 1) l.c(' ').c(kAxisChar[d]);
+    l.p(CP(" stalled: too much load there. Move the unit and try again"));
+    emit(l);
+  }
+  l.clear();
+  l.p(CP("# load done: dials not homed now (`calibrate` or `home` next)"));
+  emit(l);
+  return !r.stalled;
+}
+
 void Robot::saveCal() {
   for (uint8_t d = 0; d < 3; ++d)
     if (homed_[d]) cal_.offsetUs[d] = offsetFromClicks_[d] ? (int16_t)offsetUs_[d] : (int16_t)-1;
@@ -832,10 +948,18 @@ bool Robot::gotoCombo(const Combo& c) {
   return true;
 }
 
+// Paul (2026-10-18): go the shorter way round. The dials turn clockwise
+// without limit, so a target behind the dial can also be reached by turning
+// on clockwise, past the stop, to the same position a turn later; that is
+// done when it is strictly shorter (19 -> 0 is one click forward, not 19
+// back). The count is then brought back into the first turn: the stop is at
+// the same place every turn.
 bool Robot::moveDialTo(uint8_t d, int32_t target) {
   const Axis ax = (Axis)d;
   int32_t delta = target - dialPos_[d];
   if (delta == 0) return true;
+  const int32_t turn = turnUs();
+  if (delta < 0 && delta + turn < -delta) delta += turn;
   int32_t over = 0;
   if (s_.dialApproachFull && delta < 0) {
     over = (int32_t)s_.dialApproachFull * s_.microsteps;
@@ -849,6 +973,7 @@ bool Robot::moveDialTo(uint8_t d, int32_t target) {
     dialPos_[d] += r.stepsDone;
     if (!checkMove(r, ax, false, false)) return false;
   }
+  while (dialPos_[d] >= turn) dialPos_[d] -= turn;
   return true;
 }
 
@@ -913,6 +1038,40 @@ MoveResult Robot::doMove(Axis ax, int32_t steps, float rps, bool stopOnStall, bo
   MoveResult res = hal_.move(r);
   if (ax < 3) absCount_[ax] += res.stepsDone;
   if (!driverOk(ax, CP("after"))) res.driverFault = true;
+  return res;
+}
+
+// The fitted dials in mask, in lockstep (MoveRequest::withMask): the same
+// bounds, ramp and GSTAT checks as doMove, for each of them.
+MoveResult Robot::doMoveDials(uint8_t mask, int32_t steps, float rps, SgSink* sink) {
+  uint8_t first = 0;
+  while (first < 3 && !((mask >> first) & 1)) ++first;
+  const AxisCfg& a = s_.ax[first];
+  const float upr = (float)usPerMotorRev(s_);
+  MoveRequest r;
+  r.axis = (Axis)first;
+  r.withMask = (uint8_t)(mask & 0x07 & ~(1u << first));
+  r.steps = steps;
+  r.maxSps = rps * upr;
+  r.startSps = (a.startRps < rps ? a.startRps : rps) * upr;
+  r.accelSps2 = a.accelRps2 * upr;
+  r.stopOnStall = true;
+  r.sampleSG = true;
+  r.sgSink = sink;
+  r.ignoreStallSteps = (uint16_t)(s_.stallIgnoreFull * s_.microsteps);
+  const float n = (float)iabs(steps);
+  const float t = n / r.maxSps + r.maxSps / r.accelSps2;
+  r.timeoutMs = (uint32_t)(2000.0f * t) + 2000;
+  for (uint8_t d = 0; d < 3; ++d)
+    if (((mask >> d) & 1) && !driverOk((Axis)d, CP("before"))) {
+      MoveResult none;
+      none.driverFault = true;
+      return none;
+    }
+  MoveResult res = hal_.move(r);
+  for (uint8_t d = 0; d < 3; ++d) if ((mask >> d) & 1) absCount_[d] += res.stepsDone;
+  for (uint8_t d = 0; d < 3; ++d)
+    if (((mask >> d) & 1) && !driverOk((Axis)d, CP("after"))) res.driverFault = true;
   return res;
 }
 
@@ -983,7 +1142,7 @@ uint8_t Robot::dialPosition(uint8_t d) const {
 void Robot::logAttempt(int32_t index, const Combo& c, int32_t reached, bool stalled, uint16_t sgMin, Outcome o) {
   Line l;
   l.p(CP("ATT,")).u(hal_.millis()).sep().i(index);
-  for (uint8_t d = 0; d < 3; ++d) l.sep().u(c.d[d] + 1);
+  for (uint8_t d = 0; d < 3; ++d) l.sep().u(c.d[d]);
   l.sep().i(reached).sep().deci(keyUsToDeci(s_, reached)).sep().u(stalled).sep()
       .i(sgMin == 0xFFFF ? -1 : (int32_t)sgMin).sep().s(outcomeName(o)).sep().deci(keyUsToDeci(s_, n_));
   emit(l);
@@ -1042,7 +1201,7 @@ void Robot::printCfg() {
       .i(s_.homeOffsetFull[0]).c('/').i(s_.homeOffsetFull[1]).c('/').i(s_.homeOffsetFull[2])
       .p(CP(",backoff=")).u(s_.homeBackoffFull).p(CP(",tol=")).u(s_.homeRepeatTolFull)
       .p(CP(",seatDeg=")).u(s_.seatDialDeg).p(CP(",seatma=")).u(s_.seatMa)
-      .p(CP(",settlems=")).u(s_.settleMs).c('/').u(s_.settleOnMs);
+      .p(CP(",settlems=")).u(s_.settleMs).c('/').u(s_.settleOnMs).p(CP(",approach=")).u(s_.dialApproachFull);
   emit(l);
   l.clear();
   l.p(CP("CFG,key,home=")).u(s_.keyHome).p(CP(",learnMax=")).u(s_.keyLearnMaxDeg).p(CP(",margin=")).deci(s_.keyTargetMarginDeci)

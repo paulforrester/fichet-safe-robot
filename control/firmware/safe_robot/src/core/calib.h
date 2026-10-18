@@ -65,7 +65,7 @@ class MedianSink : public SgSink {
 // (a stall is SG_RESULT <= 2 * SGTHRS, datasheet §5.3). Clamped to 1..255.
 uint8_t sgthrsFromBaseline(uint16_t baseline, uint8_t pct);
 
-// Offset of position 1 from the dial's homing zero, in microsteps: a click
+// Offset of position 0 from the dial's homing zero, in microsteps: a click
 // centre. With a previous offset (prevOffset >= 0, from the last session),
 // the click nearest to it, so the numbering can't shift by one between
 // sessions when a click sits right at the stop. Without one, the first click

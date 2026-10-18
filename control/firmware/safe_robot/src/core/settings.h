@@ -38,7 +38,7 @@ struct Settings {
   uint16_t homeMaxDialDeg;     // bound of the homing move
   uint16_t homeBackoffFull;    // back-off between the two homing passes
   uint16_t homeRepeatTolFull;  // pass 2 must stall within backoff +/- this
-  int16_t homeOffsetFull[3];   // stall point -> position 1, full steps away from the stop
+  int16_t homeOffsetFull[3];   // stall point -> position 0, full steps away from the stop
   uint16_t dialApproachFull;   // >0: approach every target from the home side (anti-backlash)
   uint16_t settleMs;           // after homing: dial drivers off this long so each dial falls into its click; 0 = no
   uint16_t settleOnMs;         // then still this long after switching them back on
@@ -66,11 +66,11 @@ struct Settings {
   uint8_t sgAutocal;            // 1 = set SGTHRS every session from a free turn / free key travel
   uint8_t sgCalPct;             // stall = SG_RESULT down to this % of the free-running baseline
   uint16_t sgCalMinBase;        // a baseline below this can't be told from a stall: error
-  uint8_t detentAutocal;        // 1 = find the clicks every session; position 1 = first click
+  uint8_t detentAutocal;        // 1 = find the clicks every session; position 0 = first click
   uint8_t detentMinAmp;         // click ripple (SG units) needed to trust it
   uint16_t keyCalDeg;           // key free-travel calibration move from rest (well short of N)
   // Door numbering, only for the success report
-  uint8_t labelAtHome[3];       // door number at position 1
+  uint8_t labelAtHome[3];       // door number at position 0
   int8_t labelStep[3];          // +1 or -1 per position away from the stop
 };
 

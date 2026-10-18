@@ -1,9 +1,76 @@
 # Firmware — Fichet safe robot (Mega 2560 + RAMPS 1.4 + 4 × TMC2209)
 
-> **Revision 2026-10-17.2** · key driver on the RAMPS E0 socket; firmware v0.5 (2026-10-16: settle after homing, dials 600 mA) · log: `../../docs/revisions.md`
+> **Revision 2026-10-17.2** · key driver on the RAMPS E0 socket; firmware v0.6 (2026-10-18: `load`, live dial load for placing the unit) · log: `../../docs/revisions.md`
 
 Implements the sequence in `control/sequence.md` on the pin map in
 `control/wiring.md`. Bring it up on the bench with `control/bringup.md`.
+
+## v0.6 (2026-10-18): `load`; positions 0–19; `goto` the short way; approach
+
+From the door tests that day (Paul, bring-up 4b):
+- **Positions are 0–19** (Paul: "the steps go 0 to 19"): `goto 0 0 0` is the
+  first click on every dial, and `ATT`, `SUCCESS`, `# dials at` and the
+  stored success all print 0–19. Positions logged before v0.6 are 1–20
+  (subtract 1). Internally nothing changed (combinations were 0-based).
+- **`goto` takes the shorter way round** (Paul): a dial turns clockwise
+  without limit, so when the target is closer going on clockwise (past the
+  stop) than going back, it goes on: 19 → 0 is one click forward, not 19
+  back. Ties go back. Never back past the stop. The step count is brought
+  back into the first turn afterwards (the stop is at the same place every
+  turn), so re-checks and logged positions stay right. The run itself moves
+  one position at a time, so it rarely wraps.
+- **Every position is reached turning clockwise** (`CFG_DIAL_APPROACH_FULL`
+  20, was 0; `set approach N`, 0 = off): a move that would end turning
+  anticlockwise goes one click further back and comes forward onto the
+  target. ASSUMPTION, from 2026-10-18: there is play between motor and dial,
+  so the same step count lands the dial in different places depending on
+  the direction it came from.
+- **Correction: where position 0 is.** The click-found offsets (`CAL`
+  ripple + the quarter-click model, "Calibration" below) put position 0 on
+  the stop on the door (2026-10-18): `goto 2 2 2` (old numbering) didn't
+  reach the first click, and every position fell back one click when the
+  motors were released. Two flaws: the "at least 3 full steps from the
+  stall" rule doesn't allow for the play, and the click-centre model is not
+  verified. Until each dial's offset is measured by hand (`control/
+  bringup.md` 4b step 8), use `set detentcal 0` and `set offA/offB/offC N`
+  (full steps from the stall point to position 0); the measured values then
+  go into `CFG_HOME_OFFSET_x` with `CFG_DETENT_AUTOCAL 0`.
+- **Logger**: up/down arrows step through the last 100 commands, like bash
+  (`tools/logger.py`, kept in `~/.safe_robot_history`).
+
+### `load`, the dials' load live while placing the unit
+
+Paul (2026-10-18, on the door): seated without its magnets the unit floats a
+little on its plugs, and wherever the magnets then clamp it, a plug that is
+off centre in its star is pressed sideways. That dial's load goes up, and its
+calibration can show errors or stall. His idea: turn all three dials
+together and show each one's load live, so the unit can be nudged until all
+three run light.
+
+- **`load [turns]`** (1–20, default 5): every fitted dial turns clockwise
+  (the way it never meets its stop) by that many dial turns, all three in
+  lockstep (2 s per dial turn at the default speed). Every 0.5 s it prints
+  `LOAD,ms,A,mean,pct,B,mean,pct,C,mean,pct`: each dial's mean StallGuard
+  reading over that half second, and that as a percentage of the baseline
+  from its last `calibrate` (-1 if there is none). **Higher = lighter.** The
+  percentage sits a little over 100 when free (the baseline is the heaviest
+  point of a click; the mean averages over clicks); a dial pressed off centre
+  reads lower than the other two. At the end, `LOADSUM,ms,A,mean,low,pct,…`:
+  the mean over the run, the lowest half-second mean, the percentage.
+- It stops on a stall of any dial (`# load stopped: dial C stalled…`, no
+  error state) when a threshold is set, on `!`, or after the turns. Afterwards
+  the dials count as **not homed** (the unit may have moved under them):
+  `calibrate` or `home` next.
+- **Lockstep moves** (`MoveRequest::withMask`): one ramp, every axis's STEP
+  pin pulsed together, the move stopped by any axis's DIAG
+  (`MoveResult::stalledMask` says which). SG_RESULT reads go round the axes
+  in turn, one read in flight at a time as before (~2 ms apart, so each of
+  three dials is read ~150 times a second). Sinks get the axis through
+  `SgSink::sampleAxis()`; the calibration sinks are unchanged.
+- The `LOAD` line is printed from inside the move. It is ~40 characters,
+  which fits the Mega's 64-byte serial buffer, so printing it doesn't hold up
+  the steps (UNVERIFIED on hardware: if the turning stutters every half
+  second, tell me).
 
 ## v0.5 (2026-10-16): dials settle after homing; dial current 600 mA
 
@@ -93,7 +160,7 @@ The key's TMC2209 moved from a remote board at the key turner to the RAMPS
    If anything moved, it stops, **rewinds to the last good re-check**, and
    asks for a re-seat.
 4. **Success** (key gets ≥ N + 10°): stops, holds the key where it got to, and
-   prints the combination as positions 1–20: clicks counted clockwise from
+   prints the combination as positions 0–19: clicks counted clockwise from
    each dial's stop (there are no marks on the door). The success is saved in
    EEPROM. The key stays turned after `release` (it doesn't spring back), so
    take the key turner off and pull the key to open the door, as the manual
@@ -119,9 +186,11 @@ of in-application threshold rather than a fixed one (§11.4, p. 59).
   - **Clicks**: their ripple has an 18° period, and its fundamental gives
     where the clicks are. Model: turning clockwise, the click spring helps
     just before a notch (SG highest) and resists just after (SG lowest), so
-    the notch is a quarter click after the SG peak. After homing, position 1
+    the notch is a quarter click after the SG peak. After homing, position 0
     is the first click at least 3 full steps clockwise of the stop. Later
     sessions keep the same numbering, using the offset stored in EEPROM.
+    **Correction (2026-10-18):** on the door this put position 0 on the stop
+    (v0.6 section above); measure the offsets by hand instead.
   - If the ripple is too weak to trust (amplitude < 3, or < 2× the
     residual), it falls back to `CFG_HOME_OFFSET_x` and says so.
 - **Key**: from rest, 60° clockwise (its stop is at ~100°); median SG →
@@ -310,12 +379,13 @@ a move must stop with `DRVFAULT`).
 | `reset yes` | erase stored progress |
 | `calibrate` | key (from its start position) + seat + one free turn per dial + homing + settle; prints `CAL`/`OFFSET`, saves to EEPROM |
 | `seat`, `home [A\|B\|C]`, `learn` | bench: run one part of the session start (`home` ends with a settle of the dials it homed) |
-| `goto a b c` | bench: dials to positions (1–20) after `home` (says which dials aren't homed) |
+| `goto a b c` | bench: dials to positions 0–19 (0 = first click) after `home`, each the shorter way round (says which dials aren't homed) |
+| `load [turns]` | placing the unit (v0.6): all dials turn clockwise together for 1–20 turns (default 5), printing `LOAD` every 0.5 s; un-homes the dials |
 | `try` | bench: one key attempt at the current dial setting |
 | `key <deg>` | bench: turn the key clockwise up to `deg` (stops on stall), then back |
 | `jog <A\|B\|C\|K> <fullsteps>` | bench: bounded move (±800 full steps), stops on stall |
 | `sg <A\|B\|C\|K> <fullsteps>` | bench: like jog, printing `SG,axis,fullstep,value` samples |
-| `set <name> <value>` | bench, RAM only: `sgA..sgK`, `maA..maK`, `rps100A..K` (speed × 100), `invA..K`, `offA..C`, `keyhome`, `margin`, `success`, `clean`, `early` (0.1°), `recheck`, `seatma`, `seatrps100`, `sgmin100`, `autocal`, `detentcal`, `calpct`, `settlems` (0 = no settle), `settleonms` |
+| `set <name> <value>` | bench, RAM only: `sgA..sgK`, `maA..maK`, `rps100A..K` (speed × 100), `invA..K`, `offA..C`, `keyhome`, `margin`, `success`, `clean`, `early` (0.1°), `recheck`, `seatma`, `seatrps100`, `sgmin100`, `autocal`, `detentcal`, `calpct`, `settlems` (0 = no settle), `settleonms`, `approach` (full steps, 0 = off) |
 
 The button: pauses a running session; when idle, resumes a stored run or
 starts a new one.
@@ -329,6 +399,7 @@ HOME,ms,dial,pass,distFull,stalled,sgMin     LEARN,ms,try,keySteps,keyDeg,stalle
 NSTOP,ms,keySteps,keyDeg,spreadDeg           RECHECK,ms,index,dial,discrepancyFull,nDeg,ok
 CAL,ms,axis,baseline,sgthrs,amp,resid,clicksTrusted    OFFSET,ms,dial,offsetFull,fromClicks
 GSTAT,ms,axis,gstat,when     a driver reset or fault, just before ERR DRVFAULT (see "Driver resets")
+LOAD,ms,A,mean,pct,B,mean,pct,C,mean,pct     LOADSUM,ms,A,mean,low,pct,...     `load` (v0.6)
 EV,ms,name,detail    ERR,ms,code,text    DRV,...    CFG,...    SG,...    # human text
 ```
 
@@ -341,7 +412,7 @@ or short), 4 = uv_cp (12 V too low), 80 = no answer; flags add up. `when` is
 drivers before each attempt), or `config` (before its settings are written
 again).
 
-`a,b,c` are positions 1–20 counted from each dial's home stop. `keyDeg` is
+`a,b,c` are positions 0–19 counted from each dial's home stop (1–20 before v0.6). `keyDeg` is
 measured from the key's rest stop. `class` is CLEAN / FALSESET / SUCCESS / EARLY. The raw angle is always logged, so classes can be redone afterwards:
 
 ```
@@ -353,7 +424,7 @@ The first is live mode (type commands in it); the second re-analyses a run.
 
 ## Verified here (cloud session, no hardware)
 
-- **Host tests**: `make -C control/firmware/test` — 57 tests, ~36,500 checks,
+- **Host tests**: `make -C control/firmware/test` — 65 tests, ~36,700 checks,
   0 failures. Built with `-Wall -Wextra -Werror` (g++ 13 and clang 18) and
   also run under AddressSanitizer + UBSan. They cover:
   - the serpentine order: a bijection, and each step moves one dial by one
@@ -396,18 +467,31 @@ The first is live mode (type commands in it); the second re-analyses a run.
   - the simulator also polices the firmware: no dial moves with the key out,
     every move bounded and with a timeout, never a move on a disabled driver,
     never a move on a driver that has reset, never pressing into a stop with
-    stall detection off, current never above 1.2 A.
+    stall detection off, current never above 1.2 A;
+  - `load` (v0.6): one lockstep move of all three dials, exactly the turns
+    asked, clockwise, a `LOAD` line every 0.5 s with all three dials; a dial
+    with extra load (the simulator's `sgExtraLoad`) reads lower in mean and
+    percentage; a stall stops it and names the dial without an error state;
+    out-of-range turns are refused; no calibration → percentages -1; `!`
+    aborts and releases; the dials are un-homed afterwards;
+  - positions 0–19 (v0.6): `goto 4 5 6` lands on clicks 4, 5, 6 counted from
+    0 = the first; 20 is refused; 19 → 0 goes one click forward and the
+    firmware then reports 0 (checked against a build without the turn
+    wrap-around, which fails); ties go back; never back past the stop; every
+    anticlockwise move overshoots one click and comes forward, cut short at
+    position 0 so it never presses into the stop.
 - **Logger**: `python3 -m pytest control/firmware/tools` (3 tests). A
   simulated full run (`make -C control/firmware/test simlog`, 1,787 attempts)
   replays through `logger.py`, and its offline classes match the firmware's on
   every attempt.
 - **AVR build**: compiles for the ATmega2560 with avr-gcc 7.3 + Arduino AVR
   core 1.8.6 + TMCStepper 0.7.3 (Ubuntu packages; the Arduino download
-  servers are blocked here): 53.5 KB flash (20.4 %), 1.4 KB static RAM
-  (16.7 %), no warnings from this code (v0.5, 2026-10-16).
+  servers are blocked here): 56.3 KB flash (22.0 %), 1.4 KB static RAM
+  (17.0 %), no warnings from this code (v0.6, 2026-10-18).
 
 **Not verified**: anything on hardware beyond bring-up stages 1–4b (v0.4,
-2026-10-10 to 14); v0.5 hasn't run on hardware yet. The simulator's lock is my model of
+2026-10-10 to 14; v0.5 on the door 2026-10-17/18); v0.6 (`load`) hasn't run
+on hardware yet. The simulator's lock is my model of
 the description in `control/sequence.md` and Paul's checks, not the real lock;
 in particular its StallGuard click ripple is an assumption. Motor
 directions, how SG_RESULT really looks on these dials, the 50 % threshold

@@ -99,14 +99,25 @@
 #define CFG_HOME_MAX_DIAL_DEG    414    // 1.15 dial turns: bound of the homing move
 #define CFG_HOME_BACKOFF_FULL    40     // 2 positions between the two homing passes
 #define CFG_HOME_REPEAT_TOL_FULL 8      // the passes must agree within 0.4 position
-// Fallback only (CFG_DETENT_AUTOCAL finds it each session): from the stall
-// point to the middle of position 1, full steps clockwise. Paul (2026-10-06):
-// the clicks are evenly spaced, 18 deg apart; where the first one sits
-// relative to the stop isn't known. 10 = half a position.
+// Fallback (CFG_DETENT_AUTOCAL finds it each session), or the offset itself
+// with `set detentcal 0`: from the stall point to the middle of position 0
+// (the first click), full steps clockwise. Paul (2026-10-06): the clicks are
+// evenly spaced, 18 deg apart; where the first one sits relative to the stop
+// isn't known. 10 = half a position. Correction (2026-10-18): on the door the
+// click-found offsets put position 0 on the stop and every position on the
+// near side of its click (it fell back one click when released), so these are
+// to be MEASURED by hand (bring-up 4b step 8) and CFG_DETENT_AUTOCAL set to 0.
 #define CFG_HOME_OFFSET_A        10
 #define CFG_HOME_OFFSET_B        10
 #define CFG_HOME_OFFSET_C        10
-#define CFG_DIAL_APPROACH_FULL   0      // >0: always finish dial moves going away from the stop
+// Every dial move that ends turning anticlockwise overshoots by this much and
+// comes back clockwise, so each position is reached turning the same way.
+// ASSUMPTION (2026-10-18): the drive has play between motor and dial (the
+// door results that day point to it, unmeasured), so the same step count
+// would land the dial in a different place depending on the direction. 20 =
+// one click, more than any play seen. Bring-up 4b step 8 checks it (`set
+// approach 0` to compare). 0 = off.
+#define CFG_DIAL_APPROACH_FULL   20
 
 // ---- Settle after homing (Paul's decision, 2026-10-16) ------------------------
 // After the dials are homed (session start, every re-check, `calibrate`,
@@ -153,10 +164,11 @@
 
 // ---- Door numbering (only used to print the success in door numbers) ----------
 // There are no marks on the door (Paul, 2026-10-06): positions are reported as
-// clicks counted clockwise from each dial's stop, 1 = first click.
-#define CFG_LABEL_AT_HOME_A      1
-#define CFG_LABEL_AT_HOME_B      1
-#define CFG_LABEL_AT_HOME_C      1
+// clicks counted clockwise from each dial's stop, 0 = first click (Paul,
+// 2026-10-18: 0..19; it was 1..20 until firmware v0.6).
+#define CFG_LABEL_AT_HOME_A      0
+#define CFG_LABEL_AT_HOME_B      0
+#define CFG_LABEL_AT_HOME_C      0
 #define CFG_LABEL_STEP_A         1      // +1 or -1 per position away from home
 #define CFG_LABEL_STEP_B         1
 #define CFG_LABEL_STEP_C         1

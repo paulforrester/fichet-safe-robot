@@ -131,16 +131,22 @@ RAMPS, UART pigtail); firmware written and host-tested
   (Paul's calipers; `docs/decisions.md`). Test keys:
   `cad/dial_plug_taper_test.scad`. **Picked (2026-10-17): T2** — 10mm fins,
   0.95 wide, tapering to 7.73 over the last 2mm; on the gear-shaft at 5mm
-  (default) and 7mm (Paul's variant), plain PETG. The fins can't pass the
+  (CAD default) and 7mm, plain PETG. **In use: 7mm** (Paul, 2026-10-18: the
+  5mm didn't stay engaged). The fins can't pass the
   front bearing's 8mm bore, so a plug can only be pushed back 5mm, not 7mm
-  (`dial_layout_check.py`).
+  (`dial_layout_check.py`); Paul seats the plugs by hand when placing the unit.
+- **Placing the unit** (2026-10-18): it floats a little on its plugs before
+  the magnets hold it, and an off-centre plug loads its dial (calibration
+  errors, stalls). Firmware v0.6 `load` shows each dial's load live while
+  Paul nudges it. Locating rings into the door's recesses are a possible
+  mechanical fix (needs the recess diameter and depth).
 - **Dial torque: not measured yet.** Dial drivers run at **600 mA RMS**
   (door test 2026-10-14: at 1 A homing failed its repeat check; at 600 mA
   seat, calibration and homing passed on all three dials).
 - **Dial B's drive gives under the homing push** (door, 2026-10-14): its
   stop seemed to move when homed again straight after a home, and it turned
   back when the motors went off; its gear moves ≤ 5° (Paul, 2026-10-16). B's
-  clicks don't show in StallGuard, so its position 1 is the config offset.
+  clicks don't show in StallGuard, so its position 0 is the config offset.
   Paul's decision (2026-10-16): don't chase it; every homing ends with a
   **settle** (dial drivers off 0.5 s, so each dial falls into its click).
 - **Key turner:** direct drive, motor on the key axis. The key turns
@@ -245,14 +251,22 @@ deck); the start button mounts from under the deck (7.4mm hole, 10 x 2.5mm
 recess, 4mm wire hole beside the endstop block; revision 2026-10-09.1,
 `docs/housing_decisions.md`): check it on the reprinted deck.
 
-## Firmware — `control/firmware/` (v0.5, 2026-10-16; read its README)
+## Firmware — `control/firmware/` (v0.6, 2026-10-18; read its README)
 
 Host-tested; v0.4 ran through bench bring-up stages 1–4b (2026-10-10 to
-14), **v0.5 not yet on hardware**. Sequence as in
+14), v0.5 on the door 2026-10-17/18 (the settle fixed B's homing drift),
+**v0.6 not yet on hardware** (v0.6 adds `load`: all dials turn together,
+each one's load printed every 0.5 s, for centring the unit; positions 0–19;
+`goto` the shorter way round; every position approached clockwise; logger
+arrow-key history). **Open (2026-10-18): the click-found offsets put position
+0 on the stop and each position on the near side of its click** — measure
+each dial's offset by hand (bring-up 4b step 8), then `CFG_HOME_OFFSET_x` with
+`CFG_DETENT_AUTOCAL 0`. Sequence as in
 `control/sequence.md`: session start = ping/configure drivers → key home
 (rest stop, search 180°) → key calibration → seat (clockwise) → one free
 clockwise calibration turn per dial (StallGuard threshold + click positions)
-→ home each dial (two passes on its stop; position 1 = first click) →
+→ home each dial (two passes on its stop; position 0 = first click; positions
+are **0–19** from v0.6) →
 **settle** (dial drivers off 0.5 s and on again: each dial falls into its
 click; v0.5) → learn N (3 tries, median) → attempt loop in **serpentine order** (each attempt moves one
 dial one position) → key to N + 15°, **log the angle reached** → retract →

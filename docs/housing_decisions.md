@@ -9,6 +9,30 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## 2026-10-18: placing the dial unit — it floats on its plugs (open)
+
+**Paul (2026-10-18, on the door):** with the plugs seated and the magnets not
+yet holding, the unit has some left/right, up/down and rotational play; once
+the magnets hold it, it doesn't move. Wherever it is clamped, a plug off
+centre in its star is pressed sideways: that dial's load rises, and its
+calibration shows errors, sometimes a stall. Also found the same day: dial
+C's gear screw was loose, so its shaft slipped in the gear (manual §1.4: paint
+line across each screw head; §1.6: check them before each session), and the
+5mm plugs were replaced by 7mm ones (`docs/decisions.md`).
+
+**Now:** firmware v0.6 `load` (Paul's idea): all three dials turn together
+and print their load every 0.5 s, so the unit can be nudged until all three
+run light, then clamped (manual §1.6 step 4, bring-up 4b step 0).
+
+**Possible mechanical fix (not designed):** short rings on the plate's door
+face, concentric with each plug, dropping into the recess around each dial
+hole (the hand keys' 11.75mm collars sat in it), to centre the unit the same
+way every time. Needs Paul's calipers first: each recess's diameter and depth
+(door face to floor), and whether it is round and concentric with its star;
+and how far the unit moves when seated without magnets. A plug that floats
+sideways on its shaft (a coupling) was the other option: rejected for now, as
+it would add rotational play back into the drive.
+
 ## 2026-10-17 (evening): gear-shaft on a tapered hex, M3 countersunk screw, no twist-lock (revision 2026-10-17.2)
 
 **Paul's report on the printed twist-lock parts** (2026-10-17, 20:39): the

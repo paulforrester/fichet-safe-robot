@@ -7,6 +7,19 @@ Working notes on how the test key's dimensions were arrived at, most
 recent first. Terminology (WIDTH / HEIGHT / DEPTH) is defined in
 `tooth_terms_diagram.png` in this folder.
 
+## 2026-10-18 — the 5mm plug didn't stay engaged; 7mm in use
+
+On the door (Paul, 2026-10-18), the 5mm T2 plugs didn't seem to stay engaged
+in the stars: the robot's positions came out one or two clicks short
+(`control/bringup.md` 4b, door results), and position 1 moved between
+calibrations. With the plug root 2mm below the door face and the fins
+starting 1mm further, a 5mm plug has only ~1.9mm of full-size fin in the star
+(it starts 3.14 below the face) before the 2mm taper. Paul printed and fitted
+the **7mm** plugs (`dial_shafts_7mm.stl`, reaching 9mm below the door face):
+with them a dial shaft no longer turns when released. 8mm would match the T2
+C8 test key (10mm); 10mm would bottom out (every 12mm C10 key bottomed ~1mm
+early). Whether 7mm also fixes the short positions: open (bring-up 4b).
+
 ## 2026-10-17 (evening) — Correction: the twist-lock is replaced by a tapered hex and an M3 screw
 
 Paul printed the twist-lock parts (revision 2026-10-17.1, below): the caps
