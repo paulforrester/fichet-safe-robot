@@ -13,6 +13,8 @@ int main() {
   h.falseSets.insert(SimHal::comboKey(1, 2, 3));
   h.falseSets.insert(SimHal::comboKey(3, 10, 0));
   core::Settings s = core::makeSettings();
+  s.detentAutocal = 1;  // the simulator's clicks (config.h holds the real door's measured offsets)
+  for (int d = 0; d < 3; ++d) s.homeOffsetFull[d] = 10;
   for (int a = 0; a < core::AX_COUNT; ++a) s.ax[a].sgthrs = 80;
   core::Robot r(h, s);
   r.boot();

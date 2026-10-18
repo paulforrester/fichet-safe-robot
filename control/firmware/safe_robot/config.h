@@ -84,7 +84,11 @@
 #define CFG_SG_AUTOCAL           1
 #define CFG_SG_CAL_PCT           50     // ASSUMPTION: stall = SG down to 50 % of the free-running low; stage 3 checks
 #define CFG_SG_CAL_MIN_BASE      40     // a lower free-running SG can't be told from a stall
-#define CFG_DETENT_AUTOCAL       1      // 0 = use CFG_HOME_OFFSET_x instead
+// 0 since 2026-10-18: on the door the click-found offsets put position 0 on
+// the stop and each target on the near side of its click (bring-up 4b); the
+// offsets below were measured by hand instead. The CAL line still reports
+// the ripple. 1 = find position 0 from the clicks every session.
+#define CFG_DETENT_AUTOCAL       0
 #define CFG_DETENT_MIN_AMP       3      // ripple (SG units) needed to trust the click phase; else the offsets below
 #define CFG_KEY_CAL_DEG          60     // the key stops at ~100 deg: 60 is well clear
 
@@ -107,9 +111,15 @@
 // click-found offsets put position 0 on the stop and every position on the
 // near side of its click (it fell back one click when released), so these are
 // to be MEASURED by hand (bring-up 4b step 8) and CFG_DETENT_AUTOCAL set to 0.
-#define CFG_HOME_OFFSET_A        10
-#define CFG_HOME_OFFSET_B        10
-#define CFG_HOME_OFFSET_C        10
+// MEASURED (Paul, 2026-10-18, bring-up 4b step 8, 7mm plugs, v0.6/0.7): the
+// offsets at which each dial, sent to position 5 and released, stays in its
+// click and counts 5 clicks back to its stop. Two clicks (A, C) and a click
+// and a half (B) from the stall point: the play between motor and dial
+// (~10-12 full steps) plus the wind-up at the stall, plus the stop-to-first-
+// click distance.
+#define CFG_HOME_OFFSET_A        40
+#define CFG_HOME_OFFSET_B        30
+#define CFG_HOME_OFFSET_C        40
 // Every dial move that ends turning anticlockwise overshoots by this much and
 // comes back clockwise, so each position is reached turning the same way.
 // ASSUMPTION (2026-10-18): the drive has play between motor and dial (the

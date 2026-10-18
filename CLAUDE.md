@@ -257,7 +257,7 @@ deck); the start button mounts from under the deck (7.4mm hole, 10 x 2.5mm
 recess, 4mm wire hole beside the endstop block; revision 2026-10-09.1,
 `docs/housing_decisions.md`): check it on the reprinted deck.
 
-## Firmware — `control/firmware/` (v0.7, 2026-10-18; read its README)
+## Firmware — `control/firmware/` (v0.7.1, 2026-10-18; read its README)
 
 Host-tested; v0.4 ran through bench bring-up stages 1–4b (2026-10-10 to
 14), v0.5 on the door 2026-10-17/18 (the settle fixed B's homing drift),
@@ -269,10 +269,10 @@ of the stall point, after a `JAM` going back to 0; v0.6.2: `goto` stays
 inside one turn, never clockwise past the stop's cam; **v0.7** (Paul:
 accuracy over speed): every dial move ends with a settle, and calibration
 (once thresholds exist) and `load` home first and sweep inside one turn).
-**Open (2026-10-18): the click-found offsets put position
-0 on the stop and each position on the near side of its click** — measure
-each dial's offset by hand (bring-up 4b step 8), then `CFG_HOME_OFFSET_x` with
-`CFG_DETENT_AUTOCAL 0`. Sequence as in
+**Position 0 (2026-10-18):** the click-found offsets put it on the stop, so
+Paul measured each dial's offset by hand (bring-up 4b step 8): **A 40, B 30,
+C 40 full steps** from the stall point; v0.7.1 has them in `CFG_HOME_OFFSET_x`
+with `CFG_DETENT_AUTOCAL 0`. Sequence as in
 `control/sequence.md`: session start = ping/configure drivers → key home
 (rest stop, search 180°) → key calibration → seat (clockwise) → one free
 clockwise calibration turn per dial (StallGuard threshold + click positions)

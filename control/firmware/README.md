@@ -25,6 +25,13 @@ pushes through its anti-reverse cam, which stalls the motor (v0.6.2 below).
   sweeps all dials together from position 0 to just short of the cam and
   back, `sweeps` times (default 5, ~3.5 s each), printing `LOAD` as before.
   The stop and the cam are never pushed.
+- **v0.7.1:** Paul's measured offsets (bring-up 4b step 8) are the
+  defaults: `CFG_HOME_OFFSET_A/B/C` **40 / 30 / 40** full steps from the stall
+  point, `CFG_DETENT_AUTOCAL` **0** (the `CAL` line still reports the click
+  ripple). And `cfg`'s home line, which had grown past 120 characters and
+  lost its end, is split: the settle/approach/wrap/camclear settings are on
+  a new `CFG,move` line. The host tests keep click-finding on for the
+  simulator's dials (no play, clicks where it puts them).
 - Tests: the second calibration's sweeps stay inside the turn (and the
   first makes the free turn); `load` homes and sweeps out and back inside
   the turn; a dial 6 full steps off its click ends in it with the settle and
@@ -465,7 +472,7 @@ The first is live mode (type commands in it); the second re-analyses a run.
 
 ## Verified here (cloud session, no hardware)
 
-- **Host tests**: `make -C control/firmware/test` — 69 tests, ~36,900 checks,
+- **Host tests**: `make -C control/firmware/test` — 70 tests, ~36,900 checks,
   0 failures. Built with `-Wall -Wextra -Werror` (g++ 13 and clang 18) and
   also run under AddressSanitizer + UBSan. They cover:
   - the serpentine order: a bijection, and each step moves one dial by one
