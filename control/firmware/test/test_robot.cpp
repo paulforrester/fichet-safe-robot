@@ -1383,3 +1383,34 @@ TEST(a_12v_cycle_while_paused_is_not_an_error) {
   CHECK_EQ(h.count("GSTAT,"), 0);
   noViolations(h);
 }
+
+// Bench stage 5 as control/bringup.md runs it: key driver only (`set axes 8`),
+// no key threshold yet: `key` at a few currents with StallGuard off, then
+// `calibrate` (key only: must still save), then `learn`.
+TEST(stage5_key_only_bench_sequence) {
+  SimHal h;
+  h.present[AX_A] = h.present[AX_B] = h.present[AX_C] = false;
+  Settings s = simSettings();
+  for (int a = 0; a < AX_COUNT; ++a) s.ax[a].sgthrs = 0;
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("set axes 8");
+  r.handleLine("set maK 400");
+  r.handleLine("key 10");
+  CHECK(h.last("# key went").find("# key went 9.9 deg, stalled=0") != std::string::npos);
+  r.handleLine("set sgK 0");
+  r.handleLine("set maK 250");
+  r.handleLine("key 80");
+  CHECK(h.last("# key went").find("# key went 79.9 deg, stalled=0") != std::string::npos);
+  CHECK(!h.has("ERR,"));
+  r.handleLine("set maK 500");
+  r.handleLine("calibrate");
+  CHECK(h.last("CAL,").find(",K,") != std::string::npos);
+  CHECK(h.has("# calibration saved"));
+  CHECK(!h.has("ERR,"));
+  r.handleLine("learn");
+  CHECK_EQ(h.count("LEARN,"), 3);
+  CHECK(h.has("NSTOP,"));
+  CHECK(!h.has("ERR,"));
+  noViolations(h);
+}

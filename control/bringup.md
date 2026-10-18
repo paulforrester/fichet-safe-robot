@@ -405,13 +405,17 @@ and plugging). The key driver is in the RAMPS **E0** socket (revision
 2026-10-08.1), VREF pot at minimum; its motor's own cable is plugged into the
 E0 motor header. 12 V on. `set axes 8` (key only), then `ping`: expect
 `DRV,K,1,21,1,1,...`.
-1. **Direction**: `set maK 400`, `key 10`. The key should turn **clockwise**
-   10° and come back. If it went anticlockwise: `set invK 1`, and say so.
+1. **Direction**: put a strip of tape on the cap as a pointer. `set maK 400`,
+   `key 20`. The key should turn **clockwise** 20° and come back (it prints
+   `# key went 19.9 deg, stalled=0, ...`: the angle is rounded to whole
+   microsteps). If the motor buzzed and the key didn't move, it was pushing
+   the key anticlockwise into its rest stop: `set invK 1`, repeat, and say so.
 2. **Minimum current**, with StallGuard off (`set sgK 0`): `key 80` at
    `set maK 500`, then 400, 300, 250, 200. For each, did the key actually get
    to about 80° (watch the cap), or did the motor skip or buzz?
 3. Set `maK` to **2 × the lowest current that worked**, 1000 at most.
-4. **Calibrate the key**: `calibrate`. It turns the key 60° clockwise, sets
+4. **Calibrate the key**: `calibrate` (with `set axes 8` it calibrates the key
+   only, leaves the dials' saved calibration alone, and saves). It turns the key 60° clockwise, sets
    the key's threshold from its free-running reading (`CAL,…,K,…`), then turns
    back until it stalls on the rest stop. That return proves the threshold
    works. If it says `did not find its rest stop`: send me the log.
