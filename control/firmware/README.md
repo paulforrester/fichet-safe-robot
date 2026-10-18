@@ -35,6 +35,15 @@ From the door tests that day (Paul, bring-up 4b):
   bringup.md` 4b step 8), use `set detentcal 0` and `set offA/offB/offC N`
   (full steps from the stall point to position 0); the measured values then
   go into `CFG_HOME_OFFSET_x` with `CFG_DETENT_AUTOCAL 0`.
+- **v0.6.1, Correction:** `goto 1 0 0` then `goto 0 0 0` stopped with
+  `JAM` (Paul, 2026-10-18). Going back to position 0, the overshoot was only
+  kept off the stall point itself, and the stall point is the motor pressed
+  into the stop, so getting back to it reads as a stall. The overshoot now
+  stays at least `CFG_DIAL_APPROACH_CLEAR_FULL` (10 full steps, half a
+  click; ASSUMPTION, `set approachclear N`) clockwise of the stall point; a
+  dial whose position 0 is closer than that gets no overshoot there. Test:
+  every move tracked from the stall point, for several offsets (the old rule
+  fails it and jams in the simulator).
 - **Logger**: up/down arrows step through the last 100 commands, like bash
   (`tools/logger.py`, kept in `~/.safe_robot_history`).
 
@@ -385,7 +394,7 @@ a move must stop with `DRVFAULT`).
 | `key <deg>` | bench: turn the key clockwise up to `deg` (stops on stall), then back |
 | `jog <A\|B\|C\|K> <fullsteps>` | bench: bounded move (±800 full steps), stops on stall |
 | `sg <A\|B\|C\|K> <fullsteps>` | bench: like jog, printing `SG,axis,fullstep,value` samples |
-| `set <name> <value>` | bench, RAM only: `sgA..sgK`, `maA..maK`, `rps100A..K` (speed × 100), `invA..K`, `offA..C`, `keyhome`, `margin`, `success`, `clean`, `early` (0.1°), `recheck`, `seatma`, `seatrps100`, `sgmin100`, `autocal`, `detentcal`, `calpct`, `settlems` (0 = no settle), `settleonms`, `approach` (full steps, 0 = off) |
+| `set <name> <value>` | bench, RAM only: `sgA..sgK`, `maA..maK`, `rps100A..K` (speed × 100), `invA..K`, `offA..C`, `keyhome`, `margin`, `success`, `clean`, `early` (0.1°), `recheck`, `seatma`, `seatrps100`, `sgmin100`, `autocal`, `detentcal`, `calpct`, `settlems` (0 = no settle), `settleonms`, `approach` (full steps, 0 = off), `approachclear` (full steps) |
 
 The button: pauses a running session; when idle, resumes a stored run or
 starts a new one.
@@ -424,7 +433,7 @@ The first is live mode (type commands in it); the second re-analyses a run.
 
 ## Verified here (cloud session, no hardware)
 
-- **Host tests**: `make -C control/firmware/test` — 65 tests, ~36,700 checks,
+- **Host tests**: `make -C control/firmware/test` — 66 tests, ~36,700 checks,
   0 failures. Built with `-Wall -Wextra -Werror` (g++ 13 and clang 18) and
   also run under AddressSanitizer + UBSan. They cover:
   - the serpentine order: a bijection, and each step moves one dial by one

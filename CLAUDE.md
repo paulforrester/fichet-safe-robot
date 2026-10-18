@@ -251,14 +251,15 @@ deck); the start button mounts from under the deck (7.4mm hole, 10 x 2.5mm
 recess, 4mm wire hole beside the endstop block; revision 2026-10-09.1,
 `docs/housing_decisions.md`): check it on the reprinted deck.
 
-## Firmware — `control/firmware/` (v0.6, 2026-10-18; read its README)
+## Firmware — `control/firmware/` (v0.6.1, 2026-10-18; read its README)
 
 Host-tested; v0.4 ran through bench bring-up stages 1–4b (2026-10-10 to
 14), v0.5 on the door 2026-10-17/18 (the settle fixed B's homing drift),
 **v0.6 not yet on hardware** (v0.6 adds `load`: all dials turn together,
 each one's load printed every 0.5 s, for centring the unit; positions 0–19;
 `goto` the shorter way round; every position approached clockwise; logger
-arrow-key history). **Open (2026-10-18): the click-found offsets put position
+arrow-key history; v0.6.1: the approach overshoot stays 10 full steps clear
+of the stall point, after a `JAM` going back to 0). **Open (2026-10-18): the click-found offsets put position
 0 on the stop and each position on the near side of its click** — measure
 each dial's offset by hand (bring-up 4b step 8), then `CFG_HOME_OFFSET_x` with
 `CFG_DETENT_AUTOCAL 0`. Sequence as in

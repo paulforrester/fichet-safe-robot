@@ -837,6 +837,41 @@ TEST(goto_takes_the_shorter_way_round) {
   noViolations(h);
 }
 
+// Paul (2026-10-18): `goto 1 0 0`, `goto 0 0 0` stopped with JAM: the
+// overshoot past position 0 went back onto the stall point, i.e. into the
+// stop. Track every dial move from the stall point: never closer than the
+// clearance, for any offset (clicks at the default, or a small fixed one).
+TEST(going_back_to_position_0_never_presses_the_stop) {
+  for (int offFull : {-1, 3, 9, 12, 25}) {
+    SimHal h;
+    Settings s = tunedSettings();
+    if (offFull >= 0) { s.detentAutocal = 0; for (int d = 0; d < 3; ++d) s.homeOffsetFull[d] = (int16_t)offFull; }
+    Robot r(h, s);
+    r.boot();
+    r.handleLine("home");
+    // Each dial's position from its stall point, from the OFFSET line and the moves since.
+    int32_t pos[3];
+    for (int d = 0; d < 3; ++d) {
+      std::string off;
+      for (auto& l : h.lines) if (l.rfind("OFFSET,", 0) == 0 && field(l, 2) == std::string(1, "ABC"[d])) off = l;
+      pos[d] = (int32_t)std::lround(std::atof(field(off, 3).c_str()) * 16);
+    }
+    const size_t m0 = h.moves.size();
+    for (const char* cmd : {"goto 1 0 0", "goto 0 0 0", "goto 0 1 1", "goto 0 0 0", "goto 3 3 3", "goto 0 0 0"}) r.handleLine(cmd);
+    int32_t lowest[3] = {pos[0], pos[1], pos[2]};
+    for (size_t i = m0; i < h.moves.size(); ++i) {
+      const int d = h.moves[i].axis;
+      if (d > 2) continue;
+      pos[d] += h.moves[i].steps;
+      if (pos[d] < lowest[d]) lowest[d] = pos[d];
+    }
+    for (int d = 0; d < 3; ++d) CHECK(lowest[d] >= std::min((int32_t)s.dialApproachClearFull * 16, (int32_t)std::lround(offFull >= 0 ? offFull * 16 : 1e9)));
+    CHECK_EQ(h.count("ERR,"), 0);
+    CHECK(h.has("# dials at 0 0 0"));
+    noViolations(h);
+  }
+}
+
 TEST(every_position_is_reached_turning_clockwise) {
   // The approach (CFG_DIAL_APPROACH_FULL): a move that would end turning
   // anticlockwise overshoots and comes back clockwise, never into the stop.
