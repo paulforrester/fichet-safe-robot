@@ -23,6 +23,7 @@ Settings simSettings() {
   Settings s = makeSettings();
   s.detentAutocal = 1;
   for (int d = 0; d < 3; ++d) s.homeOffsetFull[d] = 10;  // the fallback the simulated dials were written for
+  s.keyGear = 1;  // the simulated key's angles are in direct-drive motor microsteps (SimHal::setKeyGear scales them)
   return s;
 }
 
@@ -561,7 +562,7 @@ TEST(session_calibrates_thresholds_and_click_positions) {
     CHECK_EQ(h.detentOf(d), d == 2 ? 1 : 0);
   }
   CHECK(std::abs(calField(h, 'K', 3) - 240) <= 2);
-  CHECK_EQ(s.ax[AX_KEY].sgthrs, 60);
+  CHECK_EQ(s.ax[AX_KEY].sgthrs, 60);  // keycalpct 50 % of 240 (v0.8; stage 5 re-measures it)
   noViolations(h);
 }
 
@@ -672,6 +673,10 @@ TEST(settle_fall_of_8_full_steps_stops_at_the_recheck_and_says_the_offset) {
   h.secret[0] = 1; h.secret[1] = 2; h.secret[2] = 3;
   Settings s = tunedSettings();
   s.detentAutocal = 0;
+  // The homing count jitters by ~1 full step with the simulated StallGuard
+  // noise (v0.7.2: a shorter key calibration turn shifted it from 8 to 7 and
+  // the re-check passed). A 6-step margin keeps the 8-step fall clearly over.
+  s.recheckHomeTolFull = 6;
   {
     Robot r(h, s);
     r.boot();
@@ -1412,5 +1417,89 @@ TEST(stage5_key_only_bench_sequence) {
   CHECK_EQ(h.count("LEARN,"), 3);
   CHECK(h.has("NSTOP,"));
   CHECK(!h.has("ERR,"));
+  noViolations(h);
+}
+
+// v0.7.2: `set maK 0` ran the key at full scale on the door (TMCStepper's
+// rms_current(0) wraps to IRUN 31, ~1.77 A RMS). Out-of-range currents are
+// refused and leave the value as it was; config values below the floor stop
+// before any driver is written.
+TEST(motor_current_out_of_range_is_refused) {
+  SimHal h;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("set maK 0");
+  CHECK(h.has("# maK must be 100..1200 mA: unchanged at 1000"));
+  r.handleLine("set maA 1300");
+  CHECK(h.has("# maA must be 100..1200 mA: unchanged at 600"));
+  r.handleLine("set maK 99");
+  r.handleLine("set maK 100");
+  CHECK(h.has("# set maK=100"));
+  r.handleLine("key 20");
+  CHECK(h.last("# key went").size() > 0);
+  noViolations(h);
+  // Control: a config value of 0 is refused at configure, before any move.
+  SimHal h2;
+  Settings s2 = tunedSettings();
+  s2.ax[AX_KEY].runMa = 0;
+  Robot r2(h2, s2);
+  r2.boot();
+  r2.handleLine("key 20");
+  CHECK(h2.last("ERR,").find("CONFIG") != std::string::npos);
+  CHECK(h2.moves.empty());
+  CHECK(h2.violations.empty());
+}
+
+// v0.8: the key turner geared 5:1 (config.h default). The simulated key's
+// stops scaled to match: a whole run learns N at ~100 deg of key and finds
+// the combination, as with direct drive.
+TEST(geared_key_turner_finds_the_combination) {
+  SimHal h;
+  h.secret[0] = 2; h.secret[1] = 5; h.secret[2] = 1;
+  Settings s = tunedSettings();
+  s.keyGear = 5;
+  h.setKeyGear(5);
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("start");
+  runUntilIdle(r, 200000);
+  CHECK_EQ(r.state(), ST_SUCCESS);
+  CHECK_EQ(r.progress().successIndex, secretIndex(h));
+  const std::string n = h.last("NSTOP,");
+  CHECK(n.size() > 0);
+  const double deg = std::atof(field(n, 3).c_str());
+  CHECK(deg > 98.0 && deg < 102.0);   // keyN 889 * 5 motor usteps = 100 deg of key
+  noViolations(h);
+}
+
+// v0.8: the key stalls on its way back well short of its rest (2026-10-18:
+// direct drive stuck in the stiff zone). That must not count as the rest
+// stop: the run stops with KEYSTUCK, and nothing moves until `keyback`.
+TEST(key_stuck_on_the_way_back_is_not_the_rest_stop) {
+  SimHal h;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("set axes 8");
+  r.handleLine("learn");
+  CHECK(h.has("NSTOP,"));
+  // the key now sticks 40 deg out on the way back
+  h.keyStickAt = keyDeciToUs(s, 400);
+  r.handleLine("learn");
+  CHECK(h.last("ERR,").find("KEYSTUCK") != std::string::npos);
+  CHECK(h.has("# key stalled 39.9 deg short"));   // stuck ~40 deg out
+  const size_t moves = h.moves.size();
+  r.handleLine("home");
+  r.handleLine("key 10");
+  CHECK_EQ(h.moves.size(), moves);
+  CHECK(h.last("# the key was stuck").size() > 0);
+  r.handleLine("ping");
+  CHECK(h.last("DRV,K").size() > 0);    // ping still works
+  h.keyStickAt = -1; h.keyAbove = false;  // turned back by hand
+  h.keyOff = h.cmd[3];                     // the key at its rest again, wherever the motor is
+  r.handleLine("keyback");
+  r.handleLine("learn");
+  CHECK(h.last("NSTOP,").size() > 0);
   noViolations(h);
 }

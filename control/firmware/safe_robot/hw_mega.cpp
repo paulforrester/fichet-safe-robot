@@ -161,7 +161,8 @@ bool HwMega::configure(Axis ax, const DriverSetup& c) {
   d.toff(kToffOn);           // power stage on/off is the EN pin, for every axis
   d.intpol(true);
   d.microsteps(s_.microsteps);
-  d.rms_current(c.runMa, c.holdPct / 100.0f);
+  // Never below 100 mA: rms_current(0) wraps to full scale (core refuses it too).
+  d.rms_current(c.runMa < 100 ? 100 : c.runMa, c.holdPct / 100.0f);
   d.pwm_autoscale(true);
   d.pwm_autograd(true);
   d.TPWMTHRS(0);             // StealthChop at all speeds

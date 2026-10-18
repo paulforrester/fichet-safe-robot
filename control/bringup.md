@@ -1,6 +1,6 @@
 # Bench bring-up plan
 
-> **Revision 2026-10-17.2** · key driver on the RAMPS E0 socket; UART pigtail · log: `docs/revisions.md`
+> **Revision 2026-10-18.1** · key driver on the RAMPS E0 socket; UART pigtail · log: `docs/revisions.md`
 
 Seven short stages, in order. Each ends with **"Send back"**: the numbers or
 log lines I need to fill in `control/firmware/safe_robot/config.h`.
@@ -400,38 +400,52 @@ firmware's key home. It turns ~100° clockwise to its stop and stays wherever
 it is left (no spring back). It comes out only back at the start. So before
 any stage below, turn it back to the start by hand.
 
-**5b. Mounted**: key in, at its start; key turner on (12 V off while placing
-and plugging). The key driver is in the RAMPS **E0** socket (revision
-2026-10-08.1), VREF pot at minimum; its motor's own cable is plugged into the
-E0 motor header. 12 V on. `set axes 8` (key only), then `ping`: expect
-`DRV,K,1,21,1,1,...`.
-1. **Direction**: put a strip of tape on the cap as a pointer. `set maK 400`,
-   `key 20`. The key should turn **clockwise** 20° and come back (it prints
-   `# key went 19.9 deg, stalled=0, ...`: the angle is rounded to whole
-   microsteps). If the motor buzzed and the key didn't move, it was pushing
-   the key anticlockwise into its rest stop: `set invK 1`, repeat, and say so.
-2. **Minimum current**, with StallGuard off (`set sgK 0`): `key 80` at
-   `set maK 500`, then 400, 300, 250, 200. For each, did the key actually get
-   to about 80° (watch the cap), or did the motor skip or buzz?
-3. Set `maK` to **2 × the lowest current that worked**, 1000 at most.
-4. **Calibrate the key**: `calibrate` (with `set axes 8` it calibrates the key
-   only, leaves the dials' saved calibration alone, and saves). It turns the key 60° clockwise, sets
-   the key's threshold from its free-running reading (`CAL,…,K,…`), then turns
-   back until it stalls on the rest stop. That return proves the threshold
-   works. If it says `did not find its rest stop`: send me the log.
-5. **Stop angle**: `learn`, 3 times. Each prints 3 `LEARN` lines and an
-   `NSTOP` line (N and the spread).
-6. Watch the key-turner housing during the learns: does it shift or rock
-   on its magnets?
-7. **Key StallGuard through the cable**: during the `learn` turns, did the
-   key's stall detection find the stop cleanly (an `NSTOP` line each time,
-   with a small spread)? If it reads dull or erratic, shorten the key motor
-   cable and repeat (revision 2026-10-08.1: the cable length is the one thing
-   about the E0 move still unproven).
+**5b. Mounted, direct drive (2026-10-18, firmware v0.7.1): result.** Paul,
+on the door: the key turned clockwise with `invK 0`; below 500 mA it
+stalled; every `learn` stopped at 55° (N 55.2°, spread 3.0°). Cause: from
+~55° to its stop the key needs 0.74 N·m, and ≥ 0.98 N·m to start back from
+the stop (luggage scale, fit-test lever); at 1000 mA the motor took it out to
+the stop but couldn't bring it back. The `sg K 45` trace at 1000 mA: free
+turn 200–244, stiff zone 142–214. Decision: key turner v2, geared 5:1
+(revision 2026-10-18.1, `docs/housing_decisions.md`). Redo 5c with it.
 
-**Send back**: direction; the current table from 5b.2; final `maK`; the raw
-log (CAL, LEARN, NSTOP lines); any housing movement; whether the key's
-StallGuard found the stop cleanly through the 1 m cable.
+**5c. Mounted, geared 5:1 (key turner v2, firmware v0.8).** Key in, at its
+start; key turner on (12 V off while placing and plugging), cable in E0.
+12 V on. `set axes 8` (key only), `ping`: expect `DRV,K,1,21,1,1,...`.
+**Units:** `key` takes key degrees; `jog` and `sg` take *motor* full steps,
+and one is now 0.36° of key (5 full steps = 1.8°). A tape pointer on the cap
+helps.
+1. **Direction**: `set maK 600`, `key 20`. The key should turn **clockwise**
+   20° and come back. If the motor buzzed and the key didn't move, it pushed
+   the key anticlockwise into its rest stop: `set invK 0`, repeat, and say
+   so (v0.8 defaults to `invK 1`: the gear pair reverses direct drive's
+   direction).
+2. **Ratio**: `key 90`, watching the pointer: did the key turn about 90°?
+3. **Load through the stiff zone**: `set sgK 0`, then `sg K 250` (90° of
+   key, short of the stop), then `jog K -250` back to rest. Send the whole
+   `sg` log.
+4. **Minimum current, both ways**, StallGuard still off: `key 90` at
+   `set maK 600`, then 500, 400, 300, 250, 200. For each: did it reach ~90°,
+   and did it come back to the start without a buzz? (A buzz on the way
+   back is the breakaway; with `sgK 0` the firmware can't tell, so watch.)
+   If a return buzzes: `release`, turn the key back by hand, and stop going
+   lower.
+5. Set `maK` to **2 × the lowest current that worked both ways**, 1000 at
+   most.
+6. **Calibrate the key**: `calibrate` (key only with axes 8). Expect
+   `CAL,…,K,…` and `# calibration saved`.
+7. **Stop detection, bounded**: `key 110`. Expect `# key went ~100 deg,
+   stalled=1`. If it says `stalled=0` at 110: don't `learn`; send the line.
+   If it says `KEYSTUCK`: turn the key back by hand, `keyback`, send the log.
+8. **Stop angle**: `learn`, 3 times. Each prints 3 `LEARN` lines and an
+   `NSTOP` line (N and the spread).
+9. Watch the key-turner housing throughout: does it shift or rock on its
+   magnets? (Geared, the motor can push the stop up to ~5× harder before
+   StallGuard sees it.)
+
+**Send back**: direction (and whether you needed `invK 0`); the angle in 2;
+the `sg` log from 3; the current table from 4; final `maK`; the CAL, `key
+110` and LEARN/NSTOP lines; any housing movement.
 
 ---
 

@@ -50,6 +50,7 @@ struct Settings {
   uint8_t keyHome;             // KeyHomeMode
   uint16_t keyHomeSearchDeg;   // session start: CCW bound to find the rest stop
   uint16_t keyHomeExtraDeg;    // retract: CCW bound beyond the angle reached
+  uint16_t keyRestTolDeci;     // a retract stalling further than this short of the rest = stuck key
   uint16_t keyLearnMaxDeg;     // bound when learning N
   uint8_t keyLearnRepeats;
   uint16_t keyLearnSpreadDeci; // max spread of the learn tries (0.1 deg)
@@ -69,6 +70,7 @@ struct Settings {
   // Self-calibration (control/firmware/README.md, "Calibration")
   uint8_t sgAutocal;            // 1 = set SGTHRS every session from a free turn / free key travel
   uint8_t sgCalPct;             // stall = SG_RESULT down to this % of the free-running baseline
+  uint8_t keyCalPct;            // the same for the key (v0.7.2: its turn gets stiffer from ~55 deg)
   uint16_t sgCalMinBase;        // a baseline below this can't be told from a stall: error
   uint8_t detentAutocal;        // 1 = find the clicks every session; position 0 = first click
   uint8_t detentMinAmp;         // click ripple (SG units) needed to trust it

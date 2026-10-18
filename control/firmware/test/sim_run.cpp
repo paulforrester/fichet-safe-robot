@@ -16,6 +16,7 @@ int main() {
   s.detentAutocal = 1;  // the simulator's clicks (config.h holds the real door's measured offsets)
   for (int d = 0; d < 3; ++d) s.homeOffsetFull[d] = 10;
   for (int a = 0; a < core::AX_COUNT; ++a) s.ax[a].sgthrs = 80;
+  h.setKeyGear(s.keyGear);  // config.h's key gear (5:1 from v0.8)
   core::Robot r(h, s);
   r.boot();
   r.handleLine("start");

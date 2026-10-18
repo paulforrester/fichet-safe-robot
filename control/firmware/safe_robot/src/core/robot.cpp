@@ -11,6 +11,13 @@
 
 namespace core {
 
+// Motor current bounds (mA RMS). Max: wiring.md §7. Min: TMCStepper's
+// rms_current() computes CS = ... - 1 into a uint8_t, so 0 mA wraps to 255
+// and is clamped to full scale (~1.77 A RMS with 0.11 ohm); 100 mA is well
+// clear of that (CS 0..1 with vsense high).
+static const uint16_t kMaMin = 100;
+static const uint16_t kMaMax = 1200;
+
 namespace {
 const char kAxisChar[AX_COUNT] = {'A', 'B', 'C', 'K'};
 // Expected (MS1, MS2) strapping per axis: UART addresses 0..3 (wiring.md §2).
@@ -173,12 +180,19 @@ void Robot::handleLine(const char* line) {
       CP("#   calibrate | seat | home [A|B|C] | learn | goto a b c | try | key <deg> | jog <A|B|C|K> <n>"),
       CP("#   load [sweeps]: home, then all dials sweep together, each one's load every 0.5 s (placing the unit)"),
       CP("#   sg <A|B|C|K> <fullsteps> | set <name> <value> | abort (or '!': stops at once)"),
+      CP("#   keyback: after a KEYSTUCK, once the key is turned back to its start by hand"),
     };
-    for (uint8_t i = 0; i < 4; ++i) { l.clear(); l.p(lines[i]); emit(l); }
+    for (uint8_t i = 0; i < 5; ++i) { l.clear(); l.p(lines[i]); emit(l); }
     return;
   }
   if (TOKEQ(cmd, "cfg")) { printCfg(); return; }
-  if (TOKEQ(cmd, "ping")) { pingAll(); if (state_ == ST_ERROR) state_ = ST_IDLE; return; }
+  if (TOKEQ(cmd, "ping")) { pingDrivers(); if (state_ == ST_ERROR) state_ = ST_IDLE; return; }
+  if (TOKEQ(cmd, "keyback")) {
+    keyStuck_ = false;
+    l.p(CP("# ok: key back at its start by hand; it homes on its rest stop at the next move"));
+    emit(l);
+    return;
+  }
   if (TOKEQ(cmd, "release")) { releaseAll(); state_ = ST_IDLE; l.p(CP("# all drivers off")); emit(l); return; }
   if (TOKEQ(cmd, "reset")) {
     if (tok[1] && TOKEQ(tok[1], "yes")) {
@@ -314,7 +328,11 @@ void Robot::handleLine(const char* line) {
     l.p(CP("# key went ")).deci(keyUsToDeci(s_, r.stepsDone)).p(CP(" deg, stalled=")).u(r.stalled).p(CP(", sgMin=")).u(r.sgMin);
     emit(l);
     MoveResult b = doMove(AX_KEY, -r.stepsDone, s_.ax[AX_KEY].rps, true, false);
-    checkMove(b, AX_KEY, false, true);
+    if (!checkMove(b, AX_KEY, false, true)) return;
+    if (b.stalled && -b.stepsDone < r.stepsDone - keyDeciToUs(s_, s_.keyRestTolDeci)) {
+      keyPos_ = r.stepsDone + b.stepsDone;   // v0.8: dials refuse to turn until it is back
+      keyStuck();
+    }
     return;
   }
   if (TOKEQ(cmd, "load")) {
@@ -366,7 +384,18 @@ void Robot::cmdSet(const char* name, int32_t v) {
   if (perAxis) { memcpy(base, name, len - 1); base[len - 1] = 0; }
   bool ok = true;
   if (perAxis && TOKEQ(base, "sg")) s_.ax[ax].sgthrs = (uint8_t)v;
-  else if (perAxis && TOKEQ(base, "ma")) s_.ax[ax].runMa = (uint16_t)(v > 1200 ? 1200 : v);
+  else if (perAxis && TOKEQ(base, "ma")) {
+    // v0.7.2: TMCStepper's rms_current(0) wraps to full scale (~1.77 A RMS
+    // here; checked by running its formula on the AVR, 2026-10-18), so a
+    // value outside the bounds is refused, not clamped.
+    if (v < kMaMin || v > kMaMax) {
+      l.p(CP("# ma")).c(kAxisChar[ax]).p(CP(" must be ")).u(kMaMin).p(CP("..")).u(kMaMax)
+          .p(CP(" mA: unchanged at ")).u(s_.ax[ax].runMa);
+      emit(l);
+      return;
+    }
+    s_.ax[ax].runMa = (uint16_t)v;
+  }
   else if (perAxis && TOKEQ(base, "rps100")) s_.ax[ax].rps = v / 100.0f;
   else if (perAxis && TOKEQ(base, "inv")) s_.ax[ax].invert = v ? 1 : 0;
   else if (perAxis && TOKEQ(base, "off") && ax != AX_KEY) s_.homeOffsetFull[ax] = (int16_t)v;
@@ -375,6 +404,7 @@ void Robot::cmdSet(const char* name, int32_t v) {
   else if (TOKEQ(name, "autocal")) s_.sgAutocal = v ? 1 : 0;
   else if (TOKEQ(name, "detentcal")) s_.detentAutocal = v ? 1 : 0;
   else if (TOKEQ(name, "calpct")) s_.sgCalPct = (uint8_t)v;
+  else if (TOKEQ(name, "keycalpct")) s_.keyCalPct = (uint8_t)v;
   else if (TOKEQ(name, "margin")) s_.keyTargetMarginDeci = (uint16_t)v;
   else if (TOKEQ(name, "success")) s_.keySuccessMinDeci = (uint16_t)v;
   else if (TOKEQ(name, "clean")) s_.keyCleanTolDeci = (uint16_t)v;
@@ -571,6 +601,16 @@ void Robot::finishRun(RobotState st) {
 
 // ---------------------------------------------------------------- building blocks
 bool Robot::pingAll() {
+  if (keyStuck_) {
+    Line l;
+    l.p(CP("# the key was stuck out: turn it to its start by hand, then `keyback`"));
+    emit(l);
+    return false;
+  }
+  return pingDrivers();
+}
+
+bool Robot::pingDrivers() {
   bool ok = true;
   for (uint8_t a = 0; a < AX_COUNT; ++a) {
     const DriverStatus st = hal_.ping((Axis)a);
@@ -597,7 +637,11 @@ bool Robot::configureAll(bool seatCurrent) {
     if (configured_[a] && !driverOk((Axis)a, CP("config"))) { driverFault(); return false; }
     DriverSetup ds;
     ds.runMa = (seatCurrent && a != AX_KEY) ? s_.seatMa : s_.ax[a].runMa;
-    if (ds.runMa > 1200) ds.runMa = 1200;  // wiring.md §7 ceiling
+    if (ds.runMa > kMaMax) ds.runMa = kMaMax;  // wiring.md §7 ceiling
+    if (ds.runMa < kMaMin) {  // below it TMCStepper can wrap to full current (v0.7.2)
+      error(CP("CONFIG"), CP("motor current below 100 mA in config.h or settings"));
+      return false;
+    }
     ds.holdPct = s_.ax[a].holdPct;
     ds.sgthrs = s_.ax[a].sgthrs;
     ds.tcoolthrs = tc;
@@ -821,7 +865,7 @@ bool Robot::calKey() {
     return false;
   }
   if (apply) {
-    s_.ax[AX_KEY].sgthrs = sgthrsFromBaseline(base, s_.sgCalPct);
+    s_.ax[AX_KEY].sgthrs = sgthrsFromBaseline(base, s_.keyCalPct);
     cal_.sgthrs[AX_KEY] = s_.ax[AX_KEY].sgthrs;
     cal_.baseline[AX_KEY] = base;
     if (!configureAll(false)) return false;
@@ -1072,6 +1116,14 @@ bool Robot::keyRetract(int32_t reached, Outcome o) {
       error(CP("KEYHOME"), CP("key did not find its rest stop on the way back"));
       return false;
     }
+    // v0.8: a stall well short of where the key started is the key stuck on
+    // its way back (2026-10-18, direct drive in the stiff zone), not the rest
+    // stop. Counting it as rest would let the dials turn with the key out.
+    if (-r.stepsDone < reached - keyDeciToUs(s_, s_.keyRestTolDeci)) {
+      keyPos_ = reached + r.stepsDone;
+      keyStuck();
+      return false;
+    }
   } else {
     // No rest stop: return the field to where it started. StallGuard stops
     // the motor before it slips a pole (datasheet §11.3), so the rotor
@@ -1082,6 +1134,17 @@ bool Robot::keyRetract(int32_t reached, Outcome o) {
   }
   keyPos_ = 0;
   return true;
+}
+
+// The key stalled on its way back, keyPos_ short of the rest: say how far
+// out, switch everything off. The dials stay refused (KEYOUT) until the key
+// is homed again (`home`, `learn` or `calibrate` with it turned back by hand).
+void Robot::keyStuck() {
+  Line l;
+  l.p(CP("# key stalled ")).deci(keyUsToDeci(s_, keyPos_)).p(CP(" deg short of its rest on the way back"));
+  emit(l);
+  keyStuck_ = true;
+  error(CP("KEYSTUCK"), CP("key stuck out: too stiff to turn back? Turn it to its start by hand, then `keyback`"));
 }
 
 MoveResult Robot::doMove(Axis ax, int32_t steps, float rps, bool stopOnStall, bool sampleSG, bool traceSG,
@@ -1291,9 +1354,11 @@ void Robot::printCfg() {
   emit(l);
   l.clear();
   l.p(CP("CFG,cal,autocal=")).u(s_.sgAutocal).p(CP(",calpct=")).u(s_.sgCalPct).p(CP(",minbase=")).u(s_.sgCalMinBase)
-      .p(CP(",detentcal=")).u(s_.detentAutocal).p(CP(",minamp=")).u(s_.detentMinAmp).p(CP(",keyCalDeg="))
-      .u(s_.keyCalDeg).p(CP(",offsetsFull=")).deci(offsetUs_[0] * 10 / s_.microsteps).c('/')
+      .p(CP(",detentcal=")).u(s_.detentAutocal).p(CP(",minamp=")).u(s_.detentMinAmp).p(CP(",offsetsFull=")).deci(offsetUs_[0] * 10 / s_.microsteps).c('/')
       .deci(offsetUs_[1] * 10 / s_.microsteps).c('/').deci(offsetUs_[2] * 10 / s_.microsteps);
+  emit(l);
+  l.clear();
+  l.p(CP("CFG,keycal,keycalpct=")).u(s_.keyCalPct).p(CP(",keyCalDeg=")).u(s_.keyCalDeg);
   emit(l);
   l.clear();
   l.p(CP("CFG,run,recheck=")).u(s_.recheckEvery).p(CP(",sgmin100=")).u((uint32_t)(s_.sgMinRps * 100 + 0.5f))

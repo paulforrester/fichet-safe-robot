@@ -17,7 +17,9 @@
 #define CFG_FULL_STEPS_PER_REV   200
 #define CFG_MICROSTEPS           16     // MRES over UART; interpolated to 256 by the driver
 #define CFG_DIAL_GEAR            2      // 14T pinion -> 28T dial gear (cad/dial_unit_housing.scad)
-#define CFG_KEY_GEAR             1      // key turner is direct drive
+#define CFG_KEY_GEAR             5      // key turner v2 (revision 2026-10-18.1): 12T pinion / 60T gear.
+                                        // Direct drive (1) couldn't start the key back from its stop
+                                        // (>= 0.98 N·m, Paul 2026-10-18)
 #define CFG_POSITIONS            20     // positions per dial wheel: 20 clicks per turn (Paul, 2026-10-06)
 
 // Drivers fitted: A=1, B=2, C=4, key=8. 15 = all (needed for `start`). Bench
@@ -36,7 +38,8 @@
 #define CFG_INVERT_A             1
 #define CFG_INVERT_B             1
 #define CFG_INVERT_C             1
-#define CFG_INVERT_KEY           0
+#define CFG_INVERT_KEY           1      // direct drive turned the key clockwise with 0 (stage 5,
+                                        // 2026-10-18); one gear pair reverses it. Stage 5 step 1 re-checks
 
 // ---- Currents (control/wiring.md §7) ---------------------------------------
 // Dials: 600 mA from the door test (bring-up 4b, Paul 2026-10-14): at 1000 mA
@@ -45,7 +48,8 @@
 // stall level. The dial torque itself is still not measured.
 #define CFG_DIAL_RUN_MA          600
 #define CFG_DIAL_HOLD_PCT        50
-#define CFG_KEY_RUN_MA           600    // start; stage 5 sets it to 2x the measured minimum
+#define CFG_KEY_RUN_MA           1000   // direct drive needed >= 500 mA (Paul, door, 2026-10-18). Geared 5:1 the
+                                        // motor needs ~1/4 of the torque; stage 5 measures the minimum again
 #define CFG_KEY_HOLD_PCT         50
 #define CFG_SEAT_MA              600    // lower current while seating the plugs
 
@@ -83,6 +87,13 @@
 // step and prints the results. Bench stages 3-4 check the numbers.
 #define CFG_SG_AUTOCAL           1
 #define CFG_SG_CAL_PCT           50     // ASSUMPTION: stall = SG down to 50 % of the free-running low; stage 3 checks
+// Key (v0.7.2, door 2026-10-18, direct drive at 1000 mA): free turn reads
+// 200-244; from ~50 deg the key meets graduated resistance up to its ~100
+// deg stop, and there it dipped to ~142 every 4 full steps. 50 % (trip at
+// ~130) stopped every learn at 55 deg; 25 % (trip ~65) missed the hard stops.
+// Geared 5:1 (v0.8) the motor sees the stiff zone at ~1/5 of that torque, so
+// 50 % may hold: ASSUMPTION, stage 5 step 3 traces it (`sg K`) and sets this.
+#define CFG_KEY_SG_CAL_PCT       50
 #define CFG_SG_CAL_MIN_BASE      40     // a lower free-running SG can't be told from a stall
 // 0 since 2026-10-18: on the door the click-found offsets put position 0 on
 // the stop and each target on the near side of its click (bring-up 4b); the
@@ -90,7 +101,7 @@
 // the ripple. 1 = find position 0 from the clicks every session.
 #define CFG_DETENT_AUTOCAL       0
 #define CFG_DETENT_MIN_AMP       3      // ripple (SG units) needed to trust the click phase; else the offsets below
-#define CFG_KEY_CAL_DEG          60     // the key stops at ~100 deg: 60 is well clear
+#define CFG_KEY_CAL_DEG          45     // free travel only: resistance starts at ~55 deg, stop at ~100 (Paul, 2026-10-18; was 60)
 
 // ---- Seat and home (dials) -----------------------------------------------------
 #define CFG_SEAT_DIAL_DEG        45     // at most 1/8 dial turn (control/sequence.md); turned clockwise
@@ -181,6 +192,9 @@
                                         // stays wherever it was left (Paul, 2026-10-06), e.g. ~100 deg after a
                                         // power cut mid-attempt, so this must cover the whole travel
 #define CFG_KEY_HOME_EXTRA_DEG   15     // retract: anticlockwise bound past the angle reached
+#define CFG_KEY_REST_TOL_DECI    50     // v0.8: a retract (or `key`'s return) that stalls more than 5 deg
+                                        // short of the rest is a stuck key, not the rest stop (2026-10-18:
+                                        // direct drive stalled in the stiff zone on the way back)
 #define CFG_KEY_LEARN_MAX_DEG    160    // Paul measured ~100 deg to the stop
 #define CFG_KEY_LEARN_REPEATS    3
 #define CFG_KEY_LEARN_SPREAD_DECI 50    // learn tries must agree within 5.0 deg

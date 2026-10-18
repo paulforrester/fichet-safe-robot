@@ -70,7 +70,8 @@ class Robot {
   void finishRun(RobotState st);
   void pauseNow();
   // building blocks (return false after reporting an error)
-  bool pingAll();
+  bool pingAll();       // pingDrivers(), refused while the key is stuck out (v0.8)
+  bool pingDrivers();
   bool configureAll(bool seatCurrent);
   bool seatDials();
   bool homeDial(uint8_t d, int32_t expectDist, int32_t* discrepancy);
@@ -91,6 +92,7 @@ class Robot {
   bool moveDialTo(uint8_t d, int32_t targetUs);
   bool keyTry(int32_t* reached, bool* stalled, uint16_t* sgMin);
   bool keyRetract(int32_t reached, Outcome o);
+  void keyStuck();
   MoveResult doMove(Axis ax, int32_t steps, float rps, bool stopOnStall, bool sampleSG, bool traceSG = false,
                     SgSink* sink = nullptr);
   MoveResult doMoveDials(uint8_t mask, int32_t steps, float rps, SgSink* sink);  // lockstep, stall-stopped
@@ -127,6 +129,7 @@ class Robot {
   bool homed_[3] = {false, false, false};
   int32_t dialPos_[3] = {0, 0, 0};  // logical microsteps from each stall zero
   bool keyHomed_ = false;
+  bool keyStuck_ = false;  // v0.8: set by keyStuck(), cleared by `keyback`
   bool configured_[AX_COUNT] = {false, false, false, false};  // set up, and not released since
   int32_t keyPos_ = 0;
   bool nValid_ = false;

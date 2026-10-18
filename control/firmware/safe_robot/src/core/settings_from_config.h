@@ -49,6 +49,7 @@ inline Settings makeSettings() {
   s.keyHome = CFG_KEY_HOME_MODE;
   s.keyHomeSearchDeg = CFG_KEY_HOME_SEARCH_DEG;
   s.keyHomeExtraDeg = CFG_KEY_HOME_EXTRA_DEG;
+  s.keyRestTolDeci = CFG_KEY_REST_TOL_DECI;
   s.keyLearnMaxDeg = CFG_KEY_LEARN_MAX_DEG;
   s.keyLearnRepeats = CFG_KEY_LEARN_REPEATS;
   s.keyLearnSpreadDeci = CFG_KEY_LEARN_SPREAD_DECI;
@@ -66,6 +67,7 @@ inline Settings makeSettings() {
   s.fclkHz = CFG_FCLK_HZ;
   s.sgAutocal = CFG_SG_AUTOCAL;
   s.sgCalPct = CFG_SG_CAL_PCT;
+  s.keyCalPct = CFG_KEY_SG_CAL_PCT;
   s.sgCalMinBase = CFG_SG_CAL_MIN_BASE;
   s.detentAutocal = CFG_DETENT_AUTOCAL;
   s.detentMinAmp = CFG_DETENT_MIN_AMP;
