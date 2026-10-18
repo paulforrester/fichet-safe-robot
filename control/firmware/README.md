@@ -1,9 +1,43 @@
 # Firmware — Fichet safe robot (Mega 2560 + RAMPS 1.4 + 4 × TMC2209)
 
-> **Revision 2026-10-17.2** · key driver on the RAMPS E0 socket; firmware v0.6 (2026-10-18: `load`, live dial load for placing the unit) · log: `../../docs/revisions.md`
+> **Revision 2026-10-18.1** · key driver on the RAMPS E0 socket; firmware v0.6 (2026-10-18: `load`, live dial load for placing the unit) · log: `../../docs/revisions.md`
 
 Implements the sequence in `control/sequence.md` on the pin map in
 `control/wiring.md`. Bring it up on the bench with `control/bringup.md`.
+
+## v0.8 (2026-10-18, project revision 2026-10-18.1): geared key turner; safer key current and returns
+
+From bring-up stage 5 on the door (Paul, 2026-10-18). Direct drive took the
+key out to its stop but couldn't start it back: from ~55° the key needs
+0.74 N·m, and ≥ 0.98 N·m to start back from the stop. The key turner is now
+geared 5:1 (`docs/housing_decisions.md`, 2026-10-18).
+
+- **`CFG_KEY_GEAR 5`, `CFG_INVERT_KEY 1`.** Every key angle (learn bound,
+  home search, margins, bands) stays in key degrees; the motor turns 5×
+  as far. Direct drive turned the key clockwise with `invK 0`, and one gear
+  pair reverses it (stage 5 step 1 re-checks).
+- **Motor currents outside 100–1200 mA are refused** (`set maK 0` ran the
+  key at full scale: TMCStepper's `rms_current(0)` wraps to IRUN 31, ~1.77 A
+  RMS, checked by running its formula on the AVR in simavr). A config value
+  below 100 mA stops at `configure`; the HAL never passes less than 100.
+- **Key stall rule of its own:** `keycalpct` (`CFG_KEY_SG_CAL_PCT`, 50 %
+  until stage 5's trace through the gears says otherwise; with direct drive
+  50 % tripped in the stiff zone and 25 % missed the hard stop). The key's
+  calibration turn is 45° (`CFG_KEY_CAL_DEG`, was 60): free travel only.
+  `cfg` prints both on a `CFG,keycal` line.
+- **A stuck key is not the rest stop.** A retract (or `key`'s return) that
+  stalls more than 5° short of where the key started (`CFG_KEY_REST_TOL_DECI`)
+  stops with `ERR KEYSTUCK` and says how far out it is. Until `keyback`
+  (type it after turning the key to its start by hand), every motion command
+  is refused; `ping` still works. Before, that stall counted as the rest
+  stop, and the dials could have turned with the key out.
+- Key current default 1000 mA (direct drive needed ≥ 500); stage 5 measures
+  the geared minimum again.
+
+Tests: 74 host tests (new: geared full run, stuck key, current bounds,
+stage-5 key-only bench sequence), g++ -Werror, clang, ASan+UBSan; the
+simulated full run (geared) finds the combination at attempt 1,786, N
+101.2°. AVR build 62,192 bytes flash / 1,404 RAM.
 
 ## v0.7 (2026-10-18): accuracy over speed; nothing crosses the stop's cam
 
@@ -430,10 +464,11 @@ a move must stop with `DRVFAULT`).
 | `goto a b c` | bench: dials to positions 0–19 (0 = first click) after `home`; back within the turn, never clockwise past the stop unless `set wrap 1` (says which dials aren't homed) |
 | `load [sweeps]` | placing the unit: homes, then all dials sweep together inside one turn, out and back, 1–20 times (default 5), printing `LOAD` every 0.5 s; un-homes the dials (v0.7; v0.6 turned whole turns) |
 | `try` | bench: one key attempt at the current dial setting |
-| `key <deg>` | bench: turn the key clockwise up to `deg` (stops on stall), then back |
+| `key <deg>` | bench: turn the key clockwise up to `deg` (stops on stall), then back; a return that stalls > 5° short is `KEYSTUCK` (v0.8) |
+| `keyback` | after a `KEYSTUCK`: the key has been turned back to its start by hand; motion is refused until then (v0.8) |
 | `jog <A\|B\|C\|K> <fullsteps>` | bench: bounded move (±800 full steps), stops on stall |
 | `sg <A\|B\|C\|K> <fullsteps>` | bench: like jog, printing `SG,axis,fullstep,value` samples |
-| `set <name> <value>` | bench, RAM only: `sgA..sgK`, `maA..maK`, `rps100A..K` (speed × 100), `invA..K`, `offA..C`, `keyhome`, `margin`, `success`, `clean`, `early` (0.1°), `recheck`, `seatma`, `seatrps100`, `sgmin100`, `autocal`, `detentcal`, `calpct`, `settlems` (0 = no settle), `settleonms`, `approach` (full steps, 0 = off), `approachclear` (full steps), `wrap` (1 = goto may pass the stop clockwise), `settleeach` (1 = settle after every dial move), `camclear` (full steps) |
+| `set <name> <value>` | bench, RAM only: `sgA..sgK`, `maA..maK` (100–1200 mA, others refused, v0.8), `rps100A..K` (speed × 100), `invA..K`, `offA..C`, `keyhome`, `margin`, `success`, `clean`, `early` (0.1°), `recheck`, `seatma`, `seatrps100`, `sgmin100`, `autocal`, `detentcal`, `calpct`, `keycalpct` (v0.8), `settlems` (0 = no settle), `settleonms`, `approach` (full steps, 0 = off), `approachclear` (full steps), `wrap` (1 = goto may pass the stop clockwise), `settleeach` (1 = settle after every dial move), `camclear` (full steps) |
 
 The button: pauses a running session; when idle, resumes a stored run or
 starts a new one.

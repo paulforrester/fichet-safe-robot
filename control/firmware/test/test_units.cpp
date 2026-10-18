@@ -209,7 +209,12 @@ TEST(settings_derived_units) {
   CHECK_EQ(usPerMotorRev(s), 3200);
   CHECK_EQ(usPerPosition(s), 320);          // 20 full steps per position (sequence.md)
   CHECK_EQ(dialDegToUs(s, 45), 800);        // seat: 1/8 dial turn = 90 deg of motor
-  CHECK_EQ(keyDeciToUs(s, 1000), 888);      // 100 deg of key
+  CHECK_EQ(s.keyGear, 5);                   // key turner v2, 12T/60T (revision 2026-10-18.1)
+  CHECK_EQ(keyDeciToUs(s, 1000), 4444);     // 100 deg of key = 500 deg of motor
+  CHECK_EQ(keyUsToDeci(s, 4445), 1000);
+  CHECK_EQ(keyDeciToUs(s, 1800), 8000);     // the 180 deg home search: no int32 overflow on the way
+  s.keyGear = 1;                            // direct drive (v1)
+  CHECK_EQ(keyDeciToUs(s, 1000), 888);
   CHECK_EQ(keyUsToDeci(s, 889), 1000);
   // TCOOLTHRS for 0.4 rev/s: 12e6 / (0.4 * 200 * 256) = 585.9
   CHECK_EQ(tcoolthrsFor(s, 0.4f), 585u);

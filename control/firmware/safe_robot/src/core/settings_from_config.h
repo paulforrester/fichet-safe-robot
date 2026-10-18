@@ -49,6 +49,7 @@ inline Settings makeSettings() {
   s.keyHome = CFG_KEY_HOME_MODE;
   s.keyHomeSearchDeg = CFG_KEY_HOME_SEARCH_DEG;
   s.keyHomeExtraDeg = CFG_KEY_HOME_EXTRA_DEG;
+  s.keyRestTolDeci = CFG_KEY_REST_TOL_DECI;
   s.keyLearnMaxDeg = CFG_KEY_LEARN_MAX_DEG;
   s.keyLearnRepeats = CFG_KEY_LEARN_REPEATS;
   s.keyLearnSpreadDeci = CFG_KEY_LEARN_SPREAD_DECI;

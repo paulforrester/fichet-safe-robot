@@ -180,12 +180,19 @@ void Robot::handleLine(const char* line) {
       CP("#   calibrate | seat | home [A|B|C] | learn | goto a b c | try | key <deg> | jog <A|B|C|K> <n>"),
       CP("#   load [sweeps]: home, then all dials sweep together, each one's load every 0.5 s (placing the unit)"),
       CP("#   sg <A|B|C|K> <fullsteps> | set <name> <value> | abort (or '!': stops at once)"),
+      CP("#   keyback: after a KEYSTUCK, once the key is turned back to its start by hand"),
     };
-    for (uint8_t i = 0; i < 4; ++i) { l.clear(); l.p(lines[i]); emit(l); }
+    for (uint8_t i = 0; i < 5; ++i) { l.clear(); l.p(lines[i]); emit(l); }
     return;
   }
   if (TOKEQ(cmd, "cfg")) { printCfg(); return; }
-  if (TOKEQ(cmd, "ping")) { pingAll(); if (state_ == ST_ERROR) state_ = ST_IDLE; return; }
+  if (TOKEQ(cmd, "ping")) { pingDrivers(); if (state_ == ST_ERROR) state_ = ST_IDLE; return; }
+  if (TOKEQ(cmd, "keyback")) {
+    keyStuck_ = false;
+    l.p(CP("# ok: key back at its start by hand; it homes on its rest stop at the next move"));
+    emit(l);
+    return;
+  }
   if (TOKEQ(cmd, "release")) { releaseAll(); state_ = ST_IDLE; l.p(CP("# all drivers off")); emit(l); return; }
   if (TOKEQ(cmd, "reset")) {
     if (tok[1] && TOKEQ(tok[1], "yes")) {
@@ -321,7 +328,11 @@ void Robot::handleLine(const char* line) {
     l.p(CP("# key went ")).deci(keyUsToDeci(s_, r.stepsDone)).p(CP(" deg, stalled=")).u(r.stalled).p(CP(", sgMin=")).u(r.sgMin);
     emit(l);
     MoveResult b = doMove(AX_KEY, -r.stepsDone, s_.ax[AX_KEY].rps, true, false);
-    checkMove(b, AX_KEY, false, true);
+    if (!checkMove(b, AX_KEY, false, true)) return;
+    if (b.stalled && -b.stepsDone < r.stepsDone - keyDeciToUs(s_, s_.keyRestTolDeci)) {
+      keyPos_ = r.stepsDone + b.stepsDone;   // v0.8: dials refuse to turn until it is back
+      keyStuck();
+    }
     return;
   }
   if (TOKEQ(cmd, "load")) {
@@ -590,6 +601,16 @@ void Robot::finishRun(RobotState st) {
 
 // ---------------------------------------------------------------- building blocks
 bool Robot::pingAll() {
+  if (keyStuck_) {
+    Line l;
+    l.p(CP("# the key was stuck out: turn it to its start by hand, then `keyback`"));
+    emit(l);
+    return false;
+  }
+  return pingDrivers();
+}
+
+bool Robot::pingDrivers() {
   bool ok = true;
   for (uint8_t a = 0; a < AX_COUNT; ++a) {
     const DriverStatus st = hal_.ping((Axis)a);
@@ -1095,6 +1116,14 @@ bool Robot::keyRetract(int32_t reached, Outcome o) {
       error(CP("KEYHOME"), CP("key did not find its rest stop on the way back"));
       return false;
     }
+    // v0.8: a stall well short of where the key started is the key stuck on
+    // its way back (2026-10-18, direct drive in the stiff zone), not the rest
+    // stop. Counting it as rest would let the dials turn with the key out.
+    if (-r.stepsDone < reached - keyDeciToUs(s_, s_.keyRestTolDeci)) {
+      keyPos_ = reached + r.stepsDone;
+      keyStuck();
+      return false;
+    }
   } else {
     // No rest stop: return the field to where it started. StallGuard stops
     // the motor before it slips a pole (datasheet §11.3), so the rotor
@@ -1105,6 +1134,17 @@ bool Robot::keyRetract(int32_t reached, Outcome o) {
   }
   keyPos_ = 0;
   return true;
+}
+
+// The key stalled on its way back, keyPos_ short of the rest: say how far
+// out, switch everything off. The dials stay refused (KEYOUT) until the key
+// is homed again (`home`, `learn` or `calibrate` with it turned back by hand).
+void Robot::keyStuck() {
+  Line l;
+  l.p(CP("# key stalled ")).deci(keyUsToDeci(s_, keyPos_)).p(CP(" deg short of its rest on the way back"));
+  emit(l);
+  keyStuck_ = true;
+  error(CP("KEYSTUCK"), CP("key stuck out: too stiff to turn back? Turn it to its start by hand, then `keyback`"));
 }
 
 MoveResult Robot::doMove(Axis ax, int32_t steps, float rps, bool stopOnStall, bool sampleSG, bool traceSG,

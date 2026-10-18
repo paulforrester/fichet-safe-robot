@@ -50,6 +50,7 @@ struct Settings {
   uint8_t keyHome;             // KeyHomeMode
   uint16_t keyHomeSearchDeg;   // session start: CCW bound to find the rest stop
   uint16_t keyHomeExtraDeg;    // retract: CCW bound beyond the angle reached
+  uint16_t keyRestTolDeci;     // a retract stalling further than this short of the rest = stuck key
   uint16_t keyLearnMaxDeg;     // bound when learning N
   uint8_t keyLearnRepeats;
   uint16_t keyLearnSpreadDeci; // max spread of the learn tries (0.1 deg)

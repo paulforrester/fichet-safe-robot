@@ -53,6 +53,16 @@ struct SimHal : public core::Hal {
   int32_t keyFalseExtra = 53;      // ~6 deg
   int32_t keyOpen = 1778;          // ~200 deg: bolt end
   int32_t keyObstruction = -1;     // if >=0: key stops here (anomaly injection)
+  // The key angles above are in direct-drive motor microsteps. A geared key
+  // turner (firmware keyGear) turns the motor g times as far for the same key angle.
+  int keyGearSim = 1;
+  void setKeyGear(int g) { keyN *= g; keyFalseExtra *= g; keyOpen *= g; keyGearSim = g; }
+  // Stuck key (v0.8 test): once the key has been past keyStickAt, it can't
+  // turn back below it (too stiff), as a stop would. -1 = off.
+  int32_t keyStickAt = -1;
+  bool keyAbove = false;
+  bool keyHasLo() const { return keyRestStop || (keyStickAt >= 0 && keyAbove); }
+  int32_t keyLo() const { return (keyStickAt >= 0 && keyAbove) ? keyStickAt : 0; }
   bool dialHasStop[3] = {true, true, true};
   float sgMinSps = 0.3f * 3200;    // DIAG enabled only above this speed
   uint32_t seed = 12345;
@@ -125,7 +135,7 @@ struct SimHal : public core::Hal {
     int32_t p = cmd[3] - keyOff;
     const int32_t hi = keyLimit();
     if (p > hi) p = hi;
-    if (keyRestStop && p < 0) p = 0;
+    if (keyHasLo() && p < keyLo()) p = keyLo();
     return p;
   }
 
@@ -203,7 +213,7 @@ struct SimHal : public core::Hal {
     for (int k = 0; k < na; ++k) {
       const int ax = axes[k];
       if (na > 1 && ax == 3) violations.push_back("key in a lockstep move");
-      if (std::abs(r.steps) > (ax == 3 ? 3000 : (na > 1 ? 6400 * 20 : 8000))) violations.push_back("move over its bound");
+      if (std::abs(r.steps) > (ax == 3 ? 3000 * keyGearSim : (na > 1 ? 6400 * 20 : 8000))) violations.push_back("move over its bound");
       if (!enabled[ax]) violations.push_back("move on a disabled driver");
       if (ax < 3 && std::abs(keyPhys()) > 20) violations.push_back("dial moved with the key out");
       if ((gstatFlags[ax] & core::GSTAT_RESET) && !resetHidden) violations.push_back("move on a driver that has reset");
@@ -256,9 +266,10 @@ struct SimHal : public core::Hal {
           cmd[ax] += dir;
           const int32_t hi = keyLimit();
           if (cmd[ax] - keyOff > hi + kSlip) keyOff += 64;
-          else if (keyRestStop && cmd[ax] - keyOff < -kSlip) keyOff -= 64;
+          else if (keyHasLo() && cmd[ax] - keyOff < keyLo() - kSlip) keyOff -= 64;
           const int32_t raw = cmd[ax] - keyOff;
-          isBlocked = (raw > hi && dir > 0) || (keyRestStop && raw < 0 && dir < 0);
+          if (keyStickAt >= 0 && raw > keyStickAt) keyAbove = true;
+          isBlocked = (raw > hi && dir > 0) || (keyHasLo() && raw < keyLo() && dir < 0);
         }
         if (isBlocked) ++blocked[k]; else blocked[k] = 0;
         if (isBlocked && !r.stopOnStall) violations.push_back("pressed into a stop with stall detection off");
