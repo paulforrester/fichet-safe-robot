@@ -151,8 +151,13 @@ RAMPS, UART pigtail); firmware written and host-tested
   **settle** (dial drivers off 0.5 s, so each dial falls into its click).
 - **Key turner:** direct drive, motor on the key axis. The key turns
   **clockwise (seen from in front of the safe) to ~100° and stops** with a
-  wrong combination. Measured key torque **0.07–0.08 N·m** (0.14–0.16 kg on
-  a 50 mm lever, 2026-10-06; an earlier "1.4 kg" was a misread decimal).
+  wrong combination. Key torque (50 mm lever): **0.05–0.10 N·m to ~55°, then
+  a stiff zone to the stop: 0.74 N·m either way, ≥ 0.98 N·m to start back
+  from the stop** (Paul, 2026-10-18; the 2026-10-06 "0.07–0.08 N·m" was the
+  easy part, and its withdrawn "1.4 kg" reading matches the stiff zone). At
+  1 A the motor drives the key out to the stop but can't start it back:
+  direct drive is not enough (`docs/housing_decisions.md`, 2026-10-18; open:
+  is it the lock or the dial unit?).
   Motor direction vs. key direction is not established — determine it on
   the bench at low current. Run the key motor at reduced current (~2× the
   key's torque) and stop on StallGuard at the end stop, so it doesn't push

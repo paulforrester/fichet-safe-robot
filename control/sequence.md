@@ -197,6 +197,11 @@ Until the dial torque is measured, run the dial drivers at about 1A RMS:
 the reduction doubles what the motor can put into the printed gear and
 plug teeth.
 
+**Correction (2026-10-18):** from ~55° to its stop the key needs 0.74 N·m
+either way, ≥ 0.98 N·m to start back from the stop (Paul, 50mm lever); the
+figures below are the easy part of the turn only, and direct drive can't
+bring the key back (`docs/housing_decisions.md`, 2026-10-18).
+
 **Key torque (measured 2026-10-06): 0.07–0.08 N·m** (0.14–0.16 kg at
 50mm). About a quarter of what the motor gives at ~1 A, so the key turner
 stays direct drive. Run the key motor at reduced current (~2× the key's
