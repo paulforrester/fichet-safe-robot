@@ -9,6 +9,45 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
+## 2026-10-18: the key has a stiff zone from ~55° to its stop — direct drive is not enough (open)
+
+**Door, bring-up stage 5 (Paul).** Luggage scale on the 50mm lever, drivers
+off, cap on, dial unit on the door:
+
+| Part of the turn | Reading | Torque (× 9.81 × 0.050) |
+|---|---|---|
+| 0–55° clockwise | 0.10–0.20 kg | 0.05–0.10 N·m |
+| 55–100° clockwise | 1.5 kg | 0.74 N·m |
+| breakaway back from the stop | 2.0+ kg | ≥ 0.98 N·m |
+| 100–55° anticlockwise | 1.5 kg | 0.74 N·m |
+| below 55° back | almost nothing | — |
+
+The motor (1000 mA) took the key out through the zone to 110° without
+skipping, but could not start it back from the end: it buzzed and the key
+stayed there. Below 500 mA it could not turn the key at all. The housing never
+moved on its magnets. Stall detection at 50 % of the free reading tripped at
+55° on every learn; at 25 % it missed a hard stop (bring-up stage 5, firmware
+v0.7.2 notes).
+
+**Correction (2026-10-06 entry below):** its 0.14–0.16 kg is the easy part of
+the turn. The first report, 1.4 kg, was withdrawn as a misread decimal, but
+it matches the stiff zone: both readings were probably real, taken in
+different parts of the turn. The 2026-10-06 conclusion that direct drive is
+enough (motor ~0.3 N·m at ~1 A, "about 4× the key") does not hold for this
+zone.
+
+**Not yet explained:** going out, the motor at 1 A turned the key through a
+zone that reads 0.74 N·m by hand. That is more than the ~0.3–0.4 N·m
+estimated for the motor at 1 A. Either the motor gives more than estimated,
+or the zone needs less torque at the motor's speed than by hand. Unknown.
+
+**Open:** whether the stiff zone is the lock itself or comes from the dial
+unit (its spring-loaded plugs press the wheel pack). Next: the same readings
+with the dial unit off the door. If it is the lock, the key turner needs a
+reduction. Ratio from the breakaway torque: ≥ 1 N·m × 2 margin ÷ ~0.35 N·m
+motor ≈ 5–6:1 for 2× margin, ~3:1 for none. `CFG_KEY_GEAR` already handles a
+ratio in the firmware.
+
 ## 2026-10-18: placing the dial unit — it floats on its plugs (open)
 
 **Paul (2026-10-18, on the door):** with the plugs seated and the magnets not
