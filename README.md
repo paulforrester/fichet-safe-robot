@@ -1,6 +1,6 @@
 # Fichet-Bauche "Complice" Safe — Combination Robot
 
-> **Revision 2026-10-17.2** · all four drivers on the RAMPS (key in E0); UART pigtail replaces the hub board · log: `docs/revisions.md`
+> **Revision 2026-10-18.1** · key turner v2 (5:1 gears); all four drivers on the RAMPS (key in E0); UART pigtail replaces the hub board · log: `docs/revisions.md`
 
 An automated device to determine the combination of an unmarked
 Fichet-Bauche "Complice" safe found in the house at 6 Rue du Mulet,
@@ -22,9 +22,10 @@ for how we got here):
 | Collar diameter | 11.75 mm | confirmed, clears the ~12mm door recess |
 
 Housings: the **dial unit v2** (`cad/dial_unit_housing.scad`, geared, on 608
-bearings — door-pattern test passed on the real door) and the **key turner v1**
-(`cad/key_turner_housing.scad`, slotted cap over the key's bow, motor on the key
-axis — print `print_key_fit_test.scad` first). Both attach to the door with
+bearings — door-pattern test passed on the real door) and the **key turner v2**
+(`cad/key_turner_housing.scad`, slotted cap over the key's bow, driven through a
+5:1 printed gear pair — revision 2026-10-18.1: the key needs ~1 N·m to start back
+from its stop). Both attach to the door with
 22mm rubber-coated M4 pot magnets (6 + 3) held by printed retainers
 (`print_magnet_retainer.scad`) — pull-test one on the door when they arrive. See `docs/housing_decisions.md` and `control/sequence.md`.
 

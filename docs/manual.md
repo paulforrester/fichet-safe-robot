@@ -1,6 +1,6 @@
 # Fichet safe robot — build and operating manual
 
-> **Revision 2026-10-17.2** · gear-shaft on a tapered hex with an M3 screw (2026-10-17.2); key driver on the RAMPS E0 socket; UART pigtail · log: `docs/revisions.md`
+> **Revision 2026-10-18.1** · key turner v2: 5:1 printed gears (2026-10-18.1); gear-shaft on a tapered hex with an M3 screw (2026-10-17.2); key driver on the RAMPS E0 socket; UART pigtail · log: `docs/revisions.md`
 
 For Paul. Covers the robot as of **revision 2026-10-08.2**: dial unit v2, key
 turner v1, wiring with all four drivers on the RAMPS and the UART pigtail
@@ -64,14 +64,16 @@ There are two units:
 - **Dial unit**: three motors turn the three dial plugs through 14T/28T
   gears. Each plug is on a spring-loaded shaft running in two 608 bearings.
   The Mega and RAMPS sit on a deck at the back.
-- **Key turner**: one motor straight on the key axis. A printed cap slides
-  over the key's bow.
+- **Key turner** (v2, revision 2026-10-18.1): one motor 45 mm left of the
+  key turns a 60T gear on the key axis through a 12T pinion (5:1). A printed
+  cap slides over the key's bow; its tongue sits in a groove in the gear's
+  underside.
 
 Both hold to the door with 22 mm rubber-coated M4 pot magnets: 6 on the dial
 unit, 3 on the key turner. Design history: `docs/housing_decisions.md`.
 Renders (drawn before the magnet change): `cad/renders/dial_unit_v2_section.png`,
 `cad/renders/dial_unit_v2_door_view.png`,
-`cad/renders/key_turner_v1_overview.png`.
+`cad/renders/key_turner_v2_overview.png`, `cad/renders/key_turner_v2_drivetrain.png` (frame hidden).
 
 ### 1.1 What to print
 
@@ -91,10 +93,12 @@ the print notes in `cad/dial_unit_housing.scad` (end of file) and
 | `dial_gears.stl` | 3 dial gears (28T, tapered hex bore, back wall with the M3 countersink, front boss, 1 mm spring pocket) (rev 2026-10-17.2). **After the coupon**: I set the bore from it | 1 plate | **plain PETG** | gear rear (pocket) face down. **Elephant-foot compensation on**, or the bottom layer of the teeth binds |
 | `dial_drivetrain.stl` | the same on one plate: 3 gears, 3 shafts (5 mm), 3 pinions | 1 plate | pinions **PETG-CF**; the rest plain PETG | as above; pinion hub down. **Elephant-foot compensation on** |
 | `magnet_retainers.stl` | 10 retainer discs (9 needed) | 1 plate | PETG | flat |
-| `key_turner_base.stl` | key-turner base + 3 legs | 1 | PETG | door face |
-| `key_turner_motor_plate.stl` | key motor plate | 1 | PETG | inner face |
-| `key_turner_cap.stl` | slotted cap | 1 | **PETG-CF** | slot mouth. **Elephant-foot compensation on** |
-| `key_turner_hub.stl` | grooved motor hub | 1 | **PETG-CF** | groove face |
+| `key_turner_base.stl` | key-turner base + 4 legs, 3 magnet seats (v2, rev 2026-10-18.1) | 1 | PETG | door face |
+| `key_turner_motor_plate.stl` | key motor plate + bearing boss (v2) | 1 | PETG | **motor face (plate top) down**, boss up, as exported. Elephant-foot compensation on (the bearing pocket opens on the bed) |
+| `key_turner_shaft.stl` | key shaft: 60T gear, cap groove in its underside, spacer, journal, M3 pilot (v2) | 1 | **plain PETG** | groove face down, as exported. **Elephant-foot compensation on** (teeth on the bed) |
+| `key_turner_pinion.stl` | 12T pinion, D-bore (v2) | 1 | **PETG-CF** | hub end down. **Elephant-foot compensation on** |
+| `key_turner_washer.stl` | washer on the top bearing (v2) | 1 | plain PETG | flat (countersink up) |
+| `key_turner_cap.stl` | slotted cap (unchanged: the one you have stays) | 1 | **PETG-CF** | slot mouth. **Elephant-foot compensation on** |
 
 PETG-CF needs the hardened (tungsten carbide) hotend.
 
@@ -117,19 +121,20 @@ where the table says so.
 - the Mega base coupon (2026-10-04: 3 of 4 screws go in; 3 are enough).
   No longer relevant: from revision 2026-10-12.1 the base plate isn't used.
 
-**Magnet holes:** the dial front assembly and key-turner base you already
-printed (22.4 mm holes) stay in use, with a 2-layer wrap strip on each
-magnet (§1.3a). The current STLs have 21.7 mm holes, for any future reprint
-(no strips needed then). Print the retainers if you haven't yet.
+**Magnet holes:** the dial front assembly you already printed (22.4 mm
+holes) stays in use, with a 2-layer wrap strip on each magnet (§1.3a). The
+current STLs have 21.7 mm holes (no strips needed), and that includes the v2
+key-turner base (revision 2026-10-18.1), a new print. Print the retainers if
+you haven't yet.
 
 ### 1.2 Hardware
 
 | Item | Dial unit | Key turner | Status |
 |---|---|---|---|
-| 608 bearings (8 × 22 × 7) | 6 (2 per dial) | — | on hand |
+| 608 bearings (8 × 22 × 7) | 6 (2 per dial) | 2 (key shaft, v2) | on hand |
 | Compression springs ≤ 8 mm OD, ~18–20 mm free, solid < 10 mm | 3 | — | ordered: QUARKZMAN 0.5 × 7 × 20 mm, 304 stainless, arriving 2026-10-07 (Paul). Count the coils on arrival |
-| M3 × 10 countersunk, hex socket (the length includes the head) | 15: 12 motor screws + 3 gear-shafts (rev 2026-10-17.2, self-tapping into the shaft) | 4 | on hand (kit has 55) |
-| M6 countersunk self-tapping, 16 mm | 6 | 3 | on hand. On the key turner, 16 mm works better than the 20 mm the CAD notes listed (Paul, 2026-10-06) |
+| M3 × 10 countersunk, hex socket (the length includes the head) | 15: 12 motor screws + 3 gear-shafts (rev 2026-10-17.2, self-tapping into the shaft) | 5: 4 motor screws + 1 key shaft (v2, through the washer, self-tapping) | on hand (kit has 55) |
+| M6 countersunk self-tapping, 16 mm | 6 | 4 (v2) | on hand. On the key turner, 16 mm works better than the 20 mm the CAD notes listed (Paul, 2026-10-06) |
 | M3 brass heat-set inserts (HANGLIFE, 4.2 mm OD, ~5 mm) | 3 | — | on hand |
 | M3 nylon screws, **16–20 mm** (Mega + RAMPS to the posts) | 3 | — | on hand (Paul). 16 mm gives 4 mm in the insert; longer than 21 mm would bottom in the post |
 | M3 × 3 or × 4 **grub** screws (pinion / hub), optional | 3 | 1 | optional. **Never a cap screw**: its head would hit the gear |
@@ -384,24 +389,37 @@ Tell me if a different order works better, and I'll record it.
 
 ### 1.5 Key turner
 
-From the notes at the end of `cad/key_turner_housing.scad`:
+v2 (revision 2026-10-18.1). From the notes at the end of
+`cad/key_turner_housing.scad`:
 
-1. **Magnets.** Three, in the base, as in §1.3a (before the motor plate
-   goes on).
-2. **Motor onto the motor plate.** Four M3 × 10 countersunk from the plate's
-   inner face.
-3. **Hub onto the shaft.** Its D-bore sits entirely on the shaft's flat.
-   Push it on until the shaft tip bottoms in the bore. The grub screw is
-   optional.
-4. **Plate onto the legs.** Three M6 × 16 countersunk self-tappers, the first
-   by hand. That's 10 mm of thread in each leg, as on the dial unit.
-5. **Cap.** It's a loose part that sits between the key and the hub: its
-   slot takes the bow, and its tongue sits in the hub's groove. It lets the
-   unit sit up to 2.7 mm off the key axis without side-loading the lock.
-6. **Key motor cable.** Its own ~1 m cable runs to the dial unit and plugs
-   into the RAMPS **E0** motor header (revision 2026-10-08.1 — the driver is
-   on the RAMPS now, so there is no board to mount here). Leave the three
-   magnet retainers reachable; zip-tie the cable clear of the rotating cap.
+1. **Magnets.** Three, in the base, as in §1.3a: two beside the key
+   opening, one at the far end (under the motor). Before the motor plate
+   goes on.
+2. **Bearings into the boss.** Press both 608s into the boss from the motor
+   plate's top (the motor side) until the lower one sits on the lip. Same
+   light press fit as the dial unit's bosses.
+3. **Motor onto the plate's top.** Four M3 × 10 countersunk from the plate's
+   underside, as before. Its shaft goes down through the plate.
+4. **Pinion onto the motor shaft**, from below, hub end first. Push it on
+   until it stops: its D-bore stops where the shaft's flat ends, which sets
+   its height (as on the dial unit). The grub screw is optional.
+5. **Key shaft into the bearings**, from below: the journal goes up through
+   both bearings until the spacer above the gear meets the lower bearing.
+   Turn the gear so its teeth mesh with the pinion as it goes in.
+6. **Washer and screw.** Washer on top of the upper bearing, countersink up;
+   an M3 × 10 countersunk through it into the shaft's pilot, by hand. Stop
+   when the washer is snug: the shaft must still turn freely, with no end
+   play. Turn the gear by hand: the motor turns five times as far, the other
+   way, smoothly all round (no tight spot).
+7. **Plate onto the legs.** Four M6 × 16 countersunk self-tappers, the
+   first by hand, as before.
+8. **Cap.** Unchanged: a loose part between the key and the gear. Its slot
+   takes the bow, its tongue sits in the groove in the gear's underside. It
+   lets the unit sit up to 2.7 mm off the key axis without side-loading the
+   lock.
+9. **Key motor cable.** Its own ~1 m cable runs to the dial unit and plugs
+   into the RAMPS **E0** motor header. The motor is now 45 mm further from
+   the dials; zip-tie the cable along the plate, clear of the gear.
 
 ### 1.6 Putting the units on the door
 
@@ -425,16 +443,14 @@ From the notes at the end of `cad/key_turner_housing.scad`:
    needs a calibration saved: the very first time, `calibrate` first.) Nudge the unit left/right, up/down and in twist until all
    three read their highest, let the magnets take it, and `load 3` to check
    it stayed. Then `calibrate` (the dials aren't homed after `load`).
-5. **Key turner:** turn the cap so its two roof marks are **top and bottom**
-   (its slot is then vertical, like the bow). Slide the unit straight on
-   over the key. The keyhole is about 125 mm left of the dial-cluster
-   centre, and the base reaches 43 mm toward the dials, so the two units
-   don't touch.
-
-   **VERIFY:** the cap's tongue sits in a through-groove in the hub, so the
-   cap may slide out while you hold the unit. If it does, put the cap on the
-   bow first (marks top and bottom), then slide the unit on. Turn the hub
-   by hand (motor unpowered) until its groove takes the cap's tongue.
+5. **Key turner:** put the cap on the bow first, roof marks **top and
+   bottom** (slot vertical, like the bow; tongue horizontal). Slide the unit
+   straight on over the key, motor to the **left**. The groove in the gear's
+   underside has to be horizontal to take the tongue: if the unit doesn't
+   go flat, turn the gear by hand (motor unpowered, it turns the motor too)
+   until the tongue drops in. The keyhole is about 125 mm left of the
+   dial-cluster centre, and the unit reaches 42.4 mm toward the dials, so
+   the two units don't touch.
 6. **12 V off**, then plug the key motor cable into the RAMPS E0 motor
    header. Zip-tie it at the key turner and near the RAMPS, clear of the cap.
 

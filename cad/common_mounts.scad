@@ -198,6 +198,29 @@ module dshaft_bore(bore_len = 10, screw_z = 6, round_len = -1) {
     }
 }
 
+// ---- involute spur gear outline (moved here from dial_unit_housing.scad,
+// 2026-10-18, so the key turner's 5:1 pair uses the same generator as the
+// dials' 2:1). gear_profile(m, N, x, pa, bl) = closed 2D outline of an
+// N-tooth gear, module m, profile shift x, pressure angle pa, with bl mm of
+// the pair's circular backlash taken off its teeth.
+function inv_deg(a) = (tan(a) - a*PI/180) * 180/PI;   // involute function, in degrees
+// one flank as [radius, half-thickness angle] pairs, root -> tip
+function _flank(m, N, x, pa, bl, steps) =
+    let(r  = m*N/2, rb = r*cos(pa), ra = r + m*(1 + x), rf = r - m*(1.25 - x),
+        s  = m*(PI/2 + 2*x*tan(pa)) - bl/2,    // tooth thickness at the pitch circle
+        th = s/(2*r) * 180/PI,                  // half-thickness angle there
+        r0 = max(rb, rf),
+        fl = [for (k = [0 : steps]) let(R = r0 + (ra - r0)*k/steps)
+                 [R, th + inv_deg(pa) - inv_deg(acos(min(1, rb/R)))]])
+    rf < rb ? concat([[rf, fl[0][1]]], fl) : fl;   // radial line below the base circle
+function gear_profile(m, N, x = 0, pa = 20, bl = 0, steps = 10) =
+    let(fl = _flank(m, N, x, pa, bl, steps), nf = len(fl),
+        rf = m*N/2 - m*(1.25 - x), p = 360/N, h0 = fl[0][1])
+    [for (i = [0 : N - 1]) let(c = i*p) each concat(
+        [for (k = [0 : nf - 1]) [fl[k][0]*cos(c - fl[k][1]), fl[k][0]*sin(c - fl[k][1])]],
+        [for (k = [nf - 1 : -1 : 0]) [fl[k][0]*cos(c + fl[k][1]), fl[k][0]*sin(c + fl[k][1])]],
+        [for (j = [1 : 4]) let(t = c + h0 + (p - 2*h0)*j/5) [rf*cos(t), rf*sin(t)]])];
+
 // Returns [x, y] positions of `n` points evenly spaced on a circle of
 // radius r, first point at start_angle. Used to lay out both the real
 // (door-matched) hole positions and the motor tier's larger, fanned-out

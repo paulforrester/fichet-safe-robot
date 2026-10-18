@@ -121,23 +121,7 @@ gear_backlash = 0.25;  // mm, total circular backlash of the pair (~1.0deg at th
                        // range for printed gears (judgment, not a cited figure).
 gear_cd       = gear_m * (gear_teeth + pinion_teeth) / 2;  // 21mm (shifts cancel)
 
-function inv_deg(a) = (tan(a) - a*PI/180) * 180/PI;   // involute function, in degrees
-// one flank as [radius, half-thickness angle] pairs, root -> tip
-function _flank(m, N, x, pa, bl, steps) =
-    let(r  = m*N/2, rb = r*cos(pa), ra = r + m*(1 + x), rf = r - m*(1.25 - x),
-        s  = m*(PI/2 + 2*x*tan(pa)) - bl/2,    // tooth thickness at the pitch circle
-        th = s/(2*r) * 180/PI,                  // half-thickness angle there
-        r0 = max(rb, rf),
-        fl = [for (k = [0 : steps]) let(R = r0 + (ra - r0)*k/steps)
-                 [R, th + inv_deg(pa) - inv_deg(acos(min(1, rb/R)))]])
-    rf < rb ? concat([[rf, fl[0][1]]], fl) : fl;   // radial line below the base circle
-function gear_profile(m, N, x = 0, pa = 20, bl = 0, steps = 10) =
-    let(fl = _flank(m, N, x, pa, bl, steps), nf = len(fl),
-        rf = m*N/2 - m*(1.25 - x), p = 360/N, h0 = fl[0][1])
-    [for (i = [0 : N - 1]) let(c = i*p) each concat(
-        [for (k = [0 : nf - 1]) [fl[k][0]*cos(c - fl[k][1]), fl[k][0]*sin(c - fl[k][1])]],
-        [for (k = [nf - 1 : -1 : 0]) [fl[k][0]*cos(c + fl[k][1]), fl[k][0]*sin(c + fl[k][1])]],
-        [for (j = [1 : 4]) let(t = c + h0 + (p - 2*h0)*j/5) [rf*cos(t), rf*sin(t)]])];
+// inv_deg / gear_profile(): common_mounts.scad (shared with the key turner, 2026-10-18)
 
 gear_tip_r   = gear_m * (gear_teeth/2 + 1 + gear_x);      // 14.8
 pinion_tip_r = gear_m * (pinion_teeth/2 + 1 + pinion_x);  // 8.2

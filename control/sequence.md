@@ -1,6 +1,6 @@
 # Control architecture and operating sequence
 
-> **Revision 2026-10-17.2** · key driver on the RAMPS E0 socket; UART pigtail (no change to the sequence) · log: `docs/revisions.md`
+> **Revision 2026-10-18.1** · key turner geared 5:1 (the key's stiff zone, 2026-10-18); key driver on the RAMPS E0 socket; UART pigtail · log: `docs/revisions.md`
 
 Working notes on how the robot actually operates the safe, so this
 doesn't only live in chat. Captures the mechanism understanding and
@@ -139,7 +139,8 @@ connected by a cable:
   microcontroller (Arduino/Pi), and the power supply. This is the
   "brain" — it's the side with 3 motors and the actual combination
   logic, so centralizing electronics here avoids a third enclosure.
-- **Key-turner unit**: a single motor + local driver + a gripper that
+- **Key-turner unit** (revision 2026-10-18.1: the motor drives the key
+  through a 5:1 printed gear pair, `docs/housing_decisions.md`): a single motor + local driver + a gripper that
   clamps onto the real key's bow (already manually inserted into
   socket #4 before the robot goes on — this unit never touches the
   key's blade, just its protruding head). Connected to the dial unit
