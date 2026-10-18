@@ -427,11 +427,11 @@ DEFAULTS = {"rendering_options": {
 apply_preset(model, DEFAULTS)
 EXP = 'Exploded view'
 scene_defs = [
-    ("1 Assembled on the door", [EXP], (-7.0, -11.0, 9.0), (0, -2.0, 5.12), 35.0),
+    ("1 Assembled on the door", [EXP], (-8.0, -12.0, 9.5), (-0.9, -2.0, 5.12), 35.0),
     ("2 Gears and cap (frame and motor hidden)", [EXP, 'Base + legs', 'Motor plate', 'Motor (dummy)', 'Bearings (dummy)'], (-3.6, -6.0, 8.5), (-0.9, -1.0, 5.12), 35.0),
-    ("3 Exploded", ['Assembled view'], (21.0, -16.0, 12.0), (7.87, -5.0, 5.12), 35.0),
-    ("4 Seen from in front of the safe", [EXP], (0, -30.0, 5.12), (0, 0, 5.12), 15.0),
-    ("5 Door side: rubber magnets", [EXP, 'Safe door (reference)', 'Key (from measurements)'], (2.5, 9.0, 7.5), (0, 0, 5.12), 35.0),
+    ("3 Exploded", ['Assembled view'], (25.0, -18.0, 13.0), (9.4, -5.0, 5.12), 35.0),
+    ("4 Seen from in front of the safe", [EXP], (-0.9, -32.0, 5.12), (-0.9, 0, 5.12), 15.0),
+    ("5 Door side: rubber magnets", [EXP, 'Safe door (reference)', 'Key (from measurements)'], (2.0, 10.0, 7.5), (-0.9, 0, 5.12), 35.0),
 ]
 scenes = []
 for name, _, _, _, _ in scene_defs:
@@ -444,6 +444,6 @@ for sc, (name, hide, eye, tgt, fov) in zip(scenes, scene_defs):
     for h in hide: sc.add_layer(tags[h])
 model.set_active_scene(scenes[0])
 tags[EXP].set_visibility(False)
-mc = Camera(); mc.set_orientation(SUPoint3D(-7.0, -11.0, 9.0), SUPoint3D(0, -2.0, 5.12), SUVector3D(0, 0, 1))
+mc = Camera(); mc.set_orientation(SUPoint3D(-8.0, -12.0, 9.5), SUPoint3D(-0.9, -2.0, 5.12), SUVector3D(0, 0, 1))
 mc.enable_perspective(); mc.set_perspective_frustum_fov(35.0); model.set_camera(mc)
 result = {k: {'faces': len(d.get_entities().get_faces()), 'manifold': d.is_manifold()} for k, d in defs.items()}

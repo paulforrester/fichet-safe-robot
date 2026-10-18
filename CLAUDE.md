@@ -271,6 +271,12 @@ recess, 4mm wire hole beside the endstop block; revision 2026-10-09.1,
 
 ## Firmware — `control/firmware/` (v0.7.1, 2026-10-18; read its README)
 
+**v0.8 (PR #58, with key turner v2):** `CFG_KEY_GEAR 5`, `CFG_INVERT_KEY 1`;
+motor currents outside 100–1200 mA refused (`set maK 0` had run the key at
+full scale: TMCStepper's `rms_current(0)` wraps to IRUN 31); a key that
+stalls on its way back > 5° short of its rest is `ERR KEYSTUCK` (refused
+until `keyback`), not the rest stop; key stall rule `keycalpct`.
+
 Host-tested; v0.4 ran through bench bring-up stages 1–4b (2026-10-10 to
 14), v0.5 on the door 2026-10-17/18 (the settle fixed B's homing drift),
 **v0.6 not yet on hardware** (v0.6 adds `load`: all dials turn together,
