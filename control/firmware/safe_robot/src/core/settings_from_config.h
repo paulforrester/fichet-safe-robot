@@ -66,6 +66,7 @@ inline Settings makeSettings() {
   s.fclkHz = CFG_FCLK_HZ;
   s.sgAutocal = CFG_SG_AUTOCAL;
   s.sgCalPct = CFG_SG_CAL_PCT;
+  s.keyCalPct = CFG_KEY_SG_CAL_PCT;
   s.sgCalMinBase = CFG_SG_CAL_MIN_BASE;
   s.detentAutocal = CFG_DETENT_AUTOCAL;
   s.detentMinAmp = CFG_DETENT_MIN_AMP;

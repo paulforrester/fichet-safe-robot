@@ -162,6 +162,7 @@ struct SimHal : public core::Hal {
   }
   bool configure(core::Axis ax, const core::DriverSetup& s) override {
     if (s.runMa > 1200) violations.push_back("current above ceiling");
+    if (s.runMa < 100) violations.push_back("current below floor (TMCStepper wraps to full scale)");
     sgthrs[ax] = s.sgthrs;
     gstatFlags[ax] = 0;
     return !configFails;

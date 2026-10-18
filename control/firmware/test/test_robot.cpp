@@ -561,7 +561,7 @@ TEST(session_calibrates_thresholds_and_click_positions) {
     CHECK_EQ(h.detentOf(d), d == 2 ? 1 : 0);
   }
   CHECK(std::abs(calField(h, 'K', 3) - 240) <= 2);
-  CHECK_EQ(s.ax[AX_KEY].sgthrs, 60);
+  CHECK_EQ(s.ax[AX_KEY].sgthrs, 30);  // 25 % of 240 (keycalpct, v0.7.2); the dials keep 50 %
   noViolations(h);
 }
 
@@ -672,6 +672,10 @@ TEST(settle_fall_of_8_full_steps_stops_at_the_recheck_and_says_the_offset) {
   h.secret[0] = 1; h.secret[1] = 2; h.secret[2] = 3;
   Settings s = tunedSettings();
   s.detentAutocal = 0;
+  // The homing count jitters by ~1 full step with the simulated StallGuard
+  // noise (v0.7.2: a shorter key calibration turn shifted it from 8 to 7 and
+  // the re-check passed). A 6-step margin keeps the 8-step fall clearly over.
+  s.recheckHomeTolFull = 6;
   {
     Robot r(h, s);
     r.boot();
@@ -1413,4 +1417,35 @@ TEST(stage5_key_only_bench_sequence) {
   CHECK(h.has("NSTOP,"));
   CHECK(!h.has("ERR,"));
   noViolations(h);
+}
+
+// v0.7.2: `set maK 0` ran the key at full scale on the door (TMCStepper's
+// rms_current(0) wraps to IRUN 31, ~1.77 A RMS). Out-of-range currents are
+// refused and leave the value as it was; config values below the floor stop
+// before any driver is written.
+TEST(motor_current_out_of_range_is_refused) {
+  SimHal h;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("set maK 0");
+  CHECK(h.has("# maK must be 100..1200 mA: unchanged at 1000"));
+  r.handleLine("set maA 1300");
+  CHECK(h.has("# maA must be 100..1200 mA: unchanged at 600"));
+  r.handleLine("set maK 99");
+  r.handleLine("set maK 100");
+  CHECK(h.has("# set maK=100"));
+  r.handleLine("key 20");
+  CHECK(h.last("# key went").size() > 0);
+  noViolations(h);
+  // Control: a config value of 0 is refused at configure, before any move.
+  SimHal h2;
+  Settings s2 = tunedSettings();
+  s2.ax[AX_KEY].runMa = 0;
+  Robot r2(h2, s2);
+  r2.boot();
+  r2.handleLine("key 20");
+  CHECK(h2.last("ERR,").find("CONFIG") != std::string::npos);
+  CHECK(h2.moves.empty());
+  CHECK(h2.violations.empty());
 }

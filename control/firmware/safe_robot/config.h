@@ -45,7 +45,7 @@
 // stall level. The dial torque itself is still not measured.
 #define CFG_DIAL_RUN_MA          600
 #define CFG_DIAL_HOLD_PCT        50
-#define CFG_KEY_RUN_MA           600    // start; stage 5 sets it to 2x the measured minimum
+#define CFG_KEY_RUN_MA           1000   // 2x the measured minimum: below 500 mA the key stalled (Paul, door, 2026-10-18)
 #define CFG_KEY_HOLD_PCT         50
 #define CFG_SEAT_MA              600    // lower current while seating the plugs
 
@@ -83,6 +83,11 @@
 // step and prints the results. Bench stages 3-4 check the numbers.
 #define CFG_SG_AUTOCAL           1
 #define CFG_SG_CAL_PCT           50     // ASSUMPTION: stall = SG down to 50 % of the free-running low; stage 3 checks
+// Key (v0.7.2, door 2026-10-18 at 1000 mA): free turn reads 200-244; from
+// ~50 deg the key meets graduated resistance up to its ~100 deg stop, and
+// there it dips to ~142 every 4 full steps. 50 % (trip at ~130) stopped
+// every learn at 55 deg. 25 % trips at ~65: half the stiff zone's dips.
+#define CFG_KEY_SG_CAL_PCT       25
 #define CFG_SG_CAL_MIN_BASE      40     // a lower free-running SG can't be told from a stall
 // 0 since 2026-10-18: on the door the click-found offsets put position 0 on
 // the stop and each target on the near side of its click (bring-up 4b); the
@@ -90,7 +95,7 @@
 // the ripple. 1 = find position 0 from the clicks every session.
 #define CFG_DETENT_AUTOCAL       0
 #define CFG_DETENT_MIN_AMP       3      // ripple (SG units) needed to trust the click phase; else the offsets below
-#define CFG_KEY_CAL_DEG          60     // the key stops at ~100 deg: 60 is well clear
+#define CFG_KEY_CAL_DEG          45     // free travel only: resistance starts at ~55 deg, stop at ~100 (Paul, 2026-10-18; was 60)
 
 // ---- Seat and home (dials) -----------------------------------------------------
 #define CFG_SEAT_DIAL_DEG        45     // at most 1/8 dial turn (control/sequence.md); turned clockwise

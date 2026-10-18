@@ -69,6 +69,7 @@ struct Settings {
   // Self-calibration (control/firmware/README.md, "Calibration")
   uint8_t sgAutocal;            // 1 = set SGTHRS every session from a free turn / free key travel
   uint8_t sgCalPct;             // stall = SG_RESULT down to this % of the free-running baseline
+  uint8_t keyCalPct;            // the same for the key (v0.7.2: its turn gets stiffer from ~55 deg)
   uint16_t sgCalMinBase;        // a baseline below this can't be told from a stall: error
   uint8_t detentAutocal;        // 1 = find the clicks every session; position 0 = first click
   uint8_t detentMinAmp;         // click ripple (SG units) needed to trust it
