@@ -2,9 +2,11 @@
 
 > **Revision 2026-10-18.1** · key turner v2: 5:1 printed gears (2026-10-18.1); gear-shaft on a tapered hex with an M3 screw (2026-10-17.2); key driver on the RAMPS E0 socket; UART pigtail · log: `docs/revisions.md`
 
-For Paul. Covers the robot as of **revision 2026-10-08.2**: dial unit v2, key
-turner v1, wiring with all four drivers on the RAMPS and the UART pigtail
-(`control/wiring.md`), firmware **0.4** (unchanged by 2026-10-08.2).
+For Paul. Covers the robot as of **revision 2026-10-18.1**: dial unit v3, key
+turner **v2** (5:1 gears, §1.5), wiring with all four drivers on the RAMPS and
+the UART pigtail (`control/wiring.md`), firmware **0.8** (PR #58; the command
+reference is `control/firmware/README.md`). Correction (2026-10-18): this line
+still said revision 2026-10-08.2, key turner v1 and firmware 0.4.
 
 **Status:** nothing has run on hardware yet. The first time through, follow
 the bench bring-up (`control/bringup.md`) instead of section 5. It builds
