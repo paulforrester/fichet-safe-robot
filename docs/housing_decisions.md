@@ -1,6 +1,6 @@
 # Housing — design decision log
 
-> **Revision 2026-10-17.2** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
+> **Revision 2026-10-18.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
 
 
 Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
@@ -9,10 +9,62 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
 
-## 2026-10-18: the key has a stiff zone from ~55° to its stop — direct drive is not enough (open)
+## 2026-10-18 (later): key turner v2 — 5:1 printed spur gears (revision 2026-10-18.1)
 
-**Door, bring-up stage 5 (Paul).** Luggage scale on the 50mm lever, drivers
-off, cap on, dial unit on the door:
+**Why:** the key needs ≥ 0.98 N·m to start back from its stop (entry
+below); the 17HE19-2004S gives ~0.3–0.4 N·m at 1 A and 1.2 A is the
+firmware ceiling. Paul chose 5:1 with printed gears.
+
+**Gears:** module 1.25, 20°, **12T pinion on the motor / 60T on the key
+axis**, profile shift +0.3 / −0.3 (a 12T cuts its own roots below ~17T
+without it; the shifts cancel, so the centre distance stays 45mm), 0.25mm
+backlash (as the dial pair: 0.38° at the key), faces 12.5 / 11.5mm. The
+generator is the dials' `gear_profile()`, moved to `common_mounts.scad` so
+both units share it (dial geometry unchanged: `stl_freshness_check.py`).
+Output torque ~0.35 N·m × 5 × ~0.9 ≈ 1.5 N·m, ~1.5× the breakaway (2× at
+1.2 A). Tooth load at 2 N·m: ~53 N on the 60T's pitch circle, Lewis bending
+on the 12T ~14 MPa — under half of printed PETG's strength (judgment, not a
+cited fatigue figure). Module 1 would have made the gear smaller but the
+12T's tooth stress ~1.6× higher; module 1.5 would have put the 60T's tips
+at 46.5mm, past the 43mm allowed toward the dials.
+
+**Layout:** the motor sits 45mm **left** of the key (away from the dials;
+the door is flat ~150mm left of and above the key, scaled from
+`docs/photos/door-overall.jpg` with the 125mm key-to-dials distance). The
+60T is on the key axis: the cap's groove is cut into its underside, closed
+at both ends with square corners (the tongue's are square; the first draft
+had round ends and the 3D check caught the tongue's corners hitting them at
+2.5mm offset). Above the gear: an 11mm spacer on the lower 608's inner
+ring, a 7.85mm journal in two 608s in a boss under the motor plate, and a
+washer + M3×10 countersunk self-tapping into the shaft that clamps both
+inner rings (no end play). The motor plate's top is flush with the boss:
+the motor stands on it, and the pinion goes on the shaft from below and
+stops where the D-flat ends, as the dial pinions do. 4 legs: two beside the
+key at (21.1, ±45.3), 5.6mm outside the gear's tips; two at the motor
+(−45, ±31), their M6 heads clear of the can. 3 magnets: two beside the key
+at ±30° (31mm), one under the motor's far end (−62, 0). Nothing but the key
+reaches past x = 42.35mm (the dials' side).
+
+**Unchanged:** the cap (and so the Oldham alignment: ±2.7mm), the base's
+key opening, the magnet seats, the M6 and M3 screws.
+
+**Checked:** `cad/tools/key_turner_check.py` (now with the gears): no part
+overlaps any other at key angles 0/50/100° and offsets up to 2.5mm; furthest
+toward the dials 42.35mm; 2D mesh from the SCAD's own outlines, no overlap
+through a tooth pitch, still none with the centre distance 0.15mm short,
+contact ratio 1.52. STLs watertight. SketchUp script volumes within 1.5% of
+the STLs (the washer's countersink left out).
+
+**Not known yet (bench):** whether StallGuard tells the stiff zone from the
+stop through the gears (stage 5 redoes the `sg K` trace); the key current
+(stage 5 redoes the minimum); motor direction (one gear pair reverses it:
+firmware `CFG_INVERT_KEY 1`, checked in stage 5 step 1).
+
+## 2026-10-18: the key has a stiff zone from ~55° to its stop — direct drive is not enough
+
+**Door, bring-up stage 5 (Paul).** Luggage scale on the fit-test lever
+(50mm), with the key turner off the door: only the key, the fit-test cap and
+lever, and the scale (Paul):
 
 | Part of the turn | Reading | Torque (× 9.81 × 0.050) |
 |---|---|---|
@@ -41,12 +93,14 @@ zone that reads 0.74 N·m by hand. That is more than the ~0.3–0.4 N·m
 estimated for the motor at 1 A. Either the motor gives more than estimated,
 or the zone needs less torque at the motor's speed than by hand. Unknown.
 
-**Open:** whether the stiff zone is the lock itself or comes from the dial
-unit (its spring-loaded plugs press the wheel pack). Next: the same readings
-with the dial unit off the door. If it is the lock, the key turner needs a
-reduction. Ratio from the breakaway torque: ≥ 1 N·m × 2 margin ÷ ~0.35 N·m
-motor ≈ 5–6:1 for 2× margin, ~3:1 for none. `CFG_KEY_GEAR` already handles a
-ratio in the firmware.
+**Lock or robot?** The readings were taken with nothing of the key turner
+on the key but the fit-test cap and lever, so the cap's alignment can't
+cause it. Paul: the dial unit slides freely in its mount and never binds.
+Not tested: the same readings with the dial unit off the door (its
+spring-loaded plugs press the wheel pack). Treated as the lock's own.
+**Decision (Paul, 2026-10-18): a 5:1 reduction, printed gears** (offered:
+printed 12T/60T, or a bought 5.18:1 planetary NEMA17 — STEPPERONLINE
+17HS19-1684S-PG5, ≤ 1° backlash, gearbox max 2 N·m). Design: entry above.
 
 ## 2026-10-18: placing the dial unit — it floats on its plugs (open)
 

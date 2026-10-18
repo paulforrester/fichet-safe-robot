@@ -1,9 +1,13 @@
 # CLAUDE.md — Fichet-Bauche safe combination robot
 
 Context for any Claude session working in this repo. Read this first, then
-the doc that matches your task (table below). Last updated 2026-10-17.
+the doc that matches your task (table below). Last updated 2026-10-18.
 
-> **Project revision 2026-10-17.2** — all four TMC2209 drivers are on the
+> **Project revision 2026-10-18.1** — **key turner v2: 5:1 printed spur
+> gears** (12T on the motor, 45 mm left of the key; 60T on the key axis with
+> the cap's groove in its underside; key shaft on two 608s). The key needs
+> ≥ 0.98 N·m to start back from its stop; direct drive couldn't (2026-10-18).
+> Earlier: all four TMC2209 drivers are on the
 > RAMPS (the key in the **E0** socket); there is no remote driver board or
 > inter-unit signal cable, only the key motor's own cable. The UART junction
 > is a six-lead **UART pigtail** (R1 in the TX2 lead, one splice), not a
@@ -43,8 +47,9 @@ Two 3D-printed units sit on the steel door (rubber-coated magnets):
 - **Dial unit** — 3 NEMA17 motors driving the 3 dials through 2:1 gears,
   plus all the electronics (Arduino Mega 2560 + RAMPS 1.4 + **four** TMC2209
   drivers: three dials and the key — revision 2026-10-08.1).
-- **Key-turner unit** — 1 NEMA17 on the key axis, driving a cap that slips
-  over the key's bow. Its driver is in the RAMPS **E0** socket on the dial
+- **Key-turner unit** — 1 NEMA17, 45 mm left of the key, driving a 60T gear
+  on the key axis through a 12T pinion (5:1, revision 2026-10-18.1); the gear
+  drives a cap that slips over the key's bow. Its driver is in the RAMPS **E0** socket on the dial
   unit; only the key motor's own cable runs between the units.
 
 Project phases: mechanical (nearly done, being printed); wiring harness
@@ -149,17 +154,19 @@ RAMPS, UART pigtail); firmware written and host-tested
   clicks don't show in StallGuard, so its position 0 is the config offset.
   Paul's decision (2026-10-16): don't chase it; every homing ends with a
   **settle** (dial drivers off 0.5 s, so each dial falls into its click).
-- **Key turner:** direct drive, motor on the key axis. The key turns
+- **Key turner:** **5:1 printed spur gears** (12T/60T, module 1.25,
+  revision 2026-10-18.1; `cad/key_turner_housing.scad`, decision log
+  2026-10-18): the motor turns 5× the key, the other way. The key turns
   **clockwise (seen from in front of the safe) to ~100° and stops** with a
   wrong combination. Key torque (50 mm lever): **0.05–0.10 N·m to ~55°, then
   a stiff zone to the stop: 0.74 N·m either way, ≥ 0.98 N·m to start back
   from the stop** (Paul, 2026-10-18; the 2026-10-06 "0.07–0.08 N·m" was the
   easy part, and its withdrawn "1.4 kg" reading matches the stiff zone). At
-  1 A the motor drives the key out to the stop but can't start it back:
-  direct drive is not enough (`docs/housing_decisions.md`, 2026-10-18; open:
-  is it the lock or the dial unit?).
-  Motor direction vs. key direction is not established — determine it on
-  the bench at low current. Run the key motor at reduced current (~2× the
+  1 A the motor drove the key out to the stop but couldn't start it back:
+  direct drive was not enough (measured with only the fit-test lever on the
+  key, so not the cap; treated as the lock's own). Direct drive turned the
+  key clockwise with `invK 0` (stage 5, 2026-10-18), so geared it needs
+  `CFG_INVERT_KEY 1` (stage 5 step 1 re-checks). Run the key motor at reduced current (~2× the
   key's torque) and stop on StallGuard at the end stop, so it doesn't push
   the housing off its magnets.
 - **Attachment:** 22 mm rubber-coated M4 pot magnets (6 on the dial unit,
@@ -263,6 +270,12 @@ recess, 4mm wire hole beside the endstop block; revision 2026-10-09.1,
 `docs/housing_decisions.md`): check it on the reprinted deck.
 
 ## Firmware — `control/firmware/` (v0.7.1, 2026-10-18; read its README)
+
+**v0.8 (PR #58, with key turner v2):** `CFG_KEY_GEAR 5`, `CFG_INVERT_KEY 1`;
+motor currents outside 100–1200 mA refused (`set maK 0` had run the key at
+full scale: TMCStepper's `rms_current(0)` wraps to IRUN 31); a key that
+stalls on its way back > 5° short of its rest is `ERR KEYSTUCK` (refused
+until `keyback`), not the rest stop; key stall rule `keycalpct`.
 
 Host-tested; v0.4 ran through bench bring-up stages 1–4b (2026-10-10 to
 14), v0.5 on the door 2026-10-17/18 (the settle fixed B's homing drift),

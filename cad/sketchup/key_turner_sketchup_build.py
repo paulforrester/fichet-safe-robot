@@ -1,13 +1,16 @@
 # ============================================================
-# SketchUp review model of the key-turner unit (v1) — build script for the
-# Trimble SketchUp connector's build_model (no imports; `math` pre-loaded).
-# Not the print source: cad/key_turner_housing.scad is. Same numbers; checked
-# 2026-10-06: every part closed with outward faces, volumes within 1% of the
-# SCAD STLs (cap/base omit the cosmetic chamfer, notch and roof marks).
+# SketchUp review model of the key-turner unit (v2, 5:1 geared, 2026-10-18)
+# — build script for the Trimble SketchUp connector's build_model (no
+# imports; `math` pre-loaded). Not the print source:
+# cad/key_turner_housing.scad is. Same numbers (gear outlines from the same
+# involute formula as common_mounts.scad's gear_profile()).
 # Use: paste the whole file into build_model (clean: true), then save_model.
-# 2026-10-06: base 5mm, legs at 0/120/240, 3 rubber pot magnets at 60/180/300.
+# v2: 12T pinion on the motor 45mm to the left, 60T gear on the key axis
+# (the cap's groove is in its underside), key shaft on two 608s in the motor
+# plate's boss, 4 legs, magnets at +/-30deg and under the motor's far end.
+# Cosmetic details left out: chamfers, notch, marks, pilot/countersinks in
+# the shaft and washer, the pinion's round bore section.
 # ============================================================
-# Key-turner v1 geometry for SketchUp (pure python + math), mirrors cad/key_turner_housing.scad.
 # Frame: x right, y up on the door, z out of the door (z=0 door face), key axis = z.
 # Faces are (outer_loop, [inner_loops]) of (x, y, z); normals point out of the material.
 
@@ -17,20 +20,54 @@ SWELL_T = 9.48; SWELL_Z = 8.0; RING_R = 10.75 / 2; RING_Z = KEY_PROT - 6.6 - RIN
 CAP_OD = 36.0; CAP_Z0 = 18.5; SLOT_W = 3.3; SLOT_L = 30.0; SLOT_TOP = KEY_PROT + 0.6
 MOUTH_W = 6.0; MOUTH_H = 1.5; CAP_TOP = SLOT_TOP + 2.0
 TONGUE_W, TONGUE_H, TONGUE_L = 6.0, 4.0, 28.0
-HUB_R = 15.0; HUB_Z0 = CAP_TOP + 0.5; GROOVE_W = 6.5; GROOVE_TOP = CAP_TOP + TONGUE_H + 0.5
-SHAFT_TIP = GROOVE_TOP + 1.5; MOTOR_FACE = SHAFT_TIP + 24.0; HUB_Z1 = MOTOR_FACE - 10.5
-BASE_T = 5.0; BASE_R = 43.0; BASE_HOLE_R = 14.0
-MP_T = 6.0; MP_Z0 = MOTOR_FACE - MP_T
-LEG_R = 6.0; LEG_POS = 36.0; LEG_ANG = [0.0, 120.0, 240.0]
+GROOVE_W = 6.5; GROOVE_TOP = CAP_TOP + TONGUE_H + 0.5; GROOVE_HALF_L = TONGUE_L / 2 + 2.7 + 0.5
+# gears 5:1, module 1.25, 20deg, shifts -0.3 / +0.3, 0.25mm backlash
+GM, GN, PN, GX, PX, PA, BL = 1.25, 60, 12, -0.3, 0.3, 20.0, 0.25
+CD = GM * (GN + PN) / 2                      # 45
+MXY = (-CD, 0.0)                             # motor axis
+GEAR_Z0 = CAP_TOP + 0.5; GEAR_Z1 = 46.5
+SPACER_R = 11.0 / 2; JOURNAL_R = 7.85 / 2
+BOSS_Z0 = GEAR_Z1 + 2.0; LIP_H = 2.0; BEAR_Z0 = BOSS_Z0 + LIP_H; BEAR_Z1 = BEAR_Z0 + 14.0
+BOSS_R = (22.15 + 5.0) / 2; POCKET_R = 22.15 / 2; LIP_HOLE_R = 19.5 / 2
+SHAFT_TOP = BEAR_Z1 - 0.3
+WASHER_R, WASHER_T, WASHER_HOLE_R = 11.0 / 2, 2.5, 3.4 / 2
+MOTOR_FACE = BEAR_Z1; MP_T = 6.0; MP_Z0 = MOTOR_FACE - MP_T
+SHAFT_TIP = MOTOR_FACE - 24.0
+PIN_Z0, PIN_Z1, PIN_TOP, PIN_HUB_R = 34.5, GEAR_Z1 + 0.5, MP_Z0 - 1.0, 16.0 / 2
+BASE_T = 5.0; BASE_HOLE_R = 14.0
+LEG_R = 6.0
+LEGS = [[21.1, 45.3], [21.1, -45.3], [-CD, 31.0], [-CD, -31.0]]
 RMAG_R, RMAG_H, RMAG_HOLE_R, RMAG_RING_R, RMAG_SEAT = 21.5 / 2, 6.0, 21.7 / 2, 29.0 / 2, 6.0 - 0.2   # 22mm rubber pot magnets
 RMAG_RET_R, RMAG_RET_T, RMAG_SCREW_R = 27.0 / 2, 3.0, 4.5 / 2
-MAGS = [[31.0 * math.cos(math.radians(a)), 31.0 * math.sin(math.radians(a))] for a in (60.0, 180.0, 300.0)]
+MAGS = [[31.0 * math.cos(math.radians(a)), 31.0 * math.sin(math.radians(a))] for a in (30.0, -30.0)] + [[-62.0, 0.0]]
 PILOT_R = 5.4 / 2; PILOT_D = 16.0
 M6_CLR_R = 6.4 / 2; CSK_R = 14.0 / 2; CSK_D = (14.0 - 6.4) / 2
 BOLT_SQ = 31.0; BOLT_R = 3.4 / 2; CB_R = 6.3 / 2; CB_D = (6.3 - 3.4) / 2
 BOSS_REC_R = 23.0 / 2; BOSS_REC_H = 2.5; SHAFT_HOLE_R = 7.0 / 2
 NEMA = 42.3; CAN_CLR = 1.5; SHAFT_LEN = 24.0
-LEGS = [[LEG_POS * math.cos(math.radians(a)), LEG_POS * math.sin(math.radians(a))] for a in LEG_ANG]
+
+
+def inv(a):
+    return math.tan(a) - a
+
+
+def gear_profile(m, N, x, pa_deg, bl, steps=10):
+    """closed 2D outline, the same construction as common_mounts.scad's gear_profile()"""
+    pa = math.radians(pa_deg)
+    r = m * N / 2; rb = r * math.cos(pa); ra = r + m * (1 + x); rf = r - m * (1.25 - x)
+    s_ = m * (math.pi / 2 + 2 * x * math.tan(pa)) - bl / 2
+    th = s_ / (2 * r)
+    r0 = max(rb, rf)
+    fl = [[r0 + (ra - r0) * k / steps, 0.0] for k in range(steps + 1)]
+    fl = [[R, th + inv(pa) - inv(math.acos(min(1.0, rb / R)))] for R, _ in fl]
+    if rf < rb: fl = [[rf, fl[0][1]]] + fl
+    p = 2 * math.pi / N; h0 = fl[0][1]; out = []
+    for i in range(N):
+        c = i * p
+        out += [[R * math.cos(c - t), R * math.sin(c - t)] for R, t in fl]
+        out += [[R * math.cos(c + t), R * math.sin(c + t)] for R, t in reversed(fl)]
+        out += [[rf * math.cos(c + h0 + (p - 2 * h0) * j / 5), rf * math.sin(c + h0 + (p - 2 * h0) * j / 5)] for j in range(1, 5)]
+    return out
 
 
 def circle(cx, cy, r, n, a0=0.0):
@@ -114,7 +151,8 @@ def dbore_loop(r=5.0 / 2 + 0.15, flat_y=2.0 + 0.15, n=32):
 
 # ---------------- parts ----------------
 def kt_base():
-    pts = circle(0, 0, BASE_R, 96)
+    pts = circle(0, 0, BASE_HOLE_R + 6, 96)
+    for p in LEGS: pts += circle(p[0], p[1], LEG_R + 2, 32)
     for m in MAGS: pts += circle(m[0], m[1], RMAG_RING_R + 1, 48)
     out = ccw(hull(pts)); hole = circle(0, 0, BASE_HOLE_R, 48)
     legs = [circle(p[0], p[1], LEG_R, 24) for p in LEGS]
@@ -145,21 +183,26 @@ def kt_retainer():
 def kt_motor_plate():
     z0, z1 = MP_Z0, MOTOR_FACE
     hs = (NEMA + CAN_CLR + 6) / 2
-    pts = [[-hs, -hs], [hs, -hs], [hs, hs], [-hs, hs]]
+    mx, my = MXY
+    pts = [[mx - hs, my - hs], [mx + hs, my - hs], [mx + hs, my + hs], [mx - hs, my + hs]] + circle(0, 0, BOSS_R, 96)
     for p in LEGS: pts += circle(p[0], p[1], CSK_R + 4, 48)
     out = ccw(hull(pts))
-    shaft = circle(0, 0, SHAFT_HOLE_R, 24); rec = circle(0, 0, BOSS_REC_R, 48)
-    bolts = [[sx * BOLT_SQ / 2, sy * BOLT_SQ / 2] for sx in (-1, 1) for sy in (-1, 1)]
+    boss = circle(0, 0, BOSS_R, 96); pocket = circle(0, 0, POCKET_R, 96); lip = circle(0, 0, LIP_HOLE_R, 96)
+    shaft = circle(mx, my, SHAFT_HOLE_R, 24); rec = circle(mx, my, BOSS_REC_R, 48)
+    bolts = [[mx + sx * BOLT_SQ / 2, my + sy * BOLT_SQ / 2] for sx in (-1, 1) for sy in (-1, 1)]
     cb = [circle(b[0], b[1], CB_R, 16) for b in bolts]; bh = [circle(b[0], b[1], BOLT_R, 16) for b in bolts]
     jc = [circle(p[0], p[1], M6_CLR_R, 24) for p in LEGS]; jk = [circle(p[0], p[1], CSK_R, 24) for p in LEGS]
-    F = [hface(out, z0, False, [shaft] + cb + jc), hface(out, z1, True, [rec] + bh + jk)]
+    F = [hface(out, z0, False, [boss, shaft] + cb + jc), hface(out, z1, True, [pocket, rec] + bh + jk)]
     F += wall(out, z0, z1, True)
+    # bearing boss below the plate: outer wall, bottom ring, lip hole, lip top, pocket
+    F += wall(boss, BOSS_Z0, z0, True) + [hface(boss, BOSS_Z0, False, [lip])]
+    F += wall(lip, BOSS_Z0, BEAR_Z0, False) + [hface(pocket, BEAR_Z0, True, [lip])] + wall(pocket, BEAR_Z0, z1, False)
     zr = z1 - BOSS_REC_H
     F += wall(shaft, z0, zr, False) + [hface(rec, zr, True, [shaft])] + wall(rec, zr, z1, False)
     for k in range(4):
         F += wall(cb[k], z0, z0 + CB_D, False, loop2_top=bh[k]) + wall(bh[k], z0 + CB_D, z1, False)
     zc = z1 - CSK_D
-    for i in range(3):
+    for i in range(len(LEGS)):
         F += wall(jc[i], z0, zc, False) + wall(jc[i], zc, z1, False, loop2_top=jk[i])
     return F
 
@@ -182,32 +225,38 @@ def kt_cap():
     return F
 
 
-def kt_hub():
-    r = HUB_R; g = GROOVE_W / 2; a1 = math.asin(g / r); n = 64
-    ang = sorted(set([2 * math.pi * i / n for i in range(n)] + [a1, math.pi - a1, math.pi + a1, 2 * math.pi - a1]))
-    P = [[r * math.cos(a), r * math.sin(a)] for a in ang]
-    A = [p for a, p in zip(ang, P) if a1 - 1e-9 <= a <= math.pi - a1 + 1e-9]               # y >= g arc
-    B = [p for a, p in zip(ang, P) if math.pi + a1 - 1e-9 <= a <= 2 * math.pi - a1 + 1e-9]  # y <= -g arc
-    R = [p for a, p in zip(ang, P) if a <= a1 + 1e-9 or a >= 2 * math.pi - a1 - 1e-9]       # right ends, |y|<=g
-    Lf = [p for a, p in zip(ang, P) if math.pi - a1 - 1e-9 <= a <= math.pi + a1 + 1e-9]     # left ends
-    z0, zg, z1 = HUB_Z0, GROOVE_TOP, HUB_Z1
-    F = [face3(L3(A, z0), (0, 0, -1)), face3(L3(B, z0), (0, 0, -1))]
-    for arc in (A, B):
-        for i in range(len(arc) - 1):
-            p, q = arc[i], arc[i + 1]
-            F.append(face3([(p[0], p[1], z0), (q[0], q[1], z0), (q[0], q[1], zg), (p[0], p[1], zg)], (p[0] + q[0], p[1] + q[1], 0)))
-    xa = r * math.cos(a1)
-    F.append(face3([(xa, g, z0), (-xa, g, z0), (-xa, g, zg), (xa, g, zg)], (0, -1, 0)))
-    F.append(face3([(xa, -g, z0), (-xa, -g, z0), (-xa, -g, zg), (xa, -g, zg)], (0, 1, 0)))
-    # groove ceiling strip: right arc (from -a1 up to a1) then left arc (pi-a1 .. pi+a1)
-    Rs = sorted(R, key=lambda p: p[1]); Ls = sorted(Lf, key=lambda p: -p[1])
-    F.append(face3(L3(Rs + Ls, zg), (0, 0, -1)))
-    full = ccw(P)
-    F += wall(full, zg, z1, True)
-    dl = dbore_loop()
-    F.append(hface(full, z1, True, [dl]))
-    F += wall(dl, SHAFT_TIP, z1, False) + [hface(dl, SHAFT_TIP, True)]
+def kt_key_shaft():
+    g = ccw(gear_profile(GM, GN, GX, PA, BL))
+    gr = rect(GROOVE_HALF_L, GROOVE_W / 2)
+    sp = circle(0, 0, SPACER_R, 48); jn = circle(0, 0, JOURNAL_R, 48)
+    F = [hface(g, GEAR_Z0, False, [gr])] + wall(g, GEAR_Z0, GEAR_Z1, True)
+    F += wall(gr, GEAR_Z0, GROOVE_TOP, False) + [hface(gr, GROOVE_TOP, False)]
+    F.append(hface(g, GEAR_Z1, True, [sp]))
+    F += wall(sp, GEAR_Z1, BEAR_Z0, True) + [hface(sp, BEAR_Z0, True, [jn])]
+    F += wall(jn, BEAR_Z0, SHAFT_TOP, True) + [hface(jn, SHAFT_TOP, True)]
     return F
+
+
+def kt_pinion():
+    p = ccw(gear_profile(GM, PN, PX, PA, BL)); hub = circle(0, 0, PIN_HUB_R, 48); dl = dbore_loop()
+    zb = SHAFT_TIP - 0.5
+    F = [hface(p, PIN_Z0, False)] + wall(p, PIN_Z0, PIN_Z1, True) + [hface(p, PIN_Z1, True, [hub])]
+    F += wall(hub, PIN_Z1, PIN_TOP, True) + [hface(hub, PIN_TOP, True, [dl])]
+    F += wall(dl, zb, PIN_TOP, False) + [hface(dl, zb, True)]
+    return F
+
+
+def annulus(ro, ri, h, n=48):
+    o = circle(0, 0, ro, n); i = circle(0, 0, ri, max(16, n // 2))
+    return [hface(o, 0.0, False, [i]), hface(o, h, True, [i])] + wall(o, 0, h, True) + wall(i, 0, h, False)
+
+
+def kt_washer():
+    return annulus(WASHER_R, WASHER_HOLE_R, WASHER_T)
+
+
+def kt_bearing():
+    return annulus(11.0, 4.0, 7.0, 64)
 
 
 def kt_key_collar():
@@ -245,12 +294,13 @@ def kt_motor():
     return F
 
 
-def kt_door(size=140.0, thick=6.0):
-    s = size / 2; sq = rect(s, s); hl = circle(0, 0, 12.05 / 2, 32)
+def kt_door(thick=6.0):
+    sq = [[60.0, 80.0], [-120.0, 80.0], [-120.0, -80.0], [60.0, -80.0]]; hl = circle(0, 0, 12.05 / 2, 32)
     return [hface(sq, -thick, False, [hl]), hface(sq, 0.0, True, [hl])] + wall(sq, -thick, 0.0, True) + wall(hl, -thick, 0.0, False)
 
 
-KT_PARTS = dict(base=kt_base, plate=kt_motor_plate, cap=kt_cap, hub=kt_hub, collar=kt_key_collar,
+KT_PARTS = dict(base=kt_base, plate=kt_motor_plate, cap=kt_cap, shaft=kt_key_shaft, pinion=kt_pinion,
+                washer=kt_washer, bearing=kt_bearing, collar=kt_key_collar,
                 head=kt_key_head, motor=kt_motor, door=kt_door, rmag=kt_rmag, retainer=kt_retainer)
 
 # ================= SketchUp adapter + placement + scenes =================
@@ -306,7 +356,10 @@ spec = [  # key, definition name, material, rgba, tag
     ('base', 'Key turner base + legs', 'Key turner base PETG', (74, 88, 104, 255), 'Base + legs'),
     ('plate', 'Key turner motor plate', 'Key turner motor plate PETG', (120, 136, 152, 255), 'Motor plate'),
     ('cap', 'Key cap (slot + tongue)', 'Key cap PETG-CF', (230, 145, 56, 255), 'Key cap'),
-    ('hub', 'Motor hub (groove + D-bore)', 'Motor hub PETG-CF', (106, 168, 79, 255), 'Motor hub'),
+    ('shaft', 'Key shaft: 60T gear + groove + journal', 'Key shaft PETG', (106, 168, 79, 255), 'Key shaft + gear'),
+    ('pinion', 'Pinion 12T (D-bore)', 'Pinion PETG-CF', (230, 200, 60, 255), 'Pinion'),
+    ('washer', 'Shaft washer', 'Washer PETG', (160, 172, 184, 255), 'Key shaft + gear'),
+    ('bearing', '608 bearing (dummy)', 'Bearing steel', (190, 190, 196, 255), 'Bearings (dummy)'),
     ('motor', 'NEMA17 17HE19-2004S (dummy)', 'NEMA17 dummy', (40, 40, 44, 150), 'Motor (dummy)'),
     ('collar', 'Key collar (from measurements)', 'Key steel', (200, 200, 205, 255), 'Key (from measurements)'),
     ('head', 'Key head (from measurements)', 'Key steel', (200, 200, 205, 255), 'Key (from measurements)'),
@@ -339,14 +392,21 @@ def build(wname, off_su, explode):
                 g.get_entities().add_instance(inst); inst.set_layer(tags[tag])
             continue
         if key == 'door' and explode: continue
+        if key == 'bearing':
+            for k in range(2):
+                inst = defs[key].create_instance(); inst.set_name(dname + ' ' + str(k + 1))
+                inst.set_transform(T((0, 0, BEAR_Z0 + 7.0 * k + (explode.get('plate', 0.0) if explode else 0.0))))
+                g.get_entities().add_instance(inst); inst.set_layer(tags[tag])
+            continue
+        base_xyz = {'motor': (MXY[0], MXY[1], MOTOR_FACE), 'pinion': (MXY[0], MXY[1], 0.0), 'washer': (0, 0, BEAR_Z1)}.get(key, (0, 0, 0.0))
+        dz = explode.get(key, 0.0) if explode else 0.0
         inst = defs[key].create_instance(); inst.set_name(dname)
-        inst.set_transform(T((0, 0, explode.get(key, 0.0) if explode else (MOTOR_FACE if key == 'motor' else 0.0))))
-        if explode and key == 'motor': inst.set_transform(T((0, 0, MOTOR_FACE + explode['motor'])))
+        inst.set_transform(T((base_xyz[0], base_xyz[1], base_xyz[2] + dz)))
         g.get_entities().add_instance(inst); inst.set_layer(tags[tag])
     return g
 ga = build('Key turner - assembled', (0, 0, 130), {})
 ga.set_layer(tags['Assembled view'])
-ge = build('Key turner - exploded', (200, 0, 130), {'cap': 45, 'hub': 85, 'plate': 125, 'motor': 165})
+ge = build('Key turner - exploded', (260, 0, 130), {'cap': 30, 'shaft': 60, 'pinion': 60, 'plate': 100, 'washer': 120, 'motor': 150})
 ge.set_layer(tags['Exploded view'])
 
 DEFAULTS = {"rendering_options": {
@@ -367,11 +427,11 @@ DEFAULTS = {"rendering_options": {
 apply_preset(model, DEFAULTS)
 EXP = 'Exploded view'
 scene_defs = [
-    ("1 Assembled on the door", [EXP], (-7.0, -11.0, 9.0), (0, -2.0, 5.12), 35.0),
-    ("2 Cap on the key (frame and motor hidden)", [EXP, 'Base + legs', 'Motor plate', 'Motor (dummy)'], (-3.6, -4.6, 7.0), (0, -1.0, 5.12), 35.0),
-    ("3 Exploded", ['Assembled view'], (21.0, -16.0, 12.0), (7.87, -5.0, 5.12), 35.0),
-    ("4 Seen from in front of the safe", [EXP], (0, -30.0, 5.12), (0, 0, 5.12), 15.0),
-    ("5 Door side: rubber magnets", [EXP, 'Safe door (reference)', 'Key (from measurements)'], (2.5, 9.0, 7.5), (0, 0, 5.12), 35.0),
+    ("1 Assembled on the door", [EXP], (-8.0, -12.0, 9.5), (-0.9, -2.0, 5.12), 35.0),
+    ("2 Gears and cap (frame and motor hidden)", [EXP, 'Base + legs', 'Motor plate', 'Motor (dummy)', 'Bearings (dummy)'], (-3.6, -6.0, 8.5), (-0.9, -1.0, 5.12), 35.0),
+    ("3 Exploded", ['Assembled view'], (25.0, -18.0, 13.0), (9.4, -5.0, 5.12), 35.0),
+    ("4 Seen from in front of the safe", [EXP], (-0.9, -32.0, 5.12), (-0.9, 0, 5.12), 15.0),
+    ("5 Door side: rubber magnets", [EXP, 'Safe door (reference)', 'Key (from measurements)'], (2.0, 10.0, 7.5), (-0.9, 0, 5.12), 35.0),
 ]
 scenes = []
 for name, _, _, _, _ in scene_defs:
@@ -384,6 +444,6 @@ for sc, (name, hide, eye, tgt, fov) in zip(scenes, scene_defs):
     for h in hide: sc.add_layer(tags[h])
 model.set_active_scene(scenes[0])
 tags[EXP].set_visibility(False)
-mc = Camera(); mc.set_orientation(SUPoint3D(-7.0, -11.0, 9.0), SUPoint3D(0, -2.0, 5.12), SUVector3D(0, 0, 1))
+mc = Camera(); mc.set_orientation(SUPoint3D(-8.0, -12.0, 9.5), SUPoint3D(-0.9, -2.0, 5.12), SUVector3D(0, 0, 1))
 mc.enable_perspective(); mc.set_perspective_frustum_fov(35.0); model.set_camera(mc)
 result = {k: {'faces': len(d.get_entities().get_faces()), 'manifold': d.is_manifold()} for k, d in defs.items()}

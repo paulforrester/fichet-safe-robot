@@ -1,6 +1,6 @@
 # Project revisions
 
-> **Revision 2026-10-17.2** · this file is the revision log · current ID in `REVISION`
+> **Revision 2026-10-18.1** · this file is the revision log · current ID in `REVISION`
 
 Every project document and drawing carries the project revision it was last
 brought up to date in, so a printed or downloaded copy can be told apart from
@@ -21,6 +21,26 @@ a newer one. The ID is the date plus a sequence number for that day:
   which also names the project revision it was built for.
 
 ## Log (most recent first)
+
+### 2026-10-18.1 — key turner v2: 5:1 printed spur gears
+
+**Change** (`cad/key_turner_housing.scad`, `cad/common_mounts.scad` (gear
+generator moved there), `cad/tools/key_turner_check.py`, the key-turner
+STLs and print files, review model script, `docs/housing_decisions.md`,
+manual §1.1, §1.2, §1.5, §1.6, BOM). On the door the key needs 0.74 N·m from
+~55° to its stop and ≥ 0.98 N·m to start back from the stop; the motor
+direct on the key took it out but couldn't bring it back. Paul chose 5:1
+with printed gears: a 12T pinion on the motor, now 45mm left of the key, and
+a 60T gear on the key axis, with the cap's groove in its underside. The key
+shaft runs in two 608 bearings in a boss under the motor plate, clamped by
+a washer and an M3×10 countersunk. 4 legs, magnets moved (two beside the
+key, one under the motor). The cap is unchanged. `key_turner_hub.stl` is
+retired. Firmware: `CFG_KEY_GEAR 5`, `CFG_INVERT_KEY 1` (separate PR).
+
+**What to do:** print `key_turner_base.stl`, `key_turner_motor_plate.stl`,
+`key_turner_shaft.stl`, `key_turner_pinion.stl`, `key_turner_washer.stl`
+(the cap you have stays); assemble per manual §1.5; then bring-up stage 5
+again.
 
 ### 2026-10-17.2 — gear-shaft on a tapered hex with an M3 screw (twist-lock withdrawn)
 
