@@ -118,6 +118,14 @@
 // one click, more than any play seen. Bring-up 4b step 8 checks it (`set
 // approach 0` to compare). 0 = off.
 #define CFG_DIAL_APPROACH_FULL   20
+// ...but never closer than this to the stall point (full steps). Correction
+// (Paul, 2026-10-18): `goto 1 0 0` then `goto 0 0 0` stopped with JAM. The
+// overshoot back past position 0 was only kept off the stall point itself,
+// and the stall point is the motor pressed into the stop (the drive wound
+// up), so reaching it again reads as a stall. 10 = half a click, an
+// ASSUMPTION (the wind-up isn't measured): if a dial at a small offset still
+// jams going back to 0, raise it (`set approachclear N`).
+#define CFG_DIAL_APPROACH_CLEAR_FULL 10
 
 // ---- Settle after homing (Paul's decision, 2026-10-16) ------------------------
 // After the dials are homed (session start, every re-check, `calibrate`,

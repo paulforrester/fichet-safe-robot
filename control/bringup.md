@@ -350,6 +350,8 @@ turner is not needed yet. 12 V on. `set axes 7`.
   position 1 was on the stop and each target sat on the near side of its
   click. Paul also asked for positions 0–19, `goto` the shorter way round,
   and command history: firmware v0.6. Next: step 8.
+- On v0.6 (Paul): `goto 1 0 0` then `goto 0 0 0` stopped with `JAM` on A:
+  the approach overshoot went back onto the stall point. Fixed in v0.6.1.
 - **Not explained yet:** A and B one click short. Hypothesis (no
   measurement yet): play between gear and dial, mostly the plug in its star,
   makes every clockwise move fall short, and position 1 (found from the

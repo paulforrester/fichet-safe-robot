@@ -385,6 +385,7 @@ void Robot::cmdSet(const char* name, int32_t v) {
   else if (TOKEQ(name, "sgmin100")) s_.sgMinRps = v / 100.0f;
   else if (TOKEQ(name, "settlems")) s_.settleMs = (uint16_t)(v < 0 ? 0 : v > 5000 ? 5000 : v);
   else if (TOKEQ(name, "approach")) s_.dialApproachFull = (uint16_t)(v < 0 ? 0 : v > 40 ? 40 : v);
+  else if (TOKEQ(name, "approachclear")) s_.dialApproachClearFull = (uint16_t)(v < 0 ? 0 : v > 40 ? 40 : v);
   else if (TOKEQ(name, "settleonms")) s_.settleOnMs = (uint16_t)(v < 0 ? 0 : v > 5000 ? 5000 : v);
   else ok = false;
   if (ok) { l.p(CP("# set ")).s(name).c('=').i(v).p(CP(" (RAM only; copy to config.h)")); }
@@ -963,7 +964,11 @@ bool Robot::moveDialTo(uint8_t d, int32_t target) {
   int32_t over = 0;
   if (s_.dialApproachFull && delta < 0) {
     over = (int32_t)s_.dialApproachFull * s_.microsteps;
-    if (over > target) over = target;  // never into the stop
+    // Never into the stop: the stall point (0) is the motor pressed into it,
+    // so keep the overshoot clear of it (config.h, CFG_DIAL_APPROACH_CLEAR_FULL).
+    const int32_t clear = (int32_t)s_.dialApproachClearFull * s_.microsteps;
+    if (target - over < clear) over = target - clear;
+    if (over < 0) over = 0;
   }
   MoveResult r = doMove(ax, delta - over, s_.ax[d].rps, true, false);
   dialPos_[d] += r.stepsDone;
@@ -1201,7 +1206,7 @@ void Robot::printCfg() {
       .i(s_.homeOffsetFull[0]).c('/').i(s_.homeOffsetFull[1]).c('/').i(s_.homeOffsetFull[2])
       .p(CP(",backoff=")).u(s_.homeBackoffFull).p(CP(",tol=")).u(s_.homeRepeatTolFull)
       .p(CP(",seatDeg=")).u(s_.seatDialDeg).p(CP(",seatma=")).u(s_.seatMa)
-      .p(CP(",settlems=")).u(s_.settleMs).c('/').u(s_.settleOnMs).p(CP(",approach=")).u(s_.dialApproachFull);
+      .p(CP(",settlems=")).u(s_.settleMs).c('/').u(s_.settleOnMs).p(CP(",approach=")).u(s_.dialApproachFull).c('/').u(s_.dialApproachClearFull);
   emit(l);
   l.clear();
   l.p(CP("CFG,key,home=")).u(s_.keyHome).p(CP(",learnMax=")).u(s_.keyLearnMaxDeg).p(CP(",margin=")).deci(s_.keyTargetMarginDeci)
