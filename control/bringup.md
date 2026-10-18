@@ -329,6 +329,11 @@ turner is not needed yet. 12 V on. `set axes 7`.
    `release`) also counts 5. Those offsets then go into `config.h`.
    (`set` lasts until a reset: after one, `set detentcal 0` and the offsets
    again.)
+   **Result (Paul, 2026-10-18, after some trial and error, 7 mm plugs):**
+   **A 40, B 30, C 40** full steps from the stall point (`cfg`:
+   `offsetsFull=40.0/30.0/40.0`, `detentcal=0`). → firmware v0.7.1:
+   `CFG_HOME_OFFSET_A/B/C` 40/30/40, `CFG_DETENT_AUTOCAL` 0, so no `set`
+   is needed any more.
 
 **Door results, 2026-10-18 (Paul), and what they led to:**
 - With the 5 mm plugs Paul felt them not staying engaged in the stars.

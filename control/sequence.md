@@ -257,8 +257,8 @@ Decisions made while writing the firmware, on top of the sequence above:
   finds where the clicks are, so position 0 = the first click clockwise of
   the stop (1 before v0.6). **Correction (2026-10-18):** on the door this
   put position 0 on the stop and each target on the near side of its click;
-  the offsets are to be measured by hand (bring-up 4b step 8) and used with
-  the click-finding off. Every position is now also approached turning
+  the offsets were measured by hand (bring-up 4b step 8: A 40, B 30, C 40
+  full steps) and are used with the click-finding off (v0.7.1). Every position is now also approached turning
   clockwise (play in the drive). Where the first click sits relative to the stop can't be measured
   by hand (Paul: evenly spaced, 18° apart). The key is measured over 60° of
   free travel from rest. Datasheet §11.4 recommends this kind of

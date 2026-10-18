@@ -1275,8 +1275,14 @@ void Robot::printCfg() {
   l.p(CP("CFG,home,mode=")).u(s_.dialHome[0]).u(s_.dialHome[1]).u(s_.dialHome[2]).p(CP(",off="))
       .i(s_.homeOffsetFull[0]).c('/').i(s_.homeOffsetFull[1]).c('/').i(s_.homeOffsetFull[2])
       .p(CP(",backoff=")).u(s_.homeBackoffFull).p(CP(",tol=")).u(s_.homeRepeatTolFull)
-      .p(CP(",seatDeg=")).u(s_.seatDialDeg).p(CP(",seatma=")).u(s_.seatMa)
-      .p(CP(",settlems=")).u(s_.settleMs).c('/').u(s_.settleOnMs).p(CP(",approach=")).u(s_.dialApproachFull).c('/').u(s_.dialApproachClearFull).p(CP(",wrap=")).u(s_.dialWrap).p(CP(",settleeach=")).u(s_.settleEach).p(CP(",camclear=")).u(s_.camClearFull);
+      .p(CP(",seatDeg=")).u(s_.seatDialDeg).p(CP(",seatma=")).u(s_.seatMa);
+  emit(l);
+  // (split from the line above: together they passed Line's 120 characters
+  // and the end was cut off, Paul's `cfg` 2026-10-18)
+  l.clear();
+  l.p(CP("CFG,move,settlems=")).u(s_.settleMs).c('/').u(s_.settleOnMs).p(CP(",settleeach=")).u(s_.settleEach)
+      .p(CP(",approach=")).u(s_.dialApproachFull).c('/').u(s_.dialApproachClearFull).p(CP(",wrap=")).u(s_.dialWrap)
+      .p(CP(",camclear=")).u(s_.camClearFull);
   emit(l);
   l.clear();
   l.p(CP("CFG,key,home=")).u(s_.keyHome).p(CP(",learnMax=")).u(s_.keyLearnMaxDeg).p(CP(",margin=")).deci(s_.keyTargetMarginDeci)

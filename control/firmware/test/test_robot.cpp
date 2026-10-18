@@ -15,8 +15,19 @@ using namespace core;
 
 namespace {
 
+// config.h's defaults, but finding position 0 from the clicks: the
+// simulator's dials have no play and their clicks where its detentPhase
+// says, while config.h holds offsets measured on the real door (2026-10-18)
+// with click-finding off.
+Settings simSettings() {
+  Settings s = makeSettings();
+  s.detentAutocal = 1;
+  for (int d = 0; d < 3; ++d) s.homeOffsetFull[d] = 10;  // the fallback the simulated dials were written for
+  return s;
+}
+
 Settings tunedSettings() {
-  Settings s = makeSettings();  // config.h defaults
+  Settings s = simSettings();  // config.h defaults
   for (int a = 0; a < AX_COUNT; ++a) s.ax[a].sgthrs = 80;  // "tuned" on the bench
   return s;
 }
@@ -207,7 +218,7 @@ TEST(pause_verifies_then_resume_needs_no_rewind) {
 
 TEST(refuses_to_start_untuned) {
   SimHal h;
-  Settings s = makeSettings();  // SGTHRS all 0 by default
+  Settings s = simSettings();  // SGTHRS all 0 by default
   Robot r(h, s);
   r.boot();
   r.handleLine("start");
@@ -760,7 +771,7 @@ TEST(power_cut_with_the_key_turned_resumes) {
 TEST(calibrate_command_stores_what_a_run_needs) {
   // Fresh robot, config thresholds all 0: a run can't even home the key.
   SimHal h;
-  Settings s = makeSettings();
+  Settings s = simSettings();
   {
     Robot r(h, s);
     r.boot();
@@ -772,7 +783,7 @@ TEST(calibrate_command_stores_what_a_run_needs) {
     CHECK(s.ax[AX_KEY].sgthrs > 0);
   }
   // Power cycle: the stored calibration lets the run start.
-  Settings s2 = makeSettings();
+  Settings s2 = simSettings();
   Robot r2(h, s2);
   h.lines.clear();
   r2.boot();
@@ -782,6 +793,32 @@ TEST(calibrate_command_stores_what_a_run_needs) {
   runUntilIdle(r2);
   CHECK_EQ(r2.state(), ST_SUCCESS);
   noViolations(h);
+}
+
+// v0.7.1: config.h holds the offsets Paul measured on the door (2026-10-18),
+// with click-finding off; and every `cfg` line fits Line's 120 characters
+// (the home line used to lose its end).
+TEST(config_defaults_are_the_measured_offsets_and_cfg_lines_fit) {
+  SimHal h;
+  Settings s = makeSettings();
+  for (int a = 0; a < AX_COUNT; ++a) s.ax[a].sgthrs = 80;
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("home");
+  const char* want[3] = {"A,40.0,0", "B,30.0,0", "C,40.0,0"};
+  for (int d = 0; d < 3; ++d) {
+    bool found = false;
+    for (auto& l : h.lines) if (l.rfind("OFFSET,", 0) == 0 && l.find(want[d]) != std::string::npos) found = true;
+    CHECK(found);
+  }
+  h.lines.clear();
+  r.handleLine("cfg");
+  bool move = false;
+  for (auto& l : h.lines) {
+    CHECK(l.size() < 120);
+    if (l.rfind("CFG,move,", 0) == 0 && l.find(",camclear=30") != std::string::npos && l.find("settleeach=1") != std::string::npos) move = true;
+  }
+  CHECK(move);
 }
 
 // ---------------------------------------------------------------- goto (v0.6, Paul 2026-10-18)
@@ -950,7 +987,7 @@ std::vector<size_t> lockstepMoves(const SimHal& h, size_t from) {
 
 TEST(load_homes_then_sweeps_inside_one_turn_and_reports_live) {
   SimHal h;
-  Settings s = makeSettings();
+  Settings s = simSettings();
   Robot r(h, s);
   r.boot();
   r.handleLine("calibrate");
@@ -996,7 +1033,7 @@ TEST(load_homes_then_sweeps_inside_one_turn_and_reports_live) {
 
 TEST(load_shows_which_dial_is_loaded) {
   SimHal h;
-  Settings s = makeSettings();
+  Settings s = simSettings();
   Robot r(h, s);
   r.boot();
   r.handleLine("calibrate");
@@ -1016,7 +1053,7 @@ TEST(load_shows_which_dial_is_loaded) {
 
 TEST(load_stops_on_a_stall_and_names_the_dial) {
   SimHal h;
-  Settings s = makeSettings();
+  Settings s = simSettings();
   Robot r(h, s);
   r.boot();
   r.handleLine("calibrate");
@@ -1048,7 +1085,7 @@ TEST(load_refuses_bad_sweeps) {
 TEST(load_needs_a_calibration_first) {
   // It homes first, which needs stall thresholds (calibrate once).
   SimHal h;
-  Settings s = makeSettings();
+  Settings s = simSettings();
   for (int a = 0; a < 3; ++a) s.ax[a].sgthrs = 0;
   s.axesMask = 0x07;
   Robot r(h, s);
@@ -1064,7 +1101,7 @@ TEST(load_needs_a_calibration_first) {
 // turn; only the very first one (no thresholds) makes the old free turn.
 TEST(calibration_stays_inside_one_turn_once_thresholds_exist) {
   SimHal h;
-  Settings s = makeSettings();
+  Settings s = simSettings();
   Robot r(h, s);
   r.boot();
   size_t m0 = h.moves.size();
@@ -1100,7 +1137,7 @@ TEST(calibration_stays_inside_one_turn_once_thresholds_exist) {
 // steps off its click still ends in it.
 TEST(dials_settle_after_every_move) {
   SimHal h;
-  Settings s = makeSettings();
+  Settings s = simSettings();
   Robot r(h, s);
   r.boot();
   r.handleLine("calibrate");
@@ -1127,7 +1164,7 @@ TEST(dials_settle_after_every_move) {
 
 TEST(load_abort_stops_and_releases) {
   SimHal h;
-  Settings s = makeSettings();
+  Settings s = simSettings();
   Robot r(h, s);
   r.boot();
   r.handleLine("calibrate");
