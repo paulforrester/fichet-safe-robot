@@ -146,7 +146,7 @@ RAMPS, UART pigtail); firmware written and host-tested
 - **Dial B's drive gives under the homing push** (door, 2026-10-14): its
   stop seemed to move when homed again straight after a home, and it turned
   back when the motors went off; its gear moves ≤ 5° (Paul, 2026-10-16). B's
-  clicks don't show in StallGuard, so its position 1 is the config offset.
+  clicks don't show in StallGuard, so its position 0 is the config offset.
   Paul's decision (2026-10-16): don't chase it; every homing ends with a
   **settle** (dial drivers off 0.5 s, so each dial falls into its click).
 - **Key turner:** direct drive, motor on the key axis. The key turns
@@ -256,11 +256,17 @@ recess, 4mm wire hole beside the endstop block; revision 2026-10-09.1,
 Host-tested; v0.4 ran through bench bring-up stages 1–4b (2026-10-10 to
 14), v0.5 on the door 2026-10-17/18 (the settle fixed B's homing drift),
 **v0.6 not yet on hardware** (v0.6 adds `load`: all dials turn together,
-each one's load printed every 0.5 s, for centring the unit). Sequence as in
+each one's load printed every 0.5 s, for centring the unit; positions 0–19;
+`goto` the shorter way round; every position approached clockwise; logger
+arrow-key history). **Open (2026-10-18): the click-found offsets put position
+0 on the stop and each position on the near side of its click** — measure
+each dial's offset by hand (bring-up 4b step 8), then `CFG_HOME_OFFSET_x` with
+`CFG_DETENT_AUTOCAL 0`. Sequence as in
 `control/sequence.md`: session start = ping/configure drivers → key home
 (rest stop, search 180°) → key calibration → seat (clockwise) → one free
 clockwise calibration turn per dial (StallGuard threshold + click positions)
-→ home each dial (two passes on its stop; position 1 = first click) →
+→ home each dial (two passes on its stop; position 0 = first click; positions
+are **0–19** from v0.6) →
 **settle** (dial drivers off 0.5 s and on again: each dial falls into its
 click; v0.5) → learn N (3 tries, median) → attempt loop in **serpentine order** (each attempt moves one
 dial one position) → key to N + 15°, **log the angle reached** → retract →

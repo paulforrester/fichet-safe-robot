@@ -896,6 +896,10 @@ The `ls` line lists the Mega's port; put that name in place of
 
 - **`caffeinate -i`** stops the Mac from sleeping while the logger runs.
   Keep the Mac on its charger with the lid open.
+- **Up/down arrows** step back and forth through the last 100 commands you
+  typed, as in a bash terminal; Enter sends the one shown. The list is kept
+  in `~/.safe_robot_history` between sessions. (Log lines arriving while
+  you type can split your line on screen; what you typed is still there.)
 - **Files:** `runs/<date-time>_raw.log` holds every line, with the Mac's
   time; `runs/<date-time>_attempts.csv` has one row per attempt. Both grow
   as the run goes, so a crash or Ctrl-C loses nothing already written.
@@ -1070,7 +1074,7 @@ SUCCESS,<time>,<index>,<a>,<b>,<c>,<key deg>,<doorA>,<doorB>,<doorC>
 The robot holds the key where it got to. The success is saved in EEPROM,
 so it's shown again at every restart until `reset yes`.
 
-1. **Write the combination down**: dials A, B, C as positions 1–20 (see
+1. **Write the combination down**: dials A, B, C as positions 0–19 (see
    below). Keep the raw log.
 2. Type `release`. The motors switch off, and the key stays where it is
    (no spring back).
@@ -1084,7 +1088,8 @@ so it's shown again at every restart until `reset yes`.
 
 **Positions:** there are no marks on the door, so the robot counts clicks.
 To set position *p* on a dial by hand, turn it anticlockwise until it
-stops, then clockwise, counting clicks: position *p* is the *p*-th click.
+stops, then clockwise, counting clicks: position 0 is the first click,
+position *p* the (*p*+1)-th (firmware v0.6; 1–20 before).
 If a click sits right at the stop, the robot doesn't count it. So **if the
 hand-dialled combination doesn't work, try one click either side on each
 dial**.
@@ -1150,6 +1155,7 @@ first time ever, `calibrate` first).
 | `release` | all drivers off (also lets go of the key after a success) |
 | `reset yes` | erase the stored progress |
 | `load [turns]` | placing the dial unit: all dials turn together, each one's load printed every 0.5 s (higher = lighter); un-homes the dials |
+| `goto a b c` | dials to positions 0–19 (0 = first click), each the shorter way round; after `home` |
 | `seat`, `home [A\|B\|C]`, `learn`, `goto a b c`, `try`, `key <deg>`, `jog`, `sg`, `set` | bench commands: `control/firmware/README.md` and `control/bringup.md` |
 
 **LED:** fast blink running · slow blink idle, paused or done · steady

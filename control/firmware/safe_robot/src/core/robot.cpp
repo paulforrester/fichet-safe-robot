@@ -136,7 +136,7 @@ void Robot::boot() {
   } else if (prog_.state == RUN_SUCCESS) {
     const Combo c = comboAt(prog_.successIndex, s_.positions);
     l.clear(); l.p(CP("# SUCCESS recorded at index ")).u(prog_.successIndex).p(CP(": dials "))
-        .u(c.d[0] + 1).c('-').u(c.d[1] + 1).c('-').u(c.d[2] + 1).p(CP(" (from home). `reset yes` to clear."));
+        .u(c.d[0]).c('-').u(c.d[1]).c('-').u(c.d[2]).p(CP(" (from home). `reset yes` to clear."));
     emit(l);
   }
 }
@@ -271,7 +271,7 @@ void Robot::handleLine(const char* line) {
     return;
   }
   if (TOKEQ(cmd, "goto")) {
-    if (!tok[3]) { l.p(CP("# goto a b c (1..20), after `home`")); emit(l); return; }
+    if (!tok[3]) { l.p(CP("# goto a b c (0..19, 0 = first click), after `home`")); emit(l); return; }
     if (!(homed_[0] && homed_[1] && homed_[2])) {
       // Any error switches every motor off and un-homes every dial.
       l.p(CP("# goto: not homed:"));
@@ -283,11 +283,13 @@ void Robot::handleLine(const char* line) {
     Combo c;
     for (uint8_t d = 0; d < 3; ++d) {
       const long v = atol(tok[d + 1]);
-      if (v < 1 || v > s_.positions) { l.p(CP("# position out of range")); emit(l); return; }
-      c.d[d] = (uint8_t)(v - 1);
+      if (!tok[d + 1][0] || tok[d + 1][0] < '0' || tok[d + 1][0] > '9' || v < 0 || v >= s_.positions) {
+        l.p(CP("# position out of range (0..")).u(s_.positions - 1).c(')'); emit(l); return;
+      }
+      c.d[d] = (uint8_t)v;
     }
     if (keyHomed_ && keyPos_ != 0) { l.p(CP("# key not at rest")); emit(l); return; }
-    if (gotoCombo(c)) { l.p(CP("# dials at ")).u(c.d[0] + 1).c(' ').u(c.d[1] + 1).c(' ').u(c.d[2] + 1); emit(l); }
+    if (gotoCombo(c)) { l.p(CP("# dials at ")).u(c.d[0]).c(' ').u(c.d[1]).c(' ').u(c.d[2]); emit(l); }
     return;
   }
   if (TOKEQ(cmd, "try")) {
@@ -382,6 +384,7 @@ void Robot::cmdSet(const char* name, int32_t v) {
   else if (TOKEQ(name, "seatrps100")) s_.seatRps = v / 100.0f;
   else if (TOKEQ(name, "sgmin100")) s_.sgMinRps = v / 100.0f;
   else if (TOKEQ(name, "settlems")) s_.settleMs = (uint16_t)(v < 0 ? 0 : v > 5000 ? 5000 : v);
+  else if (TOKEQ(name, "approach")) s_.dialApproachFull = (uint16_t)(v < 0 ? 0 : v > 40 ? 40 : v);
   else if (TOKEQ(name, "settleonms")) s_.settleOnMs = (uint16_t)(v < 0 ? 0 : v > 5000 ? 5000 : v);
   else ok = false;
   if (ok) { l.p(CP("# set ")).s(name).c('=').i(v).p(CP(" (RAM only; copy to config.h)")); }
@@ -448,11 +451,11 @@ void Robot::runStep() {
     const Combo c = comboAt(idx, s_.positions);
     Line l;
     l.p(CP("SUCCESS,")).u(hal_.millis()).sep().u(idx);
-    for (uint8_t d = 0; d < 3; ++d) l.sep().u(c.d[d] + 1);
+    for (uint8_t d = 0; d < 3; ++d) l.sep().u(c.d[d]);
     l.sep().deci(keyUsToDeci(s_, keyPos_));
     for (uint8_t d = 0; d < 3; ++d) {
-      const int16_t door = (int16_t)(s_.labelAtHome[d] - 1) + (int16_t)s_.labelStep[d] * c.d[d];
-      l.sep().u((uint32_t)((door % s_.positions + s_.positions) % s_.positions) + 1);
+      const int16_t door = (int16_t)s_.labelAtHome[d] + (int16_t)s_.labelStep[d] * c.d[d];
+      l.sep().u((uint32_t)((door % s_.positions + s_.positions) % s_.positions));
     }
     emit(l);
     l.clear(); l.p(CP("# key held where it stopped. Check the door, then `release`."));
@@ -686,8 +689,13 @@ bool Robot::homeDial(uint8_t d, int32_t expectDist, int32_t* discrepancy) {
   }
   dialPos_[d] = 0;  // the stall point is zero
   homed_[d] = true;
-  // Position 1 = the first click at least 3 full steps clockwise of the stall
-  // point (so a dial at position 1 doesn't lean on its stop).
+  // Position 0 = the first click at least 3 full steps clockwise of the stall
+  // point (so a dial at position 0 doesn't lean on its stop). Correction
+  // (2026-10-18): on the door this put position 0 on (or before) the stop:
+  // the 3 full steps don't allow for the play between motor and dial, and
+  // the click centre comes from a model (calib.h) not yet checked. Until the
+  // offsets are measured (bring-up 4b step 8), use `set detentcal 0` and
+  // `set offA/B/C` (CFG_HOME_OFFSET_x).
   const bool clicks = s_.detentAutocal && notchOk_[d];
   offsetFromClicks_[d] = clicks;
   offsetUs_[d] = clicks ? detentOffset(notchAbs_[d], absCount_[d], usPerPosition(s_), 3 * s_.microsteps,
@@ -940,10 +948,18 @@ bool Robot::gotoCombo(const Combo& c) {
   return true;
 }
 
+// Paul (2026-10-18): go the shorter way round. The dials turn clockwise
+// without limit, so a target behind the dial can also be reached by turning
+// on clockwise, past the stop, to the same position a turn later; that is
+// done when it is strictly shorter (19 -> 0 is one click forward, not 19
+// back). The count is then brought back into the first turn: the stop is at
+// the same place every turn.
 bool Robot::moveDialTo(uint8_t d, int32_t target) {
   const Axis ax = (Axis)d;
   int32_t delta = target - dialPos_[d];
   if (delta == 0) return true;
+  const int32_t turn = turnUs();
+  if (delta < 0 && delta + turn < -delta) delta += turn;
   int32_t over = 0;
   if (s_.dialApproachFull && delta < 0) {
     over = (int32_t)s_.dialApproachFull * s_.microsteps;
@@ -957,6 +973,7 @@ bool Robot::moveDialTo(uint8_t d, int32_t target) {
     dialPos_[d] += r.stepsDone;
     if (!checkMove(r, ax, false, false)) return false;
   }
+  while (dialPos_[d] >= turn) dialPos_[d] -= turn;
   return true;
 }
 
@@ -1125,7 +1142,7 @@ uint8_t Robot::dialPosition(uint8_t d) const {
 void Robot::logAttempt(int32_t index, const Combo& c, int32_t reached, bool stalled, uint16_t sgMin, Outcome o) {
   Line l;
   l.p(CP("ATT,")).u(hal_.millis()).sep().i(index);
-  for (uint8_t d = 0; d < 3; ++d) l.sep().u(c.d[d] + 1);
+  for (uint8_t d = 0; d < 3; ++d) l.sep().u(c.d[d]);
   l.sep().i(reached).sep().deci(keyUsToDeci(s_, reached)).sep().u(stalled).sep()
       .i(sgMin == 0xFFFF ? -1 : (int32_t)sgMin).sep().s(outcomeName(o)).sep().deci(keyUsToDeci(s_, n_));
   emit(l);
@@ -1184,7 +1201,7 @@ void Robot::printCfg() {
       .i(s_.homeOffsetFull[0]).c('/').i(s_.homeOffsetFull[1]).c('/').i(s_.homeOffsetFull[2])
       .p(CP(",backoff=")).u(s_.homeBackoffFull).p(CP(",tol=")).u(s_.homeRepeatTolFull)
       .p(CP(",seatDeg=")).u(s_.seatDialDeg).p(CP(",seatma=")).u(s_.seatMa)
-      .p(CP(",settlems=")).u(s_.settleMs).c('/').u(s_.settleOnMs);
+      .p(CP(",settlems=")).u(s_.settleMs).c('/').u(s_.settleOnMs).p(CP(",approach=")).u(s_.dialApproachFull);
   emit(l);
   l.clear();
   l.p(CP("CFG,key,home=")).u(s_.keyHome).p(CP(",learnMax=")).u(s_.keyLearnMaxDeg).p(CP(",margin=")).deci(s_.keyTargetMarginDeci)

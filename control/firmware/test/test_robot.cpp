@@ -1,4 +1,5 @@
 // End-to-end tests: the real sequencer (core::Robot) against SimHal.
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <map>
@@ -67,7 +68,7 @@ TEST(run_finds_the_combination) {
   CHECK_EQ(r.progress().state, RUN_SUCCESS);
   CHECK_EQ(r.progress().successIndex, secretIndex(h));
   const std::string ok = h.last("SUCCESS,");
-  CHECK(field(ok, 3) == "3" && field(ok, 4) == "6" && field(ok, 5) == "18");  // 1-based positions
+  CHECK(field(ok, 3) == "2" && field(ok, 4) == "5" && field(ok, 5) == "17");  // positions 0..19 (v0.6)
   // Every index before the success was tried, in order, exactly once
   // (re-checks every 200 attempts don't repeat attempts).
   std::vector<int> idx = attIndices(h);
@@ -87,6 +88,7 @@ TEST(each_attempt_moves_one_dial_one_position) {
   h.secret[0] = 0; h.secret[1] = 3; h.secret[2] = 9;
   Settings s = tunedSettings();
   s.recheckEvery = 0;
+  s.dialApproachFull = 0;  // one move per position change (the approach is tested below)
   Robot r(h, s);
   r.boot();
   r.handleLine("start");
@@ -357,8 +359,11 @@ TEST(bench_commands) {
   CHECK(h.has("NSTOP,"));
   r.handleLine("goto 4 5 6");
   CHECK(h.has("# dials at 4 5 6"));
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 4 + d);  // 0 = the first click (v0.6)
   r.handleLine("try");
   CHECK(h.last("ATT,").find(",-1,4,5,6,") != std::string::npos);
+  r.handleLine("goto 20 0 0");
+  CHECK(h.last("# position out of range").find("0..19") != std::string::npos);
   r.handleLine("jog K 10");
   r.handleLine("jog K -10");
   r.handleLine("sg A 40");
@@ -774,6 +779,85 @@ TEST(calibrate_command_stores_what_a_run_needs) {
   CHECK(r2.busy());
   runUntilIdle(r2);
   CHECK_EQ(r2.state(), ST_SUCCESS);
+  noViolations(h);
+}
+
+// ---------------------------------------------------------------- goto (v0.6, Paul 2026-10-18)
+TEST(goto_takes_the_shorter_way_round) {
+  SimHal h;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("home");
+  r.handleLine("goto 19 19 19");
+  CHECK(h.has("# dials at 19 19 19"));
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 19);
+  // 19 -> 0: one click clockwise (past the stop), not 19 back.
+  size_t m0 = h.moves.size();
+  r.handleLine("goto 0 0 0");
+  CHECK(h.has("# dials at 0 0 0"));
+  CHECK_EQ(h.moves.size(), m0 + 3);
+  for (size_t i = m0; i < h.moves.size(); ++i) CHECK_EQ(h.moves[i].steps, 320);
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 0);
+  // ...and the firmware knows it's at 0 (its count wrapped back into the first turn).
+  r.handleLine("learn");
+  r.handleLine("try");
+  CHECK(h.last("ATT,").find(",-1,0,0,0,") != std::string::npos);
+  // The count is back in the first turn: 0 -> 1 is one click, and a re-home finds the stop where the count says.
+  m0 = h.moves.size();
+  r.handleLine("goto 1 1 1");
+  for (size_t i = m0; i < h.moves.size(); ++i) CHECK_EQ(h.moves[i].steps, 320);
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 1);
+  {
+    std::string offA;
+    for (auto& l : h.lines) if (l.rfind("OFFSET,", 0) == 0 && field(l, 2) == "A") offA = l;
+    CHECK(!offA.empty());
+    const double off = std::atof(field(offA, 3).c_str());  // position 0, full steps from the stall
+    h.lines.clear();
+    r.handleLine("home A");
+    std::string first;
+    for (auto& l : h.lines) if (l.rfind("HOME,", 0) == 0 && field(l, 3) == "1") { first = l; break; }
+    const double dist = std::atof(field(first, 4).c_str());
+    CHECK(std::fabs(dist - (off + 20)) <= 3);  // position 1 = one click past position 0
+    r.handleLine("home");
+  }
+  // 10 -> 0 is a tie (10 either way): back, anticlockwise.
+  r.handleLine("goto 10 10 10");
+  m0 = h.moves.size();
+  r.handleLine("goto 0 0 0");
+  CHECK(h.moves[m0].steps < 0);
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 0);
+  // 2 -> 15: forward (13 clicks). Going back round would cross the stop anticlockwise: never.
+  r.handleLine("goto 2 2 2");
+  m0 = h.moves.size();
+  r.handleLine("goto 15 15 15");
+  CHECK(h.moves[m0].steps > 0);
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 15);
+  CHECK_EQ(h.count("ERR,"), 0);
+  noViolations(h);
+}
+
+TEST(every_position_is_reached_turning_clockwise) {
+  // The approach (CFG_DIAL_APPROACH_FULL): a move that would end turning
+  // anticlockwise overshoots and comes back clockwise, never into the stop.
+  SimHal h;
+  Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("home");
+  r.handleLine("goto 8 8 8");
+  size_t m0 = h.moves.size();
+  r.handleLine("goto 3 3 3");
+  CHECK_EQ(h.moves.size(), m0 + 6);  // per dial: back past it, then forward onto it
+  for (size_t i = m0; i < h.moves.size(); i += 2) {
+    CHECK_EQ(h.moves[i].steps, -5 * 320 - 20 * 16);
+    CHECK_EQ(h.moves[i + 1].steps, 20 * 16);
+  }
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 3);
+  // To position 0 the overshoot is cut short so the dial never presses into its stop.
+  r.handleLine("goto 0 0 0");
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 0);
+  CHECK_EQ(h.count("ERR,"), 0);
   noViolations(h);
 }
 

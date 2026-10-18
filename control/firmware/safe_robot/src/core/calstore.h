@@ -10,7 +10,7 @@ namespace core {
 struct CalRecord {
   uint8_t sgthrs[AX_COUNT] = {0, 0, 0, 0};    // 0 = not calibrated
   uint16_t baseline[AX_COUNT] = {0, 0, 0, 0};
-  int16_t offsetUs[3] = {-1, -1, -1};         // position 1 from the stall zero; -1 = none
+  int16_t offsetUs[3] = {-1, -1, -1};         // position 0 from the stall zero; -1 = none
 };
 
 class CalStore {

@@ -5,7 +5,40 @@
 Implements the sequence in `control/sequence.md` on the pin map in
 `control/wiring.md`. Bring it up on the bench with `control/bringup.md`.
 
-## v0.6 (2026-10-18): `load`, the dials' load live while placing the unit
+## v0.6 (2026-10-18): `load`; positions 0–19; `goto` the short way; approach
+
+From the door tests that day (Paul, bring-up 4b):
+- **Positions are 0–19** (Paul: "the steps go 0 to 19"): `goto 0 0 0` is the
+  first click on every dial, and `ATT`, `SUCCESS`, `# dials at` and the
+  stored success all print 0–19. Positions logged before v0.6 are 1–20
+  (subtract 1). Internally nothing changed (combinations were 0-based).
+- **`goto` takes the shorter way round** (Paul): a dial turns clockwise
+  without limit, so when the target is closer going on clockwise (past the
+  stop) than going back, it goes on: 19 → 0 is one click forward, not 19
+  back. Ties go back. Never back past the stop. The step count is brought
+  back into the first turn afterwards (the stop is at the same place every
+  turn), so re-checks and logged positions stay right. The run itself moves
+  one position at a time, so it rarely wraps.
+- **Every position is reached turning clockwise** (`CFG_DIAL_APPROACH_FULL`
+  20, was 0; `set approach N`, 0 = off): a move that would end turning
+  anticlockwise goes one click further back and comes forward onto the
+  target. ASSUMPTION, from 2026-10-18: there is play between motor and dial,
+  so the same step count lands the dial in different places depending on
+  the direction it came from.
+- **Correction: where position 0 is.** The click-found offsets (`CAL`
+  ripple + the quarter-click model, "Calibration" below) put position 0 on
+  the stop on the door (2026-10-18): `goto 2 2 2` (old numbering) didn't
+  reach the first click, and every position fell back one click when the
+  motors were released. Two flaws: the "at least 3 full steps from the
+  stall" rule doesn't allow for the play, and the click-centre model is not
+  verified. Until each dial's offset is measured by hand (`control/
+  bringup.md` 4b step 8), use `set detentcal 0` and `set offA/offB/offC N`
+  (full steps from the stall point to position 0); the measured values then
+  go into `CFG_HOME_OFFSET_x` with `CFG_DETENT_AUTOCAL 0`.
+- **Logger**: up/down arrows step through the last 100 commands, like bash
+  (`tools/logger.py`, kept in `~/.safe_robot_history`).
+
+### `load`, the dials' load live while placing the unit
 
 Paul (2026-10-18, on the door): seated without its magnets the unit floats a
 little on its plugs, and wherever the magnets then clamp it, a plug that is
@@ -127,7 +160,7 @@ The key's TMC2209 moved from a remote board at the key turner to the RAMPS
    If anything moved, it stops, **rewinds to the last good re-check**, and
    asks for a re-seat.
 4. **Success** (key gets ≥ N + 10°): stops, holds the key where it got to, and
-   prints the combination as positions 1–20: clicks counted clockwise from
+   prints the combination as positions 0–19: clicks counted clockwise from
    each dial's stop (there are no marks on the door). The success is saved in
    EEPROM. The key stays turned after `release` (it doesn't spring back), so
    take the key turner off and pull the key to open the door, as the manual
@@ -153,9 +186,11 @@ of in-application threshold rather than a fixed one (§11.4, p. 59).
   - **Clicks**: their ripple has an 18° period, and its fundamental gives
     where the clicks are. Model: turning clockwise, the click spring helps
     just before a notch (SG highest) and resists just after (SG lowest), so
-    the notch is a quarter click after the SG peak. After homing, position 1
+    the notch is a quarter click after the SG peak. After homing, position 0
     is the first click at least 3 full steps clockwise of the stop. Later
     sessions keep the same numbering, using the offset stored in EEPROM.
+    **Correction (2026-10-18):** on the door this put position 0 on the stop
+    (v0.6 section above); measure the offsets by hand instead.
   - If the ripple is too weak to trust (amplitude < 3, or < 2× the
     residual), it falls back to `CFG_HOME_OFFSET_x` and says so.
 - **Key**: from rest, 60° clockwise (its stop is at ~100°); median SG →
@@ -344,13 +379,13 @@ a move must stop with `DRVFAULT`).
 | `reset yes` | erase stored progress |
 | `calibrate` | key (from its start position) + seat + one free turn per dial + homing + settle; prints `CAL`/`OFFSET`, saves to EEPROM |
 | `seat`, `home [A\|B\|C]`, `learn` | bench: run one part of the session start (`home` ends with a settle of the dials it homed) |
-| `goto a b c` | bench: dials to positions (1–20) after `home` (says which dials aren't homed) |
+| `goto a b c` | bench: dials to positions 0–19 (0 = first click) after `home`, each the shorter way round (says which dials aren't homed) |
 | `load [turns]` | placing the unit (v0.6): all dials turn clockwise together for 1–20 turns (default 5), printing `LOAD` every 0.5 s; un-homes the dials |
 | `try` | bench: one key attempt at the current dial setting |
 | `key <deg>` | bench: turn the key clockwise up to `deg` (stops on stall), then back |
 | `jog <A\|B\|C\|K> <fullsteps>` | bench: bounded move (±800 full steps), stops on stall |
 | `sg <A\|B\|C\|K> <fullsteps>` | bench: like jog, printing `SG,axis,fullstep,value` samples |
-| `set <name> <value>` | bench, RAM only: `sgA..sgK`, `maA..maK`, `rps100A..K` (speed × 100), `invA..K`, `offA..C`, `keyhome`, `margin`, `success`, `clean`, `early` (0.1°), `recheck`, `seatma`, `seatrps100`, `sgmin100`, `autocal`, `detentcal`, `calpct`, `settlems` (0 = no settle), `settleonms` |
+| `set <name> <value>` | bench, RAM only: `sgA..sgK`, `maA..maK`, `rps100A..K` (speed × 100), `invA..K`, `offA..C`, `keyhome`, `margin`, `success`, `clean`, `early` (0.1°), `recheck`, `seatma`, `seatrps100`, `sgmin100`, `autocal`, `detentcal`, `calpct`, `settlems` (0 = no settle), `settleonms`, `approach` (full steps, 0 = off) |
 
 The button: pauses a running session; when idle, resumes a stored run or
 starts a new one.
@@ -377,7 +412,7 @@ or short), 4 = uv_cp (12 V too low), 80 = no answer; flags add up. `when` is
 drivers before each attempt), or `config` (before its settings are written
 again).
 
-`a,b,c` are positions 1–20 counted from each dial's home stop. `keyDeg` is
+`a,b,c` are positions 0–19 counted from each dial's home stop (1–20 before v0.6). `keyDeg` is
 measured from the key's rest stop. `class` is CLEAN / FALSESET / SUCCESS / EARLY. The raw angle is always logged, so classes can be redone afterwards:
 
 ```
@@ -389,7 +424,7 @@ The first is live mode (type commands in it); the second re-analyses a run.
 
 ## Verified here (cloud session, no hardware)
 
-- **Host tests**: `make -C control/firmware/test` — 63 tests, ~36,700 checks,
+- **Host tests**: `make -C control/firmware/test` — 65 tests, ~36,700 checks,
   0 failures. Built with `-Wall -Wextra -Werror` (g++ 13 and clang 18) and
   also run under AddressSanitizer + UBSan. They cover:
   - the serpentine order: a bijection, and each step moves one dial by one
@@ -438,7 +473,13 @@ The first is live mode (type commands in it); the second re-analyses a run.
     with extra load (the simulator's `sgExtraLoad`) reads lower in mean and
     percentage; a stall stops it and names the dial without an error state;
     out-of-range turns are refused; no calibration → percentages -1; `!`
-    aborts and releases; the dials are un-homed afterwards.
+    aborts and releases; the dials are un-homed afterwards;
+  - positions 0–19 (v0.6): `goto 4 5 6` lands on clicks 4, 5, 6 counted from
+    0 = the first; 20 is refused; 19 → 0 goes one click forward and the
+    firmware then reports 0 (checked against a build without the turn
+    wrap-around, which fails); ties go back; never back past the stop; every
+    anticlockwise move overshoots one click and comes forward, cut short at
+    position 0 so it never presses into the stop.
 - **Logger**: `python3 -m pytest control/firmware/tools` (3 tests). A
   simulated full run (`make -C control/firmware/test simlog`, 1,787 attempts)
   replays through `logger.py`, and its offline classes match the firmware's on

@@ -13,14 +13,14 @@
 //   RECHECK,ms,index,dial,discrepancyFull,nDeg,ok
 //   SUCCESS,ms,index,a,b,c,keyDeg,doorA,doorB,doorC
 //   CAL,ms,axis,baseline,sgthrs,amp,resid,clicksTrusted   (self-calibration)
-//   OFFSET,ms,dial,offsetFull,fromClicks                  (position 1 after homing)
+//   OFFSET,ms,dial,offsetFull,fromClicks                  (position 0 after homing)
 //   LOAD,ms,dial,mean,pct[,dial,mean,pct...]   `load`: each dial's mean SG_RESULT over the
 //                                 last 0.5 s, and that as % of its calibration baseline (-1 = none)
 //   LOADSUM,ms,dial,mean,low,pct[,...]       `load` end: mean over the run, lowest 0.5 s mean, %
 //   GSTAT,ms,axis,gstat,when      a driver reset or fault (GstatBits, hex); when =
 //                                 before / after (a move), attempt, config
 //   ERR,ms,code,text
-// Dial positions a,b,c are 1..20 counted from each dial's home stop.
+// Dial positions a,b,c are 0..19 counted from each dial's home stop, 0 = first click (1..20 until v0.6).
 #pragma once
 #include <stdint.h>
 #include "calib.h"
@@ -131,7 +131,7 @@ class Robot {
   int32_t n_ = 0;
   uint16_t sinceRecheck_ = 0;
   int32_t absCount_[3] = {0, 0, 0};   // every dial microstep since boot (click phases)
-  int32_t offsetUs_[3] = {0, 0, 0};   // position 1 from the stall zero
+  int32_t offsetUs_[3] = {0, 0, 0};   // position 0 from the stall zero
   int32_t notchAbs_[3] = {0, 0, 0};   // click centre, absolute microsteps mod one click
   bool notchOk_[3] = {false, false, false};
   bool offsetFromClicks_[3] = {false, false, false};
