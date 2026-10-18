@@ -419,9 +419,10 @@ From the notes at the end of `cad/key_turner_housing.scad`:
    plugs the unit floats a little, and an off-centre plug is pressed
    sideways in its star, which loads that dial (calibration errors or a
    stall). Plug in USB, then 12 V (the motors are already plugged in), and
-   type `load 10`: the three dials turn together for 20 s and every half
-   second a line `LOAD,ms,A,…,B,…,C,…` gives each dial's load, **higher =
-   lighter**. Nudge the unit left/right, up/down and in twist until all
+   type `load 10`: it homes the dials, then they sweep together inside one
+   turn, out and back, for ~35 s, and every half second a line
+   `LOAD,ms,A,…,B,…,C,…` gives each dial's load, **higher = lighter**. (It
+   needs a calibration saved: the very first time, `calibrate` first.) Nudge the unit left/right, up/down and in twist until all
    three read their highest, let the magnets take it, and `load 3` to check
    it stayed. Then `calibrate` (the dials aren't homed after `load`).
 5. **Key turner:** turn the cap so its two roof marks are **top and bottom**
@@ -1154,7 +1155,7 @@ first time ever, `calibrate` first).
 | `!` or `abort` | stop the current move now, drivers off |
 | `release` | all drivers off (also lets go of the key after a success) |
 | `reset yes` | erase the stored progress |
-| `load [turns]` | placing the dial unit: all dials turn together, each one's load printed every 0.5 s (higher = lighter); un-homes the dials |
+| `load [sweeps]` | placing the dial unit: homes, then all dials sweep together inside one turn, each one's load printed every 0.5 s (higher = lighter); un-homes the dials |
 | `goto a b c` | dials to positions 0–19 (0 = first click), after `home`. Stays inside one turn: never clockwise past the stop (its cam can stall the motor) unless `set wrap 1` |
 | `seat`, `home [A\|B\|C]`, `learn`, `goto a b c`, `try`, `key <deg>`, `jog`, `sg`, `set` | bench commands: `control/firmware/README.md` and `control/bringup.md` |
 

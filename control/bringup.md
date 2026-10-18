@@ -210,8 +210,9 @@ turner is not needed yet. 12 V on. `set axes 7`.
    off-centre plug is pressed sideways in its star: that dial is loaded, and
    its calibration can show errors or stall. So, with the plugs seated and
    the unit not yet clamped (placed with 12 V off, motors already plugged
-   in; then 12 V on): `load 10`. All three dials turn clockwise
-   together for 10 turns (20 s), and every half second it prints
+   in; then 12 V on): `load 10`. It homes the dials (it needs a calibration
+   saved: `calibrate` once, ever), then all three sweep together inside one
+   turn, out and back, 10 times (~35 s; v0.7), and every half second it prints
    `LOAD,ms,A,mean,pct,B,mean,pct,C,mean,pct`. **Higher = lighter.** Nudge
    the unit left/right, up/down and in twist, and watch the numbers: centred
    is where all three are at their highest. `pct` is against each dial's last
@@ -364,7 +365,9 @@ turner is not needed yet. 12 V on. `set axes 7`.
   ~12 full steps after the motor had made one turn from the stall point, so
   the dial trails the motor by roughly **10–12 full steps turning clockwise**
   (estimate: includes the wind-up at the stall). → v0.6.2: `goto` stays
-  inside one turn. Open: the calibration turn and `load` cross the cam.
+  inside one turn; v0.7: calibration (once thresholds exist) and `load`
+  stay inside one turn too, and every dial move ends with a settle
+  (Paul: accuracy over speed).
 - **Not explained yet:** A and B one click short. Hypothesis (no
   measurement yet): play between gear and dial, mostly the plug in its star,
   makes every clockwise move fall short, and position 1 (found from the

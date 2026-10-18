@@ -74,7 +74,9 @@ class Robot {
   bool configureAll(bool seatCurrent);
   bool seatDials();
   bool homeDial(uint8_t d, int32_t expectDist, int32_t* discrepancy);
-  bool settleDials(uint8_t mask);  // homed dials in mask (bit 0 = A): drivers off, then on again
+  bool settleDials(uint8_t mask, bool report = true);  // homed dials in mask (bit 0 = A): drivers off, then on again
+  bool homeForCal();              // with thresholds known: home first, so calibration stays inside one turn
+  int32_t sweepUs() const;        // position 0 -> just short of the cam, for the fitted dials
   bool keyHome(int32_t boundUs);
   bool learnN();
   bool learnForRun();

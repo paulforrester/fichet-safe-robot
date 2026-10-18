@@ -132,6 +132,12 @@
 // that needs more force (Paul, 2026-10-18), and `sg A 400` stalled there
 // at 600 mA (bring-up 4b, 2026-10-18). Inside one turn nothing crosses it.
 #define CFG_DIAL_WRAP            0
+// Inside one turn: the calibration sweep and `load` turn the dials from
+// position 0 clockwise, stopping this far short of where the stop's cam would
+// be met again (one dial turn from the stall point), full steps. The dial
+// trails the motor by ~10-12 full steps (sg A 400, 2026-10-18): 30 leaves
+// 1.5 clicks. ASSUMPTION.
+#define CFG_CAM_CLEAR_FULL       30
 
 // ---- Settle after homing (Paul's decision, 2026-10-16) ------------------------
 // After the dials are homed (session start, every re-check, `calibrate`,
@@ -147,6 +153,12 @@
 // discrepancy (CFG_RECHECK_HOME_TOL_FULL 8: fine up to a fall of 6 full steps).
 // 0 = no settle.
 #define CFG_DIAL_SETTLE_MS       500    // ASSUMPTION: long enough for a click to pull its dial in; stage 4b checks
+// Settle after every dial move as well (goto, each attempt), not just after
+// homing (Paul, 2026-10-18: "accuracy over speed"). Each settle lets the dials
+// drop into their clicks, so a target needs only to be within half a click of
+// a click centre. Costs CFG_DIAL_SETTLE_MS + CFG_DIAL_SETTLE_ON_MS per attempt
+// (~1.5 h over 8,000). 0 = after homing only.
+#define CFG_DIAL_SETTLE_EACH     1
 #define CFG_DIAL_SETTLE_ON_MS    200    // still, after switching back on, before the next move (precaution:
                                         // StealthChop tunes at standstill, DS §6.1 AT#1 <=130 ms)
 
