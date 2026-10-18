@@ -1155,7 +1155,7 @@ first time ever, `calibrate` first).
 | `release` | all drivers off (also lets go of the key after a success) |
 | `reset yes` | erase the stored progress |
 | `load [turns]` | placing the dial unit: all dials turn together, each one's load printed every 0.5 s (higher = lighter); un-homes the dials |
-| `goto a b c` | dials to positions 0–19 (0 = first click), each the shorter way round; after `home` |
+| `goto a b c` | dials to positions 0–19 (0 = first click), after `home`. Stays inside one turn: never clockwise past the stop (its cam can stall the motor) unless `set wrap 1` |
 | `seat`, `home [A\|B\|C]`, `learn`, `goto a b c`, `try`, `key <deg>`, `jog`, `sg`, `set` | bench commands: `control/firmware/README.md` and `control/bringup.md` |
 
 **LED:** fast blink running · slow blink idle, paused or done · steady

@@ -783,9 +783,29 @@ TEST(calibrate_command_stores_what_a_run_needs) {
 }
 
 // ---------------------------------------------------------------- goto (v0.6, Paul 2026-10-18)
-TEST(goto_takes_the_shorter_way_round) {
+TEST(goto_stays_inside_one_turn_by_default) {
+  // v0.6.2: passing the stop clockwise pushes through the anti-reverse cam
+  // (Paul, 2026-10-18), so by default 19 -> 0 goes back, never across it.
   SimHal h;
   Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("home");
+  r.handleLine("goto 19 19 19");
+  const size_t m0 = h.moves.size();
+  r.handleLine("goto 0 0 0");
+  CHECK(h.has("# dials at 0 0 0"));
+  for (size_t i = m0; i < h.moves.size(); ++i) CHECK(h.moves[i].steps < 0 || h.moves[i].steps <= 20 * 16);
+  CHECK(h.moves[m0].steps < -18 * 320);  // 19 back (and the approach overshoot)
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 0);
+  CHECK_EQ(h.count("ERR,"), 0);
+  noViolations(h);
+}
+
+TEST(goto_takes_the_shorter_way_round_with_wrap_on) {
+  SimHal h;
+  Settings s = tunedSettings();
+  s.dialWrap = 1;
   Robot r(h, s);
   r.boot();
   r.handleLine("home");

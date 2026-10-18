@@ -174,7 +174,12 @@ RAMPS, UART pigtail); firmware written and host-tested
 - **Dials (Paul, 2026-10-06):** each turns clockwise without limit and stops
   turning anticlockwise; 20 evenly spaced clicks (18°); where the first click
   sits relative to the stop can't be read by hand; no marks on the door. The
-  manual has no warning about wrong combinations. Manual (`docs/photos/
+  manual has no warning about wrong combinations. **Passing the stop
+  clockwise (19 → 0) pushes through the anti-reverse cam**: a distinct click
+  needing more force; at 600 mA the motor stalls there (Paul, 2026-10-18,
+  `sg A 400`), so nothing should cross it (`goto` doesn't since v0.6.2; the
+  calibration turn and `load` still do). From the same trace the dial
+  trails the motor by ~10–12 full steps turning clockwise (play). Manual (`docs/photos/
   complice_manual_normal_use.png`): dial the combination, then insert the key
   and turn it clockwise, then pull the key to open.
 
@@ -251,7 +256,7 @@ deck); the start button mounts from under the deck (7.4mm hole, 10 x 2.5mm
 recess, 4mm wire hole beside the endstop block; revision 2026-10-09.1,
 `docs/housing_decisions.md`): check it on the reprinted deck.
 
-## Firmware — `control/firmware/` (v0.6.1, 2026-10-18; read its README)
+## Firmware — `control/firmware/` (v0.6.2, 2026-10-18; read its README)
 
 Host-tested; v0.4 ran through bench bring-up stages 1–4b (2026-10-10 to
 14), v0.5 on the door 2026-10-17/18 (the settle fixed B's homing drift),
@@ -259,7 +264,8 @@ Host-tested; v0.4 ran through bench bring-up stages 1–4b (2026-10-10 to
 each one's load printed every 0.5 s, for centring the unit; positions 0–19;
 `goto` the shorter way round; every position approached clockwise; logger
 arrow-key history; v0.6.1: the approach overshoot stays 10 full steps clear
-of the stall point, after a `JAM` going back to 0). **Open (2026-10-18): the click-found offsets put position
+of the stall point, after a `JAM` going back to 0; v0.6.2: `goto` stays
+inside one turn, never clockwise past the stop's cam). **Open (2026-10-18): the click-found offsets put position
 0 on the stop and each position on the near side of its click** — measure
 each dial's offset by hand (bring-up 4b step 8), then `CFG_HOME_OFFSET_x` with
 `CFG_DETENT_AUTOCAL 0`. Sequence as in

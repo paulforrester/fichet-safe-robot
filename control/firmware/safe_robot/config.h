@@ -126,6 +126,12 @@
 // ASSUMPTION (the wind-up isn't measured): if a dial at a small offset still
 // jams going back to 0, raise it (`set approachclear N`).
 #define CFG_DIAL_APPROACH_CLEAR_FULL 10
+// 1 = `goto` goes on clockwise past the stop (19 -> 0) when that's shorter
+// than going back (Paul's request, v0.6). 0 since v0.6.2: passing the stop
+// clockwise means pushing through the anti-reverse cam, a distinct click
+// that needs more force (Paul, 2026-10-18), and `sg A 400` stalled there
+// at 600 mA (bring-up 4b, 2026-10-18). Inside one turn nothing crosses it.
+#define CFG_DIAL_WRAP            0
 
 // ---- Settle after homing (Paul's decision, 2026-10-16) ------------------------
 // After the dials are homed (session start, every re-check, `calibrate`,

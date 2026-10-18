@@ -385,6 +385,7 @@ void Robot::cmdSet(const char* name, int32_t v) {
   else if (TOKEQ(name, "sgmin100")) s_.sgMinRps = v / 100.0f;
   else if (TOKEQ(name, "settlems")) s_.settleMs = (uint16_t)(v < 0 ? 0 : v > 5000 ? 5000 : v);
   else if (TOKEQ(name, "approach")) s_.dialApproachFull = (uint16_t)(v < 0 ? 0 : v > 40 ? 40 : v);
+  else if (TOKEQ(name, "wrap")) s_.dialWrap = v ? 1 : 0;
   else if (TOKEQ(name, "approachclear")) s_.dialApproachClearFull = (uint16_t)(v < 0 ? 0 : v > 40 ? 40 : v);
   else if (TOKEQ(name, "settleonms")) s_.settleOnMs = (uint16_t)(v < 0 ? 0 : v > 5000 ? 5000 : v);
   else ok = false;
@@ -951,16 +952,18 @@ bool Robot::gotoCombo(const Combo& c) {
 
 // Paul (2026-10-18): go the shorter way round. The dials turn clockwise
 // without limit, so a target behind the dial can also be reached by turning
-// on clockwise, past the stop, to the same position a turn later; that is
-// done when it is strictly shorter (19 -> 0 is one click forward, not 19
-// back). The count is then brought back into the first turn: the stop is at
-// the same place every turn.
+// on clockwise, past the stop, to the same position a turn later; with
+// `set wrap 1` (CFG_DIAL_WRAP) that is done when it is strictly shorter
+// (19 -> 0 is one click forward, not 19 back). Off by default since v0.6.2:
+// passing the stop clockwise pushes through the anti-reverse cam, which can
+// stall the motor. The count is then brought back into the first turn: the
+// stop is at the same place every turn.
 bool Robot::moveDialTo(uint8_t d, int32_t target) {
   const Axis ax = (Axis)d;
   int32_t delta = target - dialPos_[d];
   if (delta == 0) return true;
   const int32_t turn = turnUs();
-  if (delta < 0 && delta + turn < -delta) delta += turn;
+  if (s_.dialWrap && delta < 0 && delta + turn < -delta) delta += turn;
   int32_t over = 0;
   if (s_.dialApproachFull && delta < 0) {
     over = (int32_t)s_.dialApproachFull * s_.microsteps;
@@ -1206,7 +1209,7 @@ void Robot::printCfg() {
       .i(s_.homeOffsetFull[0]).c('/').i(s_.homeOffsetFull[1]).c('/').i(s_.homeOffsetFull[2])
       .p(CP(",backoff=")).u(s_.homeBackoffFull).p(CP(",tol=")).u(s_.homeRepeatTolFull)
       .p(CP(",seatDeg=")).u(s_.seatDialDeg).p(CP(",seatma=")).u(s_.seatMa)
-      .p(CP(",settlems=")).u(s_.settleMs).c('/').u(s_.settleOnMs).p(CP(",approach=")).u(s_.dialApproachFull).c('/').u(s_.dialApproachClearFull);
+      .p(CP(",settlems=")).u(s_.settleMs).c('/').u(s_.settleOnMs).p(CP(",approach=")).u(s_.dialApproachFull).c('/').u(s_.dialApproachClearFull).p(CP(",wrap=")).u(s_.dialWrap);
   emit(l);
   l.clear();
   l.p(CP("CFG,key,home=")).u(s_.keyHome).p(CP(",learnMax=")).u(s_.keyLearnMaxDeg).p(CP(",margin=")).deci(s_.keyTargetMarginDeci)

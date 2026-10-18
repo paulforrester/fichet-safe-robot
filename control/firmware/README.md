@@ -44,6 +44,13 @@ From the door tests that day (Paul, bring-up 4b):
   dial whose position 0 is closer than that gets no overshoot there. Test:
   every move tracked from the stall point, for several offsets (the old rule
   fails it and jams in the simulator).
+- **v0.6.2: `goto` stays inside one turn by default** (`CFG_DIAL_WRAP` 0;
+  `set wrap 1` for the shorter way round). Passing the stop clockwise
+  (19 → 0) pushes through the dial's anti-reverse cam: a distinct click that
+  needs more force (Paul, 2026-10-18), and `sg A 400` stalled there at 600 mA
+  (the load climbed over its last ~10 full steps). Still open: the
+  calibration turn (1¼ turns) and `load` (whole turns) cross it once per
+  turn, so they can stall there too.
 - **Logger**: up/down arrows step through the last 100 commands, like bash
   (`tools/logger.py`, kept in `~/.safe_robot_history`).
 
@@ -388,13 +395,13 @@ a move must stop with `DRVFAULT`).
 | `reset yes` | erase stored progress |
 | `calibrate` | key (from its start position) + seat + one free turn per dial + homing + settle; prints `CAL`/`OFFSET`, saves to EEPROM |
 | `seat`, `home [A\|B\|C]`, `learn` | bench: run one part of the session start (`home` ends with a settle of the dials it homed) |
-| `goto a b c` | bench: dials to positions 0–19 (0 = first click) after `home`, each the shorter way round (says which dials aren't homed) |
+| `goto a b c` | bench: dials to positions 0–19 (0 = first click) after `home`; back within the turn, never clockwise past the stop unless `set wrap 1` (says which dials aren't homed) |
 | `load [turns]` | placing the unit (v0.6): all dials turn clockwise together for 1–20 turns (default 5), printing `LOAD` every 0.5 s; un-homes the dials |
 | `try` | bench: one key attempt at the current dial setting |
 | `key <deg>` | bench: turn the key clockwise up to `deg` (stops on stall), then back |
 | `jog <A\|B\|C\|K> <fullsteps>` | bench: bounded move (±800 full steps), stops on stall |
 | `sg <A\|B\|C\|K> <fullsteps>` | bench: like jog, printing `SG,axis,fullstep,value` samples |
-| `set <name> <value>` | bench, RAM only: `sgA..sgK`, `maA..maK`, `rps100A..K` (speed × 100), `invA..K`, `offA..C`, `keyhome`, `margin`, `success`, `clean`, `early` (0.1°), `recheck`, `seatma`, `seatrps100`, `sgmin100`, `autocal`, `detentcal`, `calpct`, `settlems` (0 = no settle), `settleonms`, `approach` (full steps, 0 = off), `approachclear` (full steps) |
+| `set <name> <value>` | bench, RAM only: `sgA..sgK`, `maA..maK`, `rps100A..K` (speed × 100), `invA..K`, `offA..C`, `keyhome`, `margin`, `success`, `clean`, `early` (0.1°), `recheck`, `seatma`, `seatrps100`, `sgmin100`, `autocal`, `detentcal`, `calpct`, `settlems` (0 = no settle), `settleonms`, `approach` (full steps, 0 = off), `approachclear` (full steps), `wrap` (1 = goto may pass the stop clockwise) |
 
 The button: pauses a running session; when idle, resumes a stored run or
 starts a new one.
@@ -433,7 +440,7 @@ The first is live mode (type commands in it); the second re-analyses a run.
 
 ## Verified here (cloud session, no hardware)
 
-- **Host tests**: `make -C control/firmware/test` — 66 tests, ~36,700 checks,
+- **Host tests**: `make -C control/firmware/test` — 67 tests, ~36,700 checks,
   0 failures. Built with `-Wall -Wextra -Werror` (g++ 13 and clang 18) and
   also run under AddressSanitizer + UBSan. They cover:
   - the serpentine order: a bijection, and each step moves one dial by one

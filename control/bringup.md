@@ -352,6 +352,19 @@ turner is not needed yet. 12 V on. `set axes 7`.
   and command history: firmware v0.6. Next: step 8.
 - On v0.6 (Paul): `goto 1 0 0` then `goto 0 0 0` stopped with `JAM` on A:
   the approach overshoot went back onto the stall point. Fixed in v0.6.1.
+- `home`, then `sg A 400` (one dial turn clockwise from position 0, A's
+  offset 24.0 from the clicks), Paul 17:25. The load ripples once every 20
+  full steps through the whole turn (amplitude ~14 SG, lightest at 13.8 and
+  heaviest at 3.8 full steps from the stall point, mod 20). Over the last
+  ~10 full steps it climbs steeply (SG ~250 → 144) and the move stalled at
+  398: the dial had reached its stop from the other side. Released, it sat
+  at position 19. **Passing the stop clockwise pushes through the
+  anti-reverse cam**, a distinct click that takes more force (Paul): at
+  600 mA with stall detection on the motor can't get through. The rise began
+  ~12 full steps after the motor had made one turn from the stall point, so
+  the dial trails the motor by roughly **10–12 full steps turning clockwise**
+  (estimate: includes the wind-up at the stall). → v0.6.2: `goto` stays
+  inside one turn. Open: the calibration turn and `load` cross the cam.
 - **Not explained yet:** A and B one click short. Hypothesis (no
   measurement yet): play between gear and dial, mostly the plug in its star,
   makes every clockwise move fall short, and position 1 (found from the
