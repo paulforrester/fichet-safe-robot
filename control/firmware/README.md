@@ -5,6 +5,31 @@
 Implements the sequence in `control/sequence.md` on the pin map in
 `control/wiring.md`. Bring it up on the bench with `control/bringup.md`.
 
+## v0.7 (2026-10-18): accuracy over speed; nothing crosses the stop's cam
+
+Paul, 2026-10-18: "accuracy over speed". And passing a dial's stop clockwise
+pushes through its anti-reverse cam, which stalls the motor (v0.6.2 below).
+- **Settle after every dial move** (`CFG_DIAL_SETTLE_EACH` 1, `set
+  settleeach 0/1`): after each `goto` and each attempt's dial move, the
+  dials that moved have their drivers off for 0.5 s (each drops into its
+  click) and on again, before the key turns. A target then only has to be
+  within half a click of a click centre. Costs ~0.7 s per attempt (~1.5 h
+  over 8,000). No `EV` line for these (only after homing).
+- **Calibration inside one turn** once stall thresholds exist (from the last
+  `calibrate`, in EEPROM): seat → **home** → a sweep from position 0 clockwise
+  to `CFG_CAM_CLEAR_FULL` (30 full steps) short of where the cam is met
+  again, measuring the load and clicks → home again (as before) → settle.
+  The very first calibration (no thresholds) still makes the free turn and
+  a quarter, and can stall on the cam (retry). Same at session start.
+- **`load [sweeps]`** now homes first (it needs a calibration saved), then
+  sweeps all dials together from position 0 to just short of the cam and
+  back, `sweeps` times (default 5, ~3.5 s each), printing `LOAD` as before.
+  The stop and the cam are never pushed.
+- Tests: the second calibration's sweeps stay inside the turn (and the
+  first makes the free turn); `load` homes and sweeps out and back inside
+  the turn; a dial 6 full steps off its click ends in it with the settle and
+  not without (each checked against a build without the change, which fails).
+
 ## v0.6 (2026-10-18): `load`; positions 0–19; `goto` the short way; approach
 
 From the door tests that day (Paul, bring-up 4b):
@@ -44,6 +69,13 @@ From the door tests that day (Paul, bring-up 4b):
   dial whose position 0 is closer than that gets no overshoot there. Test:
   every move tracked from the stall point, for several offsets (the old rule
   fails it and jams in the simulator).
+- **v0.6.2: `goto` stays inside one turn by default** (`CFG_DIAL_WRAP` 0;
+  `set wrap 1` for the shorter way round). Passing the stop clockwise
+  (19 → 0) pushes through the dial's anti-reverse cam: a distinct click that
+  needs more force (Paul, 2026-10-18), and `sg A 400` stalled there at 600 mA
+  (the load climbed over its last ~10 full steps). Still open: the
+  calibration turn (1¼ turns) and `load` (whole turns) cross it once per
+  turn, so they can stall there too.
 - **Logger**: up/down arrows step through the last 100 commands, like bash
   (`tools/logger.py`, kept in `~/.safe_robot_history`).
 
@@ -386,15 +418,15 @@ a move must stop with `DRVFAULT`).
 | `!` | abort the current move at once, drivers off |
 | `release` | all drivers off (also lets go of the key after a success) |
 | `reset yes` | erase stored progress |
-| `calibrate` | key (from its start position) + seat + one free turn per dial + homing + settle; prints `CAL`/`OFFSET`, saves to EEPROM |
+| `calibrate` | key (from its start position) + seat + (with thresholds saved: homing +) the load sweep per dial (inside one turn; the first ever: a free turn) + homing + settle; prints `CAL`/`OFFSET`, saves to EEPROM |
 | `seat`, `home [A\|B\|C]`, `learn` | bench: run one part of the session start (`home` ends with a settle of the dials it homed) |
-| `goto a b c` | bench: dials to positions 0–19 (0 = first click) after `home`, each the shorter way round (says which dials aren't homed) |
-| `load [turns]` | placing the unit (v0.6): all dials turn clockwise together for 1–20 turns (default 5), printing `LOAD` every 0.5 s; un-homes the dials |
+| `goto a b c` | bench: dials to positions 0–19 (0 = first click) after `home`; back within the turn, never clockwise past the stop unless `set wrap 1` (says which dials aren't homed) |
+| `load [sweeps]` | placing the unit: homes, then all dials sweep together inside one turn, out and back, 1–20 times (default 5), printing `LOAD` every 0.5 s; un-homes the dials (v0.7; v0.6 turned whole turns) |
 | `try` | bench: one key attempt at the current dial setting |
 | `key <deg>` | bench: turn the key clockwise up to `deg` (stops on stall), then back |
 | `jog <A\|B\|C\|K> <fullsteps>` | bench: bounded move (±800 full steps), stops on stall |
 | `sg <A\|B\|C\|K> <fullsteps>` | bench: like jog, printing `SG,axis,fullstep,value` samples |
-| `set <name> <value>` | bench, RAM only: `sgA..sgK`, `maA..maK`, `rps100A..K` (speed × 100), `invA..K`, `offA..C`, `keyhome`, `margin`, `success`, `clean`, `early` (0.1°), `recheck`, `seatma`, `seatrps100`, `sgmin100`, `autocal`, `detentcal`, `calpct`, `settlems` (0 = no settle), `settleonms`, `approach` (full steps, 0 = off), `approachclear` (full steps) |
+| `set <name> <value>` | bench, RAM only: `sgA..sgK`, `maA..maK`, `rps100A..K` (speed × 100), `invA..K`, `offA..C`, `keyhome`, `margin`, `success`, `clean`, `early` (0.1°), `recheck`, `seatma`, `seatrps100`, `sgmin100`, `autocal`, `detentcal`, `calpct`, `settlems` (0 = no settle), `settleonms`, `approach` (full steps, 0 = off), `approachclear` (full steps), `wrap` (1 = goto may pass the stop clockwise), `settleeach` (1 = settle after every dial move), `camclear` (full steps) |
 
 The button: pauses a running session; when idle, resumes a stored run or
 starts a new one.
@@ -433,7 +465,7 @@ The first is live mode (type commands in it); the second re-analyses a run.
 
 ## Verified here (cloud session, no hardware)
 
-- **Host tests**: `make -C control/firmware/test` — 66 tests, ~36,700 checks,
+- **Host tests**: `make -C control/firmware/test` — 69 tests, ~36,900 checks,
   0 failures. Built with `-Wall -Wextra -Werror` (g++ 13 and clang 18) and
   also run under AddressSanitizer + UBSan. They cover:
   - the serpentine order: a bijection, and each step moves one dial by one
@@ -495,12 +527,12 @@ The first is live mode (type commands in it); the second re-analyses a run.
   every attempt.
 - **AVR build**: compiles for the ATmega2560 with avr-gcc 7.3 + Arduino AVR
   core 1.8.6 + TMCStepper 0.7.3 (Ubuntu packages; the Arduino download
-  servers are blocked here): 56.3 KB flash (22.0 %), 1.4 KB static RAM
-  (17.0 %), no warnings from this code (v0.6, 2026-10-18).
+  servers are blocked here): 59.2 KB flash (23.1 %), 1.4 KB static RAM
+  (17.1 %), no warnings from this code (v0.7, 2026-10-18).
 
 **Not verified**: anything on hardware beyond bring-up stages 1–4b (v0.4,
 2026-10-10 to 14; v0.5 on the door 2026-10-17/18); v0.6 (`load`) hasn't run
-on hardware yet. The simulator's lock is my model of
+on hardware yet, nor has v0.7. The simulator's lock is my model of
 the description in `control/sequence.md` and Paul's checks, not the real lock;
 in particular its StallGuard click ripple is an assumption. Motor
 directions, how SG_RESULT really looks on these dials, the 50 % threshold

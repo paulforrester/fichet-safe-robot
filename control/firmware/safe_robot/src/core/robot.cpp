@@ -171,7 +171,7 @@ void Robot::handleLine(const char* line) {
     const char* const lines[] = {
       CP("# commands: status | cfg | ping | start | resume [force] | pause | release | reset yes"),
       CP("#   calibrate | seat | home [A|B|C] | learn | goto a b c | try | key <deg> | jog <A|B|C|K> <n>"),
-      CP("#   load [turns]: all dials turn together, each one's load printed every 0.5 s (placing the unit)"),
+      CP("#   load [sweeps]: home, then all dials sweep together, each one's load every 0.5 s (placing the unit)"),
       CP("#   sg <A|B|C|K> <fullsteps> | set <name> <value> | abort (or '!': stops at once)"),
     };
     for (uint8_t i = 0; i < 4; ++i) { l.clear(); l.p(lines[i]); emit(l); }
@@ -244,7 +244,7 @@ void Robot::handleLine(const char* line) {
     forceCal_ = true;
     bool ok = true;
     if (fitted(AX_KEY)) { keyPos_ = 0; keyHomed_ = true; ok = calKey(); }
-    if (ok) ok = seatDials() && calibrateDials();
+    if (ok) ok = seatDials() && homeForCal() && calibrateDials();
     for (uint8_t d = 0; d < 3 && ok; ++d)
       if (fitted(d)) ok = homeDial(d, -1, 0);
     if (ok) ok = settleDials(0x07);
@@ -319,7 +319,7 @@ void Robot::handleLine(const char* line) {
   }
   if (TOKEQ(cmd, "load")) {
     const long t = tok[1] ? atol(tok[1]) : 5;
-    if (t < 1 || t > 20) { l.p(CP("# load [turns, 1..20, default 5]")); emit(l); return; }
+    if (t < 1 || t > 20) { l.p(CP("# load [sweeps, 1..20, default 5]: homes, then out and back inside one turn")); emit(l); return; }
     loadRun((int32_t)t);
     return;
   }
@@ -385,6 +385,9 @@ void Robot::cmdSet(const char* name, int32_t v) {
   else if (TOKEQ(name, "sgmin100")) s_.sgMinRps = v / 100.0f;
   else if (TOKEQ(name, "settlems")) s_.settleMs = (uint16_t)(v < 0 ? 0 : v > 5000 ? 5000 : v);
   else if (TOKEQ(name, "approach")) s_.dialApproachFull = (uint16_t)(v < 0 ? 0 : v > 40 ? 40 : v);
+  else if (TOKEQ(name, "wrap")) s_.dialWrap = v ? 1 : 0;
+  else if (TOKEQ(name, "settleeach")) s_.settleEach = v ? 1 : 0;
+  else if (TOKEQ(name, "camclear")) s_.camClearFull = (uint16_t)(v < 0 ? 0 : v > 200 ? 200 : v);
   else if (TOKEQ(name, "approachclear")) s_.dialApproachClearFull = (uint16_t)(v < 0 ? 0 : v > 40 ? 40 : v);
   else if (TOKEQ(name, "settleonms")) s_.settleOnMs = (uint16_t)(v < 0 ? 0 : v > 5000 ? 5000 : v);
   else ok = false;
@@ -418,7 +421,7 @@ void Robot::sessionStep() {
     case SS_KEYHOME: ok = keyHome(keyDeciToUs(s_, (int32_t)s_.keyHomeSearchDeg * 10)); step_ = SS_KEYCAL; break;
     case SS_KEYCAL: ok = !s_.sgAutocal || calKey(); step_ = SS_SEAT; break;
     case SS_SEAT: ok = seatDials(); step_ = SS_CAL; break;
-    case SS_CAL: ok = !(s_.sgAutocal || s_.detentAutocal) || calibrateDials(); step_ = SS_HOME_A; break;
+    case SS_CAL: ok = !(s_.sgAutocal || s_.detentAutocal) || (homeForCal() && calibrateDials()); step_ = SS_HOME_A; break;
     case SS_HOME_A: ok = homeDial(0, -1, 0); step_ = SS_HOME_B; break;
     case SS_HOME_B: ok = homeDial(1, -1, 0); step_ = SS_HOME_C; break;
     case SS_HOME_C: ok = homeDial(2, -1, 0); step_ = SS_SETTLE; break;
@@ -716,7 +719,7 @@ bool Robot::homeDial(uint8_t d, int32_t expectDist, int32_t* discrepancy) {
 // motor to its nearest holding point (every 4 full steps, DS §3.6.1), so a
 // dial that fell more than 2 full steps now sits a multiple of 4 full steps
 // from where the count says (config.h, CFG_DIAL_SETTLE_MS). Only homed dials.
-bool Robot::settleDials(uint8_t mask) {
+bool Robot::settleDials(uint8_t mask, bool report) {
   if (s_.settleMs == 0) return true;
   uint8_t m = 0;
   for (uint8_t d = 0; d < 3; ++d)
@@ -732,7 +735,7 @@ bool Robot::settleDials(uint8_t mask) {
   hal_.delayMs(s_.settleOnMs);
   for (uint8_t d = 0; d < 3; ++d)
     if (((m >> d) & 1) && !driverOk((Axis)d, CP("settle"))) { driverFault(); return false; }
-  event(CP("SETTLED"), m);
+  if (report) event(CP("SETTLED"), m);
   return true;
 }
 
@@ -835,8 +838,29 @@ bool Robot::calDial(uint8_t d) {
   if (keyHomed_ && keyPos_ != 0) { error(CP("KEYOUT"), CP("refusing to turn dials with the key out of rest")); return false; }
   DetentProfile prof;
   const uint16_t fullPerTurn = (uint16_t)(s_.fullStepsPerRev * s_.dialGear);
-  prof.begin(absCount_[d], s_.microsteps, fullPerTurn);
-  MoveResult r = doMove((Axis)d, turnUs() + turnUs() / 4, s_.ax[d].rps, true, true, false, &prof);
+  // Homed (thresholds known, homeForCal): sweep from position 0 to just short
+  // of the stop's cam, inside one turn (Paul, 2026-10-18: passing the stop
+  // clockwise takes more force than the motor gives, and `sg A 400` stalled
+  // there). Not homed (first calibration, no thresholds yet): one free turn
+  // and a quarter from wherever the seat left it, as before; it crosses the
+  // cam once and may stall there (retry).
+  int32_t span = turnUs() + turnUs() / 4;
+  uint16_t window = fullPerTurn;
+  if (homed_[d]) {
+    span = sweepUs();
+    const float a = s_.ax[d].accelRps2 > 0 ? s_.ax[d].accelRps2 : 1;
+    const float v = s_.ax[d].rps, v0 = s_.ax[d].startRps < v ? s_.ax[d].startRps : v;
+    const int32_t rampFull = (int32_t)((v * v - v0 * v0) / (2 * a) * s_.fullStepsPerRev) + 2;
+    const int32_t cruiseFull = span / s_.microsteps - 2 * rampFull;
+    window = (uint16_t)(cruiseFull > 0 ? (cruiseFull / DetentProfile::kBins) * DetentProfile::kBins : 0);
+    if (window < 10 * DetentProfile::kBins) {
+      error(CP("SGCAL"), CP("too little room for a calibration sweep inside one turn (offset? camclear?)"));
+      return false;
+    }
+  }
+  prof.begin(absCount_[d], s_.microsteps, window);
+  MoveResult r = doMove((Axis)d, span, s_.ax[d].rps, true, true, false, &prof);
+  if (homed_[d]) dialPos_[d] += r.stepsDone;
   if (!checkMove(r, (Axis)d, false, true)) return false;
   if (r.stalled) {
     error(CP("SGCAL"), CP("dial stalled on its free calibration turn: plug jammed? old threshold too sensitive (`set sgA 0`)?"));
@@ -873,6 +897,27 @@ bool Robot::calDial(uint8_t d) {
   return true;
 }
 
+// Thresholds known for every fitted dial (from EEPROM or `set`): home them
+// first, so the calibration that follows sweeps inside one turn. Otherwise
+// (first calibration) nothing to do here: calDial makes its free turn.
+bool Robot::homeForCal() {
+  for (uint8_t d = 0; d < 3; ++d)
+    if (fitted(d) && s_.ax[d].sgthrs == 0) return true;
+  for (uint8_t d = 0; d < 3; ++d)
+    if (fitted(d) && !homeDial(d, -1, 0)) return false;
+  return true;
+}
+
+// From position 0 (the furthest of the fitted dials' offsets) clockwise to
+// camClearFull short of one turn from the stall point: where the stop's cam
+// is met again.
+int32_t Robot::sweepUs() const {
+  int32_t far = 0;
+  for (uint8_t d = 0; d < 3; ++d)
+    if (fitted(d) && offsetUs_[d] > far) far = offsetUs_[d];
+  return turnUs() - far - (int32_t)s_.camClearFull * s_.microsteps;
+}
+
 bool Robot::calibrateDials() {
   for (uint8_t d = 0; d < 3; ++d)
     if (fitted(d) && !calDial(d)) return false;
@@ -893,7 +938,19 @@ bool Robot::loadRun(int32_t turns) {
   if (!mask) { l.p(CP("# no dial driver fitted (set axes)")); emit(l); return false; }
   if (keyHomed_ && keyPos_ != 0) { error(CP("KEYOUT"), CP("refusing to turn dials with the key out of rest")); return false; }
   if (!pingAll() || !configureAll(false)) return false;
-  l.p(CP("# load: ")).i(turns).p(CP(" dial turns clockwise, together:"));
+  // v0.6.2: inside one turn. Home first (needs thresholds: calibrate once),
+  // then sweep from position 0 to just short of the cam and back, `turns`
+  // times, so neither the stop nor its cam is ever pushed (Paul, 2026-10-18).
+  for (uint8_t d = 0; d < 3; ++d)
+    if (((mask >> d) & 1) && s_.ax[d].sgthrs == 0) {
+      l.p(CP("# load homes the dials first, and dial ")).c(kAxisChar[d]).p(CP(" has no stall threshold yet: `calibrate` once"));
+      emit(l);
+      return false;
+    }
+  for (uint8_t d = 0; d < 3; ++d)
+    if (((mask >> d) & 1) && !homeDial(d, -1, 0)) return false;
+  const int32_t span = sweepUs();
+  l.p(CP("# load: ")).i(turns).p(CP(" sweeps of ")).i(span / s_.microsteps).p(CP(" full steps out and back, together:"));
   for (uint8_t d = 0; d < 3; ++d) if ((mask >> d) & 1) l.c(' ').c(kAxisChar[d]);
   emit(l);
   l.clear();
@@ -902,7 +959,11 @@ bool Robot::loadRun(int32_t turns) {
   float rps = 1e9f;
   for (uint8_t d = 0; d < 3; ++d) if (((mask >> d) & 1) && s_.ax[d].rps < rps) rps = s_.ax[d].rps;
   LoadMeter meter(hal_, mask, cal_.baseline);
-  MoveResult r = doMoveDials(mask, turns * turnUs(), rps, &meter);
+  MoveResult r;
+  for (int32_t k = 0; k < 2 * turns; ++k) {
+    r = doMoveDials(mask, (k % 2 == 0) ? span : -span, rps, &meter);
+    if (r.stalled || r.aborted || r.timedOut || r.driverFault || r.diagHighAtStart) break;
+  }
   for (uint8_t d = 0; d < 3; ++d) if ((mask >> d) & 1) homed_[d] = false;
   meter.summary();
   uint8_t first = 0;
@@ -944,23 +1005,32 @@ bool Robot::learnForRun() {
 
 bool Robot::gotoCombo(const Combo& c) {
   if (keyHomed_ && keyPos_ != 0) { error(CP("KEYOUT"), CP("refusing to turn dials with the key out of rest")); return false; }
-  for (uint8_t d = 0; d < 3; ++d)
+  uint8_t moved = 0;
+  for (uint8_t d = 0; d < 3; ++d) {
+    const int32_t before = dialPos_[d];
     if (!moveDialTo(d, dialTarget(d, c.d[d]))) return false;
+    if (dialPos_[d] != before) moved |= (uint8_t)(1u << d);
+  }
+  // Paul (2026-10-18), accuracy over speed: let the dials that moved drop
+  // into their clicks before the key turns (config.h, CFG_DIAL_SETTLE_EACH).
+  if (s_.settleEach && moved) return settleDials(moved, false);
   return true;
 }
 
 // Paul (2026-10-18): go the shorter way round. The dials turn clockwise
 // without limit, so a target behind the dial can also be reached by turning
-// on clockwise, past the stop, to the same position a turn later; that is
-// done when it is strictly shorter (19 -> 0 is one click forward, not 19
-// back). The count is then brought back into the first turn: the stop is at
-// the same place every turn.
+// on clockwise, past the stop, to the same position a turn later; with
+// `set wrap 1` (CFG_DIAL_WRAP) that is done when it is strictly shorter
+// (19 -> 0 is one click forward, not 19 back). Off by default since v0.6.2:
+// passing the stop clockwise pushes through the anti-reverse cam, which can
+// stall the motor. The count is then brought back into the first turn: the
+// stop is at the same place every turn.
 bool Robot::moveDialTo(uint8_t d, int32_t target) {
   const Axis ax = (Axis)d;
   int32_t delta = target - dialPos_[d];
   if (delta == 0) return true;
   const int32_t turn = turnUs();
-  if (delta < 0 && delta + turn < -delta) delta += turn;
+  if (s_.dialWrap && delta < 0 && delta + turn < -delta) delta += turn;
   int32_t over = 0;
   if (s_.dialApproachFull && delta < 0) {
     over = (int32_t)s_.dialApproachFull * s_.microsteps;
@@ -1206,7 +1276,7 @@ void Robot::printCfg() {
       .i(s_.homeOffsetFull[0]).c('/').i(s_.homeOffsetFull[1]).c('/').i(s_.homeOffsetFull[2])
       .p(CP(",backoff=")).u(s_.homeBackoffFull).p(CP(",tol=")).u(s_.homeRepeatTolFull)
       .p(CP(",seatDeg=")).u(s_.seatDialDeg).p(CP(",seatma=")).u(s_.seatMa)
-      .p(CP(",settlems=")).u(s_.settleMs).c('/').u(s_.settleOnMs).p(CP(",approach=")).u(s_.dialApproachFull).c('/').u(s_.dialApproachClearFull);
+      .p(CP(",settlems=")).u(s_.settleMs).c('/').u(s_.settleOnMs).p(CP(",approach=")).u(s_.dialApproachFull).c('/').u(s_.dialApproachClearFull).p(CP(",wrap=")).u(s_.dialWrap).p(CP(",settleeach=")).u(s_.settleEach).p(CP(",camclear=")).u(s_.camClearFull);
   emit(l);
   l.clear();
   l.p(CP("CFG,key,home=")).u(s_.keyHome).p(CP(",learnMax=")).u(s_.keyLearnMaxDeg).p(CP(",margin=")).deci(s_.keyTargetMarginDeci)

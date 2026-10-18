@@ -236,8 +236,10 @@ Decisions made while writing the firmware, on top of the sequence above:
 - **Order of the 8,000**: serpentine. Consecutive attempts differ in one dial
   by one position, so each attempt turns one dial one click, and no dial ever
   wraps from position 19 back to 0. (Positions are 0–19 from firmware v0.6,
-  1–20 before. A dial can wrap clockwise past its stop, and from v0.6 `goto`
-  does when that's shorter, but the run doesn't need to.)
+  1–20 before. A dial can be turned clockwise past its stop, but that pushes
+  through its anti-reverse cam, which takes more force than the motor gives
+  at 600 mA with stall detection on (2026-10-18), so nothing crosses it in a
+  run, and `goto` doesn't either unless `set wrap 1`.)
 - **Key home every attempt**: retract until the key stalls at its rest
   (anticlockwise) stop, so every angle is measured from the same point.
   The rest stop exists: the key can't turn anticlockwise from where it goes
@@ -249,7 +251,9 @@ Decisions made while writing the firmware, on top of the sequence above:
 - **Self-calibration (v0.2, 2026-10-06, Paul's suggestion)**: each session
   measures each motor's free-running StallGuard reading and sets its own
   stall threshold (stall = reading down to 50 % of it). Each dial makes one
-  free clockwise turn for this. From the same turn's 18° click ripple it
+  free clockwise turn for this (v0.7: once thresholds are saved, the dials
+  are homed first and this becomes a sweep from position 0 to just short of
+  the stop's cam, inside one turn; then they are homed again). From the same turn's 18° click ripple it
   finds where the clicks are, so position 0 = the first click clockwise of
   the stop (1 before v0.6). **Correction (2026-10-18):** on the door this
   put position 0 on the stop and each target on the near side of its click;

@@ -720,7 +720,9 @@ TEST(stallguard_reading_too_low_to_calibrate) {
   h.sgDialBase = 30;
   h.sgDetentAmp = 5;
   Settings s = tunedSettings();
-  for (int a = 0; a < 3; ++a) s.ax[a].sgthrs = 5;  // so the old threshold doesn't trip first
+  // No dial thresholds yet: the first calibration's free turn (v0.7: with
+  // thresholds it homes first, and homing would report the low reading).
+  for (int a = 0; a < 3; ++a) s.ax[a].sgthrs = 0;
   Robot r(h, s);
   r.boot();
   r.handleLine("start");
@@ -783,9 +785,29 @@ TEST(calibrate_command_stores_what_a_run_needs) {
 }
 
 // ---------------------------------------------------------------- goto (v0.6, Paul 2026-10-18)
-TEST(goto_takes_the_shorter_way_round) {
+TEST(goto_stays_inside_one_turn_by_default) {
+  // v0.6.2: passing the stop clockwise pushes through the anti-reverse cam
+  // (Paul, 2026-10-18), so by default 19 -> 0 goes back, never across it.
   SimHal h;
   Settings s = tunedSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("home");
+  r.handleLine("goto 19 19 19");
+  const size_t m0 = h.moves.size();
+  r.handleLine("goto 0 0 0");
+  CHECK(h.has("# dials at 0 0 0"));
+  for (size_t i = m0; i < h.moves.size(); ++i) CHECK(h.moves[i].steps < 0 || h.moves[i].steps <= 20 * 16);
+  CHECK(h.moves[m0].steps < -18 * 320);  // 19 back (and the approach overshoot)
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 0);
+  CHECK_EQ(h.count("ERR,"), 0);
+  noViolations(h);
+}
+
+TEST(goto_takes_the_shorter_way_round_with_wrap_on) {
+  SimHal h;
+  Settings s = tunedSettings();
+  s.dialWrap = 1;
   Robot r(h, s);
   r.boot();
   r.handleLine("home");
@@ -918,7 +940,15 @@ std::vector<int> loadFields(const std::string& line, char ch, int n) {
 }
 }  // namespace
 
-TEST(load_turns_the_dials_together_and_reports_live) {
+// v0.7: `load` homes, then sweeps inside one turn (Paul, 2026-10-18: passing
+// the stop clockwise pushes through its anti-reverse cam).
+std::vector<size_t> lockstepMoves(const SimHal& h, size_t from) {
+  std::vector<size_t> v;
+  for (size_t i = from; i < h.moves.size(); ++i) if (h.moves[i].withMask) v.push_back(i);
+  return v;
+}
+
+TEST(load_homes_then_sweeps_inside_one_turn_and_reports_live) {
   SimHal h;
   Settings s = makeSettings();
   Robot r(h, s);
@@ -928,31 +958,37 @@ TEST(load_turns_the_dials_together_and_reports_live) {
   const size_t before = h.moves.size();
   h.lines.clear();
   r.handleLine("load 3");
-  // One move, all three dials in lockstep, clockwise, exactly 3 dial turns.
-  CHECK_EQ(h.moves.size(), before + 1);
-  const MoveRequest& m = h.moves.back();
-  CHECK_EQ((int)m.axis, (int)AX_A);
-  CHECK_EQ((int)m.withMask, 0x06);
-  CHECK_EQ(m.steps, 3 * 6400);
-  CHECK(m.stopOnStall && m.sampleSG && m.timeoutMs > 0);
-  // ~6 s of turning at 1 motor rev/s: about a dozen half-second reports, each with all three dials.
+  CHECK_EQ(h.count("HOME,"), 6);  // homed first
+  std::vector<size_t> ls = lockstepMoves(h, before);
+  CHECK_EQ((int)ls.size(), 6);    // 3 sweeps, out and back
+  double far = 0;
+  for (auto& l : h.lines) if (l.rfind("OFFSET,", 0) == 0) far = std::max(far, std::atof(field(l, 3).c_str()));
+  for (size_t k = 0; k < ls.size(); ++k) {
+    const MoveRequest& m = h.moves[ls[k]];
+    CHECK_EQ((int)m.axis, (int)AX_A);
+    CHECK_EQ((int)m.withMask, 0x06);
+    CHECK(k % 2 == 0 ? m.steps > 0 : m.steps < 0);
+    CHECK(m.stopOnStall && m.sampleSG && m.timeoutMs > 0);
+    // out from position 0 to 30 full steps short of one turn from the stall point: never the cam
+    CHECK(far * 16 + std::abs(m.steps) <= 6400 - 30 * 16 + 16);
+    CHECK(std::abs(m.steps) > 300 * 16);
+  }
   const int n = h.count("LOAD,");
-  CHECK(n >= 9 && n <= 13);
+  CHECK(n >= 15);
   for (auto& l : h.lines) {
     if (l.rfind("LOAD,", 0) != 0) continue;
     for (char ch : {'A', 'B', 'C'}) {
       std::vector<int> f = loadFields(l, ch, 2);
       CHECK_EQ((int)f.size(), 2);
       if (f.size() == 2) {
-        CHECK(f[0] > 270 && f[0] < 330);   // the sim's free-running SG (300 +- ripple)
-        CHECK(f[1] > 95 && f[1] < 125);    // vs the baseline (the heaviest point of a click)
+        CHECK(f[0] > 270 && f[0] < 330);
+        CHECK(f[1] > 95 && f[1] < 125);
       }
     }
   }
   CHECK(h.has("LOADSUM,"));
   CHECK(h.has("# load done"));
   CHECK_EQ(h.count("ERR,"), 0);
-  // The dials count as not homed: the unit may have moved under them.
   r.handleLine("goto 2 2 2");
   CHECK(h.last("# goto").find("not homed: A B C") != std::string::npos);
   noViolations(h);
@@ -964,7 +1000,7 @@ TEST(load_shows_which_dial_is_loaded) {
   Robot r(h, s);
   r.boot();
   r.handleLine("calibrate");
-  h.sgExtraLoad[1] = 60;  // unit nudged off centre: dial B's plug pressed sideways
+  h.sgExtraLoadLockstep[1] = 60;  // unit nudged off centre: dial B's plug pressed sideways
   h.lines.clear();
   r.handleLine("load 2");
   const std::string sum = h.last("LOADSUM,");
@@ -972,7 +1008,7 @@ TEST(load_shows_which_dial_is_loaded) {
   CHECK(a.size() == 3 && b.size() == 3 && c.size() == 3);
   if (a.size() == 3 && b.size() == 3 && c.size() == 3) {
     CHECK(b[0] < a[0] - 45 && b[0] < c[0] - 45);
-    CHECK(b[2] < a[2] - 15);  // percent of its own baseline drops too
+    CHECK(b[2] < a[2] - 15);
   }
   CHECK(!h.has("# load stopped"));
   noViolations(h);
@@ -984,17 +1020,16 @@ TEST(load_stops_on_a_stall_and_names_the_dial) {
   Robot r(h, s);
   r.boot();
   r.handleLine("calibrate");
-  h.sgExtraLoad[2] = 250;  // dial C jammed: SG far under its threshold
+  h.sgExtraLoadLockstep[2] = 250;  // dial C jammed: SG far under its threshold
   h.lines.clear();
   r.handleLine("load 5");
   CHECK(h.has("# load stopped: dial C stalled"));
-  CHECK(std::abs(h.moves.back().steps) == 5 * 6400);
   CHECK_EQ(h.count("ERR,"), 0);   // information while placing the unit, not a fault
   CHECK_EQ(r.state(), ST_IDLE);
   noViolations(h);
 }
 
-TEST(load_refuses_bad_turns) {
+TEST(load_refuses_bad_sweeps) {
   SimHal h;
   Settings s = tunedSettings();
   Robot r(h, s);
@@ -1003,28 +1038,90 @@ TEST(load_refuses_bad_turns) {
   r.handleLine("load 0");
   r.handleLine("load 21");
   CHECK_EQ(h.moves.size(), m0);
-  CHECK_EQ(h.count("# load [turns"), 2);
-  // After a key move (it turns and comes back to rest), the dials may turn.
+  CHECK_EQ(h.count("# load [sweeps"), 2);
   r.handleLine("key 30");
   r.handleLine("load 1");
   CHECK(h.has("# load done"));
   noViolations(h);
 }
 
-TEST(load_works_without_a_calibration) {
-  // Fresh EEPROM: no baseline, no thresholds. It still turns (clockwise never
-  // meets a stop) and reports, with -1 for the percentage.
+TEST(load_needs_a_calibration_first) {
+  // It homes first, which needs stall thresholds (calibrate once).
   SimHal h;
   Settings s = makeSettings();
   for (int a = 0; a < 3; ++a) s.ax[a].sgthrs = 0;
   s.axesMask = 0x07;
   Robot r(h, s);
   r.boot();
+  const size_t m0 = h.moves.size();
   r.handleLine("load 1");
-  CHECK(h.has("LOAD,"));
-  std::vector<int> f = loadFields(h.last("LOAD,"), 'B', 2);
-  CHECK(f.size() == 2 && f[1] == -1);
-  CHECK(h.has("# load done"));
+  CHECK(h.has("# load homes the dials first"));
+  CHECK_EQ(h.moves.size(), m0);
+  noViolations(h);
+}
+
+// v0.7: once thresholds exist, calibration homes first and sweeps inside one
+// turn; only the very first one (no thresholds) makes the old free turn.
+TEST(calibration_stays_inside_one_turn_once_thresholds_exist) {
+  SimHal h;
+  Settings s = makeSettings();
+  Robot r(h, s);
+  r.boot();
+  size_t m0 = h.moves.size();
+  r.handleLine("calibrate");
+  CHECK(h.has("# calibration saved"));
+  int freeTurns = 0;
+  for (size_t i = m0; i < h.moves.size(); ++i)
+    if (h.moves[i].axis < 3 && h.moves[i].sgSink && h.moves[i].steps == 6400 + 1600) ++freeTurns;
+  CHECK_EQ(freeTurns, 3);  // first calibration: the old free turn and a quarter
+  m0 = h.moves.size();
+  h.lines.clear();
+  r.handleLine("calibrate");
+  CHECK(h.has("# calibration saved"));
+  CHECK_EQ(h.count("HOME,"), 12);  // homed before the sweep and after it
+  double far = 0;
+  for (auto& l : h.lines) if (l.rfind("OFFSET,", 0) == 0) far = std::max(far, std::atof(field(l, 3).c_str()));
+  int sweeps = 0;
+  for (size_t i = m0; i < h.moves.size(); ++i) {
+    const MoveRequest& m = h.moves[i];
+    if (m.axis >= 3 || !m.sgSink) continue;
+    ++sweeps;
+    CHECK(m.steps > 0 && far * 16 + m.steps <= 6400 - 30 * 16 + 16);
+  }
+  CHECK_EQ(sweeps, 3);
+  CHECK_EQ(h.count("CAL,"), 4);
+  CHECK(!h.has("# clicks not clear"));
+  CHECK_EQ(h.count("ERR,"), 0);
+  noViolations(h);
+}
+
+// v0.7, Paul (2026-10-18), accuracy over speed: every goto / attempt move
+// ends with a settle of the dials that moved, so a target that is a few full
+// steps off its click still ends in it.
+TEST(dials_settle_after_every_move) {
+  SimHal h;
+  Settings s = makeSettings();
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("calibrate");
+  const int d0 = h.disables[0], d1 = h.disables[1], d2 = h.disables[2];
+  r.handleLine("goto 3 0 0");
+  CHECK_EQ(h.disables[0], d0 + 1);   // A moved: settled
+  CHECK_EQ(h.disables[1], d1);       // B, C didn't move: left alone
+  CHECK_EQ(h.disables[2], d2);
+  CHECK_EQ(h.detentOf(0), 3);
+  // The dial 6 full steps behind where the count says (e.g. play): without
+  // the settle a goto leaves it off its click, with it the dial drops in.
+  // (The settle after homing already does this once: v0.5.)
+  h.dial[0].off += 6 * 16;
+  r.handleLine("set settleeach 0");
+  r.handleLine("goto 5 0 0");
+  const int without = h.detentOf(0);
+  r.handleLine("set settleeach 1");
+  r.handleLine("goto 6 0 0");
+  CHECK_EQ(without, -1);           // 6 full steps off: not on the click
+  CHECK_EQ(h.detentOf(0), 6);      // settled into it
+  CHECK_EQ(h.count("ERR,"), 0);
   noViolations(h);
 }
 
@@ -1068,11 +1165,12 @@ TEST(key_driver_reset_during_the_key_try_is_not_a_false_success) {
   r.handleLine("start");
   for (int i = 0; i < 100000 && r.progress().nextIndex < 300; ++i) r.tick();
   CHECK_EQ(r.progress().verifiedIndex, 200);
-  // What the check costs: one attempt reads GSTAT 10 times (all 4 drivers,
-  // then before and after the dial move, the key try and the retract).
+  // What the check costs: one attempt reads GSTAT 12 times (all 4 drivers,
+  // then before and after the dial move, the settle that follows it (v0.7),
+  // the key try and the retract).
   const int reads = h.gstatReads;
   r.tick();
-  CHECK_EQ(h.gstatReads - reads, 10);
+  CHECK_EQ(h.gstatReads - reads, 12);
   // The key driver's 12 V drops out for a moment halfway through the next key try.
   h.resetOnMove = AX_KEY;
   runUntilIdle(r);

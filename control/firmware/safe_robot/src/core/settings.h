@@ -41,6 +41,9 @@ struct Settings {
   int16_t homeOffsetFull[3];   // stall point -> position 0, full steps away from the stop
   uint16_t dialApproachFull;   // >0: approach every target from the home side (anti-backlash)
   uint16_t dialApproachClearFull;  // the overshoot stays this far clockwise of the stall point
+  uint8_t dialWrap;            // 1 = goto may go on clockwise past the stop when that's shorter
+  uint8_t settleEach;          // 1 = settle the dials after every goto / attempt move
+  uint16_t camClearFull;       // sweeps stay this far short of the stop's cam (full steps)
   uint16_t settleMs;           // after homing: dial drivers off this long so each dial falls into its click; 0 = no
   uint16_t settleOnMs;         // then still this long after switching them back on
   // Key

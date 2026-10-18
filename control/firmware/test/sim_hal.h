@@ -59,6 +59,8 @@ struct SimHal : public core::Hal {
   int32_t lagMin = 20, lagSpan = 11;  // StallGuard detection lag, usteps (1.25-1.9 full steps)
   int32_t sgDialBase = 300, sgDetentAmp = 25, sgNoise = 4, sgKeyBase = 240, sgAtStop = 20, sgUnloaded = 340;
   int32_t sgExtraLoad[3] = {0, 0, 0};  // a dial's extra load (unit off centre on the door): SG lower by this
+  int32_t sgExtraLoadLockstep[3] = {0, 0, 0};  // the same, in lockstep moves only (`load` sweeps)
+  int disables[4] = {0, 0, 0, 0};       // enable(false) calls per axis (settles, releases)
   // ---- driver/bus faults
   bool present[4] = {true, true, true, true};
   bool diagStuck[4] = {false, false, false, false};
@@ -170,6 +172,7 @@ struct SimHal : public core::Hal {
     return resetHidden ? (uint8_t)(gstatFlags[ax] & ~core::GSTAT_RESET) : gstatFlags[ax];
   }
   void enable(core::Axis ax, bool on) override {
+    if (!on && enabled[ax]) ++disables[ax];
     if (ax < 3) {
       if (!on && enabled[ax]) offSince[ax] = now;
       if (on && !enabled[ax] && clickPull && dial[ax].engaged && now - offSince[ax] >= clickPullMs) fallIntoClick(ax);
@@ -264,7 +267,8 @@ struct SimHal : public core::Hal {
         else if (unloaded) sg = sgUnloaded;
         else if (ax < 3) {
           const double ph = 2 * M_PI * (wheel(ax) - detentPhase[ax]) / usPerPos;
-          sg = sgDialBase - sgExtraLoad[ax] - (int32_t)std::lround(dir * sgDetentAmp * std::sin(ph));
+          sg = sgDialBase - sgExtraLoad[ax] - (na > 1 ? sgExtraLoadLockstep[ax] : 0)
+               - (int32_t)std::lround(dir * sgDetentAmp * std::sin(ph));
         } else {
           sg = sgKeyBase;
         }
