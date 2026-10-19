@@ -379,8 +379,10 @@ Still open:
       key in throughout. **Yes (Paul, 2026-10-06): the dials turn with the
       key at its start position, and still click with the key turned to its
       ~100° stop and left there.**
-- [ ] **Does a combination dialled with the key already in count?** (Paul,
-      2026-10-06.) The dials turn and click with the key in, but nothing
+- [x] **Does a combination dialled with the key already in count?** (Paul,
+      2026-10-06.) **Yes (2026-10-19): the first run, dialling with the key
+      in throughout, found the combination and the door opened
+      (`control/bringup.md`, stage 6).** The original question: The dials turn and click with the key in, but nothing
       shows that they still set the wheels then. The manual dials *before*
       inserting the key. If the lock only checks a combination set with the
       key out, the robot as designed can never open it, and it would need

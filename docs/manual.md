@@ -885,9 +885,10 @@ avrdude with `-D` and only a flash write (Arduino AVR core 1.8.6
    current, classification bands). Upload it (section 4).
 3. Run `calibrate` once with everything on the door, as in 5.4.
 
-**The biggest unknown:** whether a combination dialled with the key already
-in counts. The safe's own manual dials with the key out
-(`control/sequence.md`, Open items). The first full run is the real test.
+**The biggest unknown** was whether a combination dialled with the key
+already in counts, since the safe's own manual dials with the key out.
+Answered 2026-10-19: **it does**. The first run opened the door
+(`control/bringup.md`, stage 6).
 
 ### 5.2 Setting up for a session
 
@@ -1102,7 +1103,8 @@ The robot holds the key where it got to. The success is saved in EEPROM,
 so it's shown again at every restart until `reset yes`.
 
 1. **Write the combination down**: dials A, B, C as positions 0–19 (see
-   below). Keep the raw log.
+   below). Keep the raw log, but **out of the repo**: it is public, and the
+   `SUCCESS` line (or just the attempt number) gives the combination away.
 2. Type `release`. The motors switch off, and the key stays where it is
    (no spring back).
 3. 12 V off, then take the key turner off its magnets. Don't turn the key
