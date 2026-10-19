@@ -409,6 +409,26 @@ the stop but couldn't bring it back. The `sg K 45` trace at 1000 mA: free
 turn 200–244, stiff zone 142–214. Decision: key turner v2, geared 5:1
 (revision 2026-10-18.1, `docs/housing_decisions.md`). Redo 5c with it.
 
+**5c result (Paul, 2026-10-19, key turner v2.1, firmware v0.8.0):**
+- Direction: clockwise with `invK 1` (the default). A first `key 20` at
+  300 mA stopped after 4.3° (`stalled=1`): the direct-drive threshold (62)
+  still in EEPROM, tripping as soon as stall detection switched on; at
+  400 mA it turned 19.9° and back.
+- `sg K 250` (90° of key) at 800 mA, StallGuard off: free 224–302, stiff
+  zone 218–264 (direct drive: 142–214). The return was clean.
+- Minimum current: `key 90` out and back at 800, 600, 500, 400 and 300 mA,
+  no stall or buzz → `maK 600`.
+- `calibrate`: `CAL,…,K,310,78` (64 readings).
+- `key 110`, `120`, `130`: no stall; `key 140` stopped at 129.8°
+  (`stalled=1`).
+- `learn` × 3: every turn stalled at 130.0–130.2°, **N = 130.2°, spread
+  0.1°**.
+- Ratio: `key 45` put the pointer at 45° (Paul), so the count is right and
+  the stop is at ~130°. **Correction:** the "~100°" of 2026-10-06 was a
+  by-hand estimate (Paul, 2026-10-19: "I'm just a bad judge of where 100°
+  is"). Not measured further: the run compares every attempt with the
+  measured N, not with an absolute angle.
+
 **5c. Mounted, geared 5:1 (key turner v2, firmware v0.8).** Key in, at its
 start; key turner on (12 V off while placing and plugging), cable in E0.
 12 V on. `set axes 8` (key only), `ping`: expect `DRV,K,1,21,1,1,...`.

@@ -38,8 +38,8 @@
 #define CFG_INVERT_A             1
 #define CFG_INVERT_B             1
 #define CFG_INVERT_C             1
-#define CFG_INVERT_KEY           1      // direct drive turned the key clockwise with 0 (stage 5,
-                                        // 2026-10-18); one gear pair reverses it. Stage 5 step 1 re-checks
+#define CFG_INVERT_KEY           1      // geared 5:1: confirmed on the door (Paul, stage 5c, 2026-10-19:
+                                        // `key 20` turned the key clockwise and back). Direct drive was 0
 
 // ---- Currents (control/wiring.md §7) ---------------------------------------
 // Dials: 600 mA from the door test (bring-up 4b, Paul 2026-10-14): at 1000 mA
@@ -48,8 +48,9 @@
 // stall level. The dial torque itself is still not measured.
 #define CFG_DIAL_RUN_MA          600
 #define CFG_DIAL_HOLD_PCT        50
-#define CFG_KEY_RUN_MA           1000   // direct drive needed >= 500 mA (Paul, door, 2026-10-18). Geared 5:1 the
-                                        // motor needs ~1/4 of the torque; stage 5 measures the minimum again
+#define CFG_KEY_RUN_MA           600    // 2x the measured minimum, geared 5:1 (Paul, stage 5c, 2026-10-19:
+                                        // `key 90` out through the stiff zone and back at 800/600/500/400/300 mA,
+                                        // no stall or buzz). Direct drive had needed >= 500 mA and couldn't return
 #define CFG_KEY_HOLD_PCT         50
 #define CFG_SEAT_MA              600    // lower current while seating the plugs
 
@@ -91,8 +92,11 @@
 // 200-244; from ~50 deg the key meets graduated resistance up to its ~100
 // deg stop, and there it dipped to ~142 every 4 full steps. 50 % (trip at
 // ~130) stopped every learn at 55 deg; 25 % (trip ~65) missed the hard stops.
-// Geared 5:1 (v0.8) the motor sees the stiff zone at ~1/5 of that torque, so
-// 50 % may hold: ASSUMPTION, stage 5 step 3 traces it (`sg K`) and sets this.
+// Geared 5:1 (v0.8) the motor sees the stiff zone at ~1/5 of that torque:
+// confirmed (Paul, stage 5c, 2026-10-19). `sg K 250` at 800 mA: free 224-302,
+// stiff zone 218-264, barely different. At 600 mA `calibrate` read 310 ->
+// threshold 78 (trips <= 156); the learns' lowest polled readings 192-202,
+// and all 9 learn turns stopped at the hard stop (130.0-130.2 deg).
 #define CFG_KEY_SG_CAL_PCT       50
 #define CFG_SG_CAL_MIN_BASE      40     // a lower free-running SG can't be told from a stall
 // 0 since 2026-10-18: on the door the click-found offsets put position 0 on
@@ -195,7 +199,9 @@
 #define CFG_KEY_REST_TOL_DECI    50     // v0.8: a retract (or `key`'s return) that stalls more than 5 deg
                                         // short of the rest is a stuck key, not the rest stop (2026-10-18:
                                         // direct drive stalled in the stiff zone on the way back)
-#define CFG_KEY_LEARN_MAX_DEG    160    // Paul measured ~100 deg to the stop
+#define CFG_KEY_LEARN_MAX_DEG    160    // the stop: N = 130.2 deg through the gears, spread 0.1 deg over
+                                        // 3 learns x 3 (stage 5c, 2026-10-19; the "~100" felt by hand was an
+                                        // estimate: `key 45` = 45 on the pointer). N + 15 = 145 stays inside
 #define CFG_KEY_LEARN_REPEATS    3
 #define CFG_KEY_LEARN_SPREAD_DECI 50    // learn tries must agree within 5.0 deg
 // Classification (all relative to this session's learned stop N). Set the
