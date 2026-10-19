@@ -423,15 +423,11 @@ turn 200–244, stiff zone 142–214. Decision: key turner v2, geared 5:1
   (`stalled=1`).
 - `learn` × 3: every turn stalled at 130.0–130.2°, **N = 130.2°, spread
   0.1°**.
-- Open: the stop at 130° through the gears vs "~100°" by hand (2026-10-06).
-  Play can't explain 30°; either the hand figure was rough or the ratio
-  isn't what it should be. Check below (step 10).
-
-10. **Stop angle, by eye**: `jog K 380` (137° of key, so it stops on the
-    stall at the stop, ~130°); read the bow's angle from vertical with a
-    protractor or a phone's level app; then `learn` (it homes the key on
-    its rest stop first). Expect ~130°. Also: in 5c step 2, did `key 45` put
-    the pointer at ~45°?
+- Ratio: `key 45` put the pointer at 45° (Paul), so the count is right and
+  the stop is at ~130°. **Correction:** the "~100°" of 2026-10-06 was a
+  by-hand estimate (Paul, 2026-10-19: "I'm just a bad judge of where 100°
+  is"). Not measured further: the run compares every attempt with the
+  measured N, not with an absolute angle.
 
 **5c. Mounted, geared 5:1 (key turner v2, firmware v0.8).** Key in, at its
 start; key turner on (12 V off while placing and plugging), cable in E0.

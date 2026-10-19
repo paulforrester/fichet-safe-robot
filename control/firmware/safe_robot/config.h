@@ -200,8 +200,8 @@
                                         // short of the rest is a stuck key, not the rest stop (2026-10-18:
                                         // direct drive stalled in the stiff zone on the way back)
 #define CFG_KEY_LEARN_MAX_DEG    160    // the stop: N = 130.2 deg through the gears, spread 0.1 deg over
-                                        // 3 learns x 3 (stage 5c, 2026-10-19; by hand it had felt like ~100,
-                                        // see bringup.md 5c). N + 15 = 145 stays inside this bound
+                                        // 3 learns x 3 (stage 5c, 2026-10-19; the "~100" felt by hand was an
+                                        // estimate: `key 45` = 45 on the pointer). N + 15 = 145 stays inside
 #define CFG_KEY_LEARN_REPEATS    3
 #define CFG_KEY_LEARN_SPREAD_DECI 50    // learn tries must agree within 5.0 deg
 // Classification (all relative to this session's learned stop N). Set the

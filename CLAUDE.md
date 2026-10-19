@@ -164,7 +164,9 @@ RAMPS, UART pigtail); firmware written and host-tested
   motor turns 5× the key, the other way. The key turns
   **clockwise (seen from in front of the safe) and stops** with a wrong
   combination: **N = 130.2°, spread 0.1°** measured through the gears
-  (stage 5c, 2026-10-19; by hand it had seemed ~100°, being checked). Key
+  (stage 5c, 2026-10-19; `key 45` = 45° on the pointer, so the count is
+  right; **correction:** the "~100°" below and in older docs was a by-hand
+  estimate). Key
   current 600 mA (300 mA worked both ways), threshold from `calibrate`
   (310 → 78). Key torque (50 mm lever): **0.05–0.10 N·m to ~55°, then
   a stiff zone to the stop: 0.74 N·m either way, ≥ 0.98 N·m to start back
