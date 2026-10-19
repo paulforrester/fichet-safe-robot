@@ -64,6 +64,15 @@ struct SimHal : public core::Hal {
   bool keyHasLo() const { return keyRestStop || (keyStickAt >= 0 && keyAbove); }
   int32_t keyLo() const { return (keyStickAt >= 0 && keyAbove) ? keyStickAt : 0; }
   bool dialHasStop[3] = {true, true, true};
+  // Wind-up at the stop (v0.8.2 test): pressed anticlockwise into its stop,
+  // the motor turns this much further (plug in its star, gear, shaft) before
+  // it is blocked; the wheel stays on the stop. It shifts the firmware's
+  // count from the wheel's angle, as on the door: the measured offsets
+  // (40/30/40 full steps) are two clicks from the stall point. 0 = rigid.
+  int32_t windUp[3] = {0, 0, 0};
+  // Clockwise past the stop (the anti-reverse cam on the real dials, which
+  // stalls the motor at 600 mA: bring-up 4b, 2026-10-18): counted per dial.
+  int camCrossings[3] = {0, 0, 0};
   float sgMinSps = 0.3f * 3200;    // DIAG enabled only above this speed
   uint32_t seed = 12345;
   int32_t lagMin = 20, lagSpan = 11;  // StallGuard detection lag, usteps (1.25-1.9 full steps)
@@ -256,11 +265,11 @@ struct SimHal : public core::Hal {
             cmd[ax] += dir;
             if (dialHasStop[ax]) {
               // Clockwise past the stop point: the next stop is one turn on.
-              while (cmd[ax] - dl.off >= dl.floor + turn) dl.floor += turn;
-              if (cmd[ax] - dl.off < dl.floor - kSlip) dl.off -= 64;  // pole slip at the stop
+              while (cmd[ax] - dl.off >= dl.floor + turn) { dl.floor += turn; ++camCrossings[ax]; }
+              if (cmd[ax] - dl.off < dl.floor - windUp[ax] - kSlip) dl.off -= 64;  // pole slip at the stop
             }
             const int32_t raw = cmd[ax] - dl.off;
-            isBlocked = dialHasStop[ax] && raw < dl.floor && dir < 0;
+            isBlocked = dialHasStop[ax] && raw < dl.floor - windUp[ax] && dir < 0;
           }
         } else {
           cmd[ax] += dir;

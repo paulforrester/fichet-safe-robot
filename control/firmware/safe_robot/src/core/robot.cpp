@@ -352,7 +352,8 @@ void Robot::handleLine(const char* line) {
     const bool sg = TOKEQ(cmd, "sg");
     MoveResult r = doMove(ax, full * s_.microsteps, s_.ax[ax].rps, true, sg, sg);
     if (!checkMove(r, ax, false, true)) return;
-    if (ax == AX_KEY) keyPos_ += r.stepsDone; else dialPos_[ax] += r.stepsDone;
+    if (ax == AX_KEY) keyPos_ += r.stepsDone;
+    else { dialPos_[ax] += r.stepsDone; if (homed_[ax]) foldDial((uint8_t)ax); }
     l.p(CP("# moved ")).i(r.stepsDone / s_.microsteps).p(CP(" full steps, stalled=")).u(r.stalled)
         .p(CP(", sgMin=")).i(r.sgMin == 0xFFFF ? -1 : (int32_t)r.sgMin);
     emit(l);
@@ -1067,8 +1068,8 @@ bool Robot::gotoCombo(const Combo& c) {
 // `set wrap 1` (CFG_DIAL_WRAP) that is done when it is strictly shorter
 // (19 -> 0 is one click forward, not 19 back). Off by default since v0.6.2:
 // passing the stop clockwise pushes through the anti-reverse cam, which can
-// stall the motor. The count is then brought back into the first turn: the
-// stop is at the same place every turn.
+// stall the motor. The count is then brought back into the turn around
+// positions 0-19 (foldDial): the stop is at the same place every turn.
 bool Robot::moveDialTo(uint8_t d, int32_t target) {
   const Axis ax = (Axis)d;
   int32_t delta = target - dialPos_[d];
@@ -1092,8 +1093,24 @@ bool Robot::moveDialTo(uint8_t d, int32_t target) {
     dialPos_[d] += r.stepsDone;
     if (!checkMove(r, ax, false, false)) return false;
   }
-  while (dialPos_[d] >= turn) dialPos_[d] -= turn;
+  foldDial(d);
   return true;
+}
+
+// v0.8.2: a dial's count stays inside the turn that starts half a click
+// before position 0 (offset - 1/2 click .. offset + 19 1/2 clicks), not the
+// turn from the stall point. Correction: v0.6.2 to v0.8.1 folded every count
+// of one turn or more back by a turn. With the measured offsets (A 40, B 30,
+// C 40 full steps) position 18 is at 400 and 19 at 420, so 18 counted as 0
+// and every one-click move after it became a (nearly) full clockwise turn
+// through the stop's cam (Paul, stage 6 dry run, 2026-10-19: "it runs the
+// dial C all the way around"). Only a clockwise move past the stop (`set
+// wrap 1`, `jog`) ends above the window: the dial is then a turn on, at the
+// same place, and between 19 and the next 0 is where it crossed the cam.
+void Robot::foldDial(uint8_t d) {
+  const int32_t turn = turnUs();
+  const int32_t top = offsetUs_[d] + turn - usPerPosition(s_) / 2;
+  while (dialPos_[d] >= top) dialPos_[d] -= turn;
 }
 
 bool Robot::keyTry(int32_t* reached, bool* stalled, uint16_t* sgMin) {

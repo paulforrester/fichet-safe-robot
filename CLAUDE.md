@@ -279,9 +279,14 @@ deck); the start button mounts from under the deck (7.4mm hole, 10 x 2.5mm
 recess, 4mm wire hole beside the endstop block; revision 2026-10-09.1,
 `docs/housing_decisions.md`): check it on the reprinted deck.
 
-## Firmware — `control/firmware/` (v0.8.1, 2026-10-19; read its README)
+## Firmware — `control/firmware/` (v0.8.2, 2026-10-19; read its README)
 
-**v0.8.1:** the geared key turner's measured numbers (`CFG_KEY_RUN_MA 600`,
+**v0.8.2:** with the measured offsets, positions 18/19 are at 400/420 full
+steps from the stall point; v0.6.2–v0.8.1 folded counts at one turn, so C
+turned nearly a full turn at attempts 19–22 of the stage 6 dry run (Paul,
+2026-10-19). Counts now stay in the turn around positions 0–19
+(`foldDial`); the simulator has a wind-up at the stop (`windUp`) and counts
+cam crossings. **v0.8.1:** the geared key turner's measured numbers (`CFG_KEY_RUN_MA 600`,
 N 130.2°). **v0.8 (PR #58, with key turner v2):** `CFG_KEY_GEAR 5`, `CFG_INVERT_KEY 1`;
 motor currents outside 100–1200 mA refused (`set maK 0` had run the key at
 full scale: TMCStepper's `rms_current(0)` wraps to IRUN 31); a key that

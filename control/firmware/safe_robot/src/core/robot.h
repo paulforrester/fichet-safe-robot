@@ -90,6 +90,7 @@ class Robot {
   int32_t turnUs() const { return usPerMotorRev(s_) * s_.dialGear; }
   bool gotoCombo(const Combo& c);
   bool moveDialTo(uint8_t d, int32_t targetUs);
+  void foldDial(uint8_t d);  // keep the count in the turn around positions 0..19 (v0.8.2)
   bool keyTry(int32_t* reached, bool* stalled, uint16_t* sgMin);
   bool keyRetract(int32_t reached, Outcome o);
   void keyStuck();

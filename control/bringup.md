@@ -308,7 +308,9 @@ turner is not needed yet. 12 V on. `set axes 7`.
       `home B`, `home C`. Note each `HOME` pass 1: that's the reference.
    b. Five times: `goto 10 10 10`, then `goto 0 0 0` (10 clicks out and 10
       back: a tie, so it goes back). Then five times `goto 19 19 19`,
-      `goto 0 0 0` (the second goes one click on, clockwise past the stop).
+      `goto 0 0 0` (since v0.6.2 the second goes back 19 clicks, anticlockwise:
+      nothing crosses the stop clockwise. Correction, v0.8.2: before it,
+      with the measured offsets, it went one click on through the cam).
    c. `home A`, `home B`, `home C` again. Each pass 1 should match (a) within
       ~2 full steps. 4 or more means steps were lost along the way.
    Does every `goto` end with `# dials at …`, or with `JAM`?
@@ -499,6 +501,33 @@ Everything on the door, both units, cable plugged. I'll have sent a
 sounded wrong; from step 6, the `GSTAT`, `ERR` and `DRV` lines, and whether
 anything moved after `goto`. Then we'll set the classification bands from the
 measured spread and start the real run with `resume`.
+
+**First try (Paul, 2026-10-19, firmware v0.8.1):** the session start was
+clean (key `CAL K 300/75`; dials `CAL` A 264/66, B 243/61, C 260/65;
+offsets 40/30/40; N 130.5°, spreads 0.3° and 1.4°), and 50 attempts ran,
+all `CLEAN` (attempt 49: 0-2-9, 130.2°). But "twice now it has gotten to a
+point that it runs the dial C all the way around". That was a firmware bug,
+fixed in v0.8.2 (`control/firmware/README.md`). With the measured offsets,
+positions 18 and 19 are at 400 and 420 full steps from the stall point,
+and the count was folded back at 400. In the simulator, C turned most of a
+turn clockwise at attempts 19, 20, 21 and 22, through the stop's cam each
+time. There was no `JAM` (600 mA, stall detection on), but steps lost
+at the cam wouldn't show until a re-check, so those 50 attempts don't
+count: start again with `reset yes`.
+
+**Before running again (v0.8.2).** Position 19 has never been reached on
+its own one click at a time, and it sits right before the stop's cam:
+1. Upload v0.8.2. The boot line says `0.8.2`.
+2. `home`, then `goto 17 17 17`, `goto 18 18 18`, `goto 19 19 19`. Watch
+   the dials: each `goto` turns each dial one click, nothing goes round,
+   and each ends with `# dials at …`, not `JAM`.
+3. `release`. By hand, count each dial's clicks back to its stop: **19**
+   (18 means it fell back off the cam when released: say so).
+4. Then stage 6 again from step 2 (`reset yes`, `start`). Watch attempts
+   18–23: C moves one click per attempt, and at 20 only B moves.
+
+**Send back:** the lines from step 2 (or any `JAM`), the counts A / B / C
+from step 3, and whether any dial went round in the new run.
 
 ---
 

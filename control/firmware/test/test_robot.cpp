@@ -901,6 +901,133 @@ TEST(goto_takes_the_shorter_way_round_with_wrap_on) {
   noViolations(h);
 }
 
+// ---------------------------------------------------------------- the door's offsets (v0.8.2)
+// Paul (2026-10-19, stage 6 dry run): "it runs the dial C all the way
+// around". config.h's measured offsets (A 40, B 30, C 40 full steps) put
+// position 18 at 400 and 19 at 420 full steps from the stall point (B: 19 at
+// 410), at or past one turn (400). v0.6.2 to v0.8.1 folded every count of a
+// turn or more back by a turn, so 18 counted as 0 and 19 as 20: the next
+// one-click move turned the dial (nearly) a whole turn clockwise, through
+// the stop's cam. The simulated dials had offsets of 10 (19 at 390), so no
+// test saw it. Here the simulator's drive winds up 24 full steps at the stop,
+// so the clicks sit where the measured offsets say (as on the door).
+namespace {
+Settings doorSettings(SimHal& h) {
+  Settings s = makeSettings();  // config.h: offsets 40/30/40, click-finding off
+  for (int a = 0; a < AX_COUNT; ++a) s.ax[a].sgthrs = 80;
+  s.keyGear = 1;                // the simulated key's angles are direct-drive
+  for (int d = 0; d < 3; ++d) {
+    h.windUp[d] = 24 * 16;
+    h.detentPhase[d] = s.homeOffsetFull[d] * 16 - h.windUp[d] - 25;  // 25: StallGuard lag at the stall
+  }
+  return s;
+}
+// Largest clockwise dial move from move index `from` on (microsteps).
+int32_t largestClockwise(const SimHal& h, size_t from) {
+  int32_t m = 0;
+  for (size_t i = from; i < h.moves.size(); ++i)
+    if (h.moves[i].axis != AX_KEY && h.moves[i].steps > m) m = h.moves[i].steps;
+  return m;
+}
+}  // namespace
+
+TEST(door_offsets_reach_positions_18_and_19_one_click_at_a_time) {
+  SimHal h;
+  Settings s = doorSettings(h);
+  CHECK_EQ(s.homeOffsetFull[0], 40); CHECK_EQ(s.homeOffsetFull[1], 30); CHECK_EQ(s.homeOffsetFull[2], 40);
+  CHECK_EQ(s.detentAutocal, 0);
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("home");
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 0);
+  r.handleLine("goto 17 17 17");
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 17);
+  const size_t m0 = h.moves.size();
+  for (int want : {18, 19, 18, 17, 18, 19}) {
+    char cmd[24];
+    std::snprintf(cmd, sizeof cmd, "goto %d %d %d", want, want, want);
+    r.handleLine(cmd);
+    for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), want);
+  }
+  CHECK(largestClockwise(h, m0) <= 20 * 16);   // one click (the approach's last leg is also one click)
+  CHECK_EQ(h.camCrossings[0] + h.camCrossings[1] + h.camCrossings[2], 0);
+  // And back to 0: anticlockwise, never through the cam.
+  r.handleLine("goto 0 0 0");
+  for (int d = 0; d < 3; ++d) CHECK_EQ(h.detentOf(d), 0);
+  CHECK_EQ(h.camCrossings[0] + h.camCrossings[1] + h.camCrossings[2], 0);
+  // The firmware's own numbering agrees (the logged position after a try).
+  r.handleLine("goto 19 18 19");
+  r.handleLine("learn");
+  r.handleLine("try");
+  CHECK(h.last("ATT,").find(",-1,19,18,19,") != std::string::npos);
+  // A `jog` clockwise past the stop: the dial is a turn on, at the same
+  // place, and the count follows (else the next goto would turn it back
+  // anticlockwise into its stop).
+  r.handleLine("goto 19 19 19");
+  r.handleLine("jog C 400");
+  CHECK_EQ(h.camCrossings[2], 1);
+  r.handleLine("goto 19 19 18");
+  CHECK(h.has("# dials at 19 19 18"));
+  CHECK_EQ(h.detentOf(2), 18);
+  CHECK_EQ(h.count("ERR,"), 0);
+  noViolations(h);
+}
+
+TEST(run_with_door_offsets_moves_one_click_per_attempt_and_never_crosses_the_cam) {
+  // C passes 18 and 19 at attempts 18-21 (where Paul saw it turn all the way
+  // round); B reaches 19 at attempt 380 and stays there while A steps at 400.
+  SimHal h;
+  h.secret[0] = 1; h.secret[1] = 19; h.secret[2] = 5;  // index 405
+  Settings s = doorSettings(h);
+  Robot r(h, s);
+  r.boot();
+  r.handleLine("start");
+  while (r.state() == ST_SESSION) r.tick();
+  // Each attempt (one per tick), from the moves since the one before: one
+  // dial one click (net), nothing clockwise over one click. Not checked: the
+  // first attempt after a re-check (it re-homes and comes back).
+  size_t lastLine = h.lines.size(), lastMove = h.moves.size();
+  bool afterRecheck = false;
+  int checked = 0, worstCw = 0;
+  for (int i = 0; i < 200000 && r.busy(); ++i) {
+    r.tick();
+    for (size_t k = lastLine; k < h.lines.size(); ++k) {
+      const std::string& l = h.lines[k];
+      if (l.rfind("EV,", 0) == 0 && l.find(",RECHECK,") != std::string::npos) afterRecheck = true;
+      if (l.rfind("ATT,", 0) != 0) continue;
+      if (!afterRecheck) {
+        int32_t net[3] = {0, 0, 0};
+        for (size_t m = lastMove; m < h.moves.size(); ++m) {
+          const int a = h.moves[m].axis;
+          if (a > 2) continue;
+          net[a] += h.moves[m].steps;
+          if (h.moves[m].steps > worstCw) worstCw = h.moves[m].steps;
+        }
+        int moved = 0;
+        for (int d = 0; d < 3; ++d) if (net[d]) { ++moved; CHECK_EQ(std::abs(net[d]), 320); }
+        CHECK(moved <= 1);
+        ++checked;
+      }
+      afterRecheck = false;
+      lastMove = h.moves.size();
+    }
+    lastLine = h.lines.size();
+  }
+  CHECK_EQ(r.state(), ST_SUCCESS);
+  CHECK_EQ(r.progress().successIndex, secretIndex(h));
+  CHECK_EQ(secretIndex(h), 405);
+  CHECK(checked >= 400);
+  if (worstCw > 320) std::printf("  largest clockwise dial move in an attempt: %d full steps\n", worstCw / 16);
+  CHECK(worstCw <= 320);
+  for (int d = 0; d < 3; ++d) {
+    if (h.camCrossings[d]) std::printf("  dial %c crossed its cam %d times\n", "ABC"[d], h.camCrossings[d]);
+    CHECK_EQ(h.camCrossings[d], 0);
+  }
+  CHECK_EQ(h.count("ERR,"), 0);
+  for (auto& l : h.lines) if (l.rfind("RECHECK,", 0) == 0) CHECK(field(l, 6) == "1");  // every re-check passed
+  noViolations(h);
+}
+
 // Paul (2026-10-18): `goto 1 0 0`, `goto 0 0 0` stopped with JAM: the
 // overshoot past position 0 went back onto the stall point, i.e. into the
 // stop. Track every dial move from the stall point: never closer than the
