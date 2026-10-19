@@ -1,10 +1,10 @@
 # Fichet safe robot — build and operating manual
 
-> **Revision 2026-10-18.1** · key turner v2: 5:1 printed gears (2026-10-18.1); gear-shaft on a tapered hex with an M3 screw (2026-10-17.2); key driver on the RAMPS E0 socket; UART pigtail · log: `docs/revisions.md`
+> **Revision 2026-10-19.1** · key turner v2.1: M3×6 in the key shaft, bearing retainer (2026-10-19.1); v2: 5:1 printed gears (2026-10-18.1); gear-shaft on a tapered hex with an M3 screw (2026-10-17.2); key driver on the RAMPS E0 socket; UART pigtail · log: `docs/revisions.md`
 
-For Paul. Covers the robot as of **revision 2026-10-18.1**: dial unit v3, key
-turner **v2** (5:1 gears, §1.5), wiring with all four drivers on the RAMPS and
-the UART pigtail (`control/wiring.md`), firmware **0.8** (PR #58; the command
+For Paul. Covers the robot as of **revision 2026-10-19.1**: dial unit v3, key
+turner **v2.1** (5:1 gears, §1.5), wiring with all four drivers on the RAMPS and
+the UART pigtail (`control/wiring.md`), firmware **0.8** (the command
 reference is `control/firmware/README.md`). Correction (2026-10-18): this line
 still said revision 2026-10-08.2, key turner v1 and firmware 0.4.
 
@@ -96,10 +96,11 @@ the print notes in `cad/dial_unit_housing.scad` (end of file) and
 | `dial_drivetrain.stl` | the same on one plate: 3 gears, 3 shafts (5 mm), 3 pinions | 1 plate | pinions **PETG-CF**; the rest plain PETG | as above; pinion hub down. **Elephant-foot compensation on** |
 | `magnet_retainers.stl` | 10 retainer discs (9 needed) | 1 plate | PETG | flat |
 | `key_turner_base.stl` | key-turner base + 4 legs, 3 magnet seats (v2, rev 2026-10-18.1) | 1 | PETG | door face |
-| `key_turner_motor_plate.stl` | key motor plate + bearing boss (v2) | 1 | PETG | **motor face (plate top) down**, boss up, as exported. Elephant-foot compensation on (the bearing pocket opens on the bed) |
-| `key_turner_shaft.stl` | key shaft: 60T gear, cap groove in its underside, spacer, journal, M3 pilot (v2) | 1 | **plain PETG** | groove face down, as exported. **Elephant-foot compensation on** (teeth on the bed) |
+| `key_turner_motor_plate.stl` | key motor plate + bearing boss, 4 retainer pilots (v2.1: reprint, or drill the one you have: 4 × 2.7 mm, 5 mm deep, r 19 mm from the key axis on the diagonals) | 1 | PETG | **motor face (plate top) down**, boss up, as exported. Elephant-foot compensation on (the bearing pocket opens on the bed) |
+| `key_turner_shaft.stl` | key shaft: 60T gear, cap groove in its underside, spacer with a root fillet, journal, 5 mm M3 pilot for an **M3 × 6** (v2.1, rev 2026-10-19.1: **reprint**, the v2 one snapped taking an M3 × 10) | 1 | **plain PETG** | groove face down, as exported. **Elephant-foot compensation on** (teeth on the bed) |
 | `key_turner_pinion.stl` | 12T pinion, D-bore (v2) | 1 | **PETG-CF** | hub end down. **Elephant-foot compensation on** |
 | `key_turner_washer.stl` | washer on the top bearing (v2) | 1 | plain PETG | flat (countersink up) |
+| `key_turner_retainer.stl` | bearing retainer: ring + 4 tabs, 0.3 mm lip (v2.1, your design) | 1 | plain PETG | countersunk face down, lip up, as exported |
 | `key_turner_cap.stl` | slotted cap (unchanged: the one you have stays) | 1 | **PETG-CF** | slot mouth. **Elephant-foot compensation on** |
 
 PETG-CF needs the hardened (tungsten carbide) hotend.
@@ -135,7 +136,8 @@ you haven't yet.
 |---|---|---|---|
 | 608 bearings (8 × 22 × 7) | 6 (2 per dial) | 2 (key shaft, v2) | on hand |
 | Compression springs ≤ 8 mm OD, ~18–20 mm free, solid < 10 mm | 3 | — | ordered: QUARKZMAN 0.5 × 7 × 20 mm, 304 stainless, arriving 2026-10-07 (Paul). Count the coils on arrival |
-| M3 × 10 countersunk, hex socket (the length includes the head) | 15: 12 motor screws + 3 gear-shafts (rev 2026-10-17.2, self-tapping into the shaft) | 5: 4 motor screws + 1 key shaft (v2, through the washer, self-tapping) | on hand (kit has 55) |
+| M3 × 10 countersunk, hex socket (the length includes the head) | 15: 12 motor screws + 3 gear-shafts (rev 2026-10-17.2, self-tapping into the shaft) | 4: the motor screws (v2.1: the key shaft takes an M3 × 6, below) | on hand (kit has 55) |
+| M3 × 6 countersunk, hex socket, self-tapping into PETG | — | 5: 1 key shaft (through the washer) + 4 bearing retainer (v2.1) | your proposal (2026-10-19); confirm you have 5 |
 | M6 countersunk self-tapping, 16 mm | 6 | 4 (v2) | on hand. On the key turner, 16 mm works better than the 20 mm the CAD notes listed (Paul, 2026-10-06) |
 | M3 brass heat-set inserts (HANGLIFE, 4.2 mm OD, ~5 mm) | 3 | — | on hand |
 | M3 nylon screws, **16–20 mm** (Mega + RAMPS to the posts) | 3 | — | on hand (Paul). 16 mm gives 4 mm in the insert; longer than 21 mm would bottom in the post |
@@ -391,8 +393,9 @@ Tell me if a different order works better, and I'll record it.
 
 ### 1.5 Key turner
 
-v2 (revision 2026-10-18.1). From the notes at the end of
-`cad/key_turner_housing.scad`:
+v2.1 (revision 2026-10-19.1: M3 × 6 in the key shaft, bearing retainer;
+section drawing `cad/renders/key_turner_v2.1_bearing_stack.png`). From the
+notes at the end of `cad/key_turner_housing.scad`:
 
 1. **Magnets.** Three, in the base, as in §1.3a: two beside the key
    opening, one at the far end (under the motor). Before the motor plate
@@ -400,6 +403,10 @@ v2 (revision 2026-10-18.1). From the notes at the end of
 2. **Bearings into the boss.** Press both 608s into the boss from the motor
    plate's top (the motor side) until the lower one sits on the lip. Same
    light press fit as the dial unit's bosses.
+2a. **Bearing retainer** (v2.1). Lip down into the pocket, onto the top
+   bearing's outer ring; four M3 × 6 countersunk into the plate's pilots,
+   by hand, evenly. The lip stands 0.3 mm proud, so the tabs pull down onto
+   the plate and clamp both bearings onto the boss's lip.
 3. **Motor onto the plate's top.** Four M3 × 10 countersunk from the plate's
    underside, as before. Its shaft goes down through the plate.
 4. **Pinion onto the motor shaft**, from below, hub end first. Push it on
@@ -408,10 +415,11 @@ v2 (revision 2026-10-18.1). From the notes at the end of
 5. **Key shaft into the bearings**, from below: the journal goes up through
    both bearings until the spacer above the gear meets the lower bearing.
    Turn the gear so its teeth mesh with the pinion as it goes in.
-6. **Washer and screw.** Washer on top of the upper bearing, countersink up;
-   an M3 × 10 countersunk through it into the shaft's pilot, by hand. Stop
-   when the washer is snug: the shaft must still turn freely, with no end
-   play. Turn the gear by hand: the motor turns five times as far, the other
+6. **Washer and screw.** Washer on top of the upper bearing (inside the
+   retainer's ring), countersink up; an **M3 × 6** countersunk through it
+   into the shaft's pilot, by hand, holding the gear. (v2.1: an M3 × 10
+   snapped the v2 shaft at the gear while cutting its thread.) Stop when the
+   washer is snug: the shaft must still turn freely, with no end play. Turn the gear by hand: the motor turns five times as far, the other
    way, smoothly all round (no tight spot).
 7. **Plate onto the legs.** Four M6 × 16 countersunk self-tappers, the
    first by hand, as before.

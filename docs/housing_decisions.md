@@ -1,6 +1,6 @@
 # Housing — design decision log
 
-> **Revision 2026-10-18.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
+> **Revision 2026-10-19.1** · project revision baseline (mechanical log; not affected by the wiring changes) · log: `./revisions.md`
 
 
 Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
@@ -8,6 +8,48 @@ Working notes on the two 3D-printed housings (`cad/dial_unit_housing.scad`,
 `docs/decisions.md` (tube-socket test key geometry) and
 `control/sequence.md` (control architecture) — this file covers the
 mechanical housings that carry that geometry onto the actual door.
+
+## 2026-10-19: key turner v2.1 — M3×6 in the key shaft, root fillet, bearing retainer (revision 2026-10-19.1)
+
+**Paul's first print of v2 (2026-10-19):**
+1. The M3×10 countersunk self-tapping into the key shaft's 2.7mm pilot (9mm
+   deep in the 7.85mm journal) took enough torque to cut its thread that the
+   shaft **snapped where it meets the gear**. Paul: an M3×6 would have been
+   fine.
+2. **Nothing retains the 608s** in the boss but their light press fit. In
+   the dial unit the shaft springs keep everything pressed together; here
+   nothing does. Paul's design: a small round retainer with four tabs,
+   screwed to the plate with 4 M3×6 countersunk self-tappers.
+3. The rest looked sound; the gears weren't assembled yet (because of 1).
+
+**Changes:**
+- Key shaft: **M3×6 countersunk**, pilot 5mm deep (was 9). Thread in the
+  shaft ~3mm (ISO head 0.25 proud: tip 2.95mm below the shaft top; DIN head
+  flush: 3.2mm), and the pilot stops ≥ 1.5mm past the tip. The screw only
+  clamps the bearings' inner rings, snug, so 3mm of thread is enough
+  (judgment; no PETG pull-out figure cited). **Root fillet**: an 18 → 11mm
+  cone over 1.5mm where the spacer meets the gear, the section that broke
+  (it stays 0.5mm under the boss and inside its 19.5mm lip hole).
+- **Bearing retainer** (`bearing_retainer()`, `key_turner_retainer.stl`):
+  ring 27mm OD / 19.5mm ID, 2.5mm thick, four tabs on the diagonals with M3
+  countersinks at r 19mm; a 0.3mm lip under it (19.5–21.9mm) enters the
+  pocket and presses only the top bearing's outer ring (the same 19.5mm as
+  the boss's lip: clear of the shield, 19.2mm, and the inner ring), so the
+  screws clamp both bearings down onto the boss lip. Diagonal tabs keep the
+  heads ≥ 6mm from the motor can and clear of the M6 heads. 4 blind 2.7mm
+  pilots 5mm deep in the 6mm plate (1mm floor over the gear).
+- Unchanged: everything else, including the washer.
+
+**Checked:** `key_turner_check.py` with the retainer added (no part
+overlaps any other; mesh unchanged); SCAD asserts for the fillet/boss,
+pilot/screw, retainer/can/M6 clearances; STLs watertight;
+`stl_freshness_check.py`; `cad/tools/key_shaft_section.py` draws the stack
+(`cad/renders/key_turner_v2.1_bearing_stack.png`).
+
+**Reprint:** `key_turner_shaft.stl`, `key_turner_motor_plate.stl` (the 4
+retainer pilots; or drill 2.7mm × 5mm in the one you have, positions in the
+SCAD: r 19mm from the key axis at 45/135/225/315°), and
+`key_turner_retainer.stl`.
 
 ## 2026-10-18 (later): key turner v2 — 5:1 printed spur gears (revision 2026-10-18.1)
 

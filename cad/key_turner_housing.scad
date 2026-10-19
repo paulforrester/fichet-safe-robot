@@ -1,5 +1,9 @@
 // ============================================================
-// Fichet-Bauche "Complice" safe robot — KEY-TURNER UNIT (v2, 2026-10-18)
+// Fichet-Bauche "Complice" safe robot — KEY-TURNER UNIT (v2.1, 2026-10-19)
+//
+// v2.1 (Paul's first print, 2026-10-19): M3x6 instead of M3x10 in the key
+// shaft (the 10mm's thread-cutting torque snapped the shaft at the gear),
+// a root fillet there, and a bearing retainer ring with 4 tabs (Paul's design).
 //
 // Turns the real key (hand-inserted into the lock first) clockwise up to
 // ~100deg and back. v2: through a 5:1 printed spur-gear pair (12T pinion on
@@ -27,7 +31,7 @@
 //
 // AXIAL STACK (key axis): cap 18.5-34.5 (tongue to 38.5) | key shaft:
 // gear 35.0-46.5 with the groove in its underside, spacer to 50.5, journal
-// in two 608 bearings 50.5-64.5 in the motor plate's boss | washer + M3x10
+// in two 608 bearings 50.5-64.5 in the motor plate's boss | washer + M3x6
 // countersunk on top. Motor axis: pinion teeth 34.5-47.0, hub to 57.5,
 // plate 58.5-64.5, motor face on the plate's top (z 64.5).
 //
@@ -38,6 +42,7 @@
 //   key_shaft()       60T gear + groove + spacer + journal (groove face down, plain PETG)
 //   key_pinion()      12T on the motor's D-shaft (hub end down, PETG-CF)
 //   shaft_washer()    clamps the bearings' inner rings (flat, plain PETG)
+//   bearing_retainer() holds the 608s in the boss (v2.1, countersunk face down, plain PETG)
 //   key_fit_test()    cap + a hand lever (v1; still the torque-measuring tool)
 //
 // DOOR ATTACHMENT: 3 of the same 22mm rubber-coated pot magnets as v1: two
@@ -128,11 +133,39 @@ journal_d   = 7.85;                        // as the dial shafts: slides in the 
 shaft_top_z = bear_z1 - 0.3;               // 64.2: below the bearing top, so the washer clamps the inner ring
 m3_pilot_d  = 2.7;                         // as the dial gear-shafts (self-tapping M3)
 m3_lead_in_d = 3.4; m3_lead_in = 1.0;
-pilot_depth = 9;
+// v2.1 (Paul, 2026-10-19): an M3x10 cutting its thread 9mm into the journal
+// took enough torque to snap the shaft where it meets the gear. Now an M3x6
+// countersunk: ~3mm of thread below the washer (ISO head 0.25 proud: tip at
+// 64.5 + 2.5 + 0.25 - 6 = 61.25, i.e. 2.95mm into the shaft; DIN flush 3.2mm),
+// enough for a clamp that is only snugged; the pilot stops 1.5mm past the tip.
+screw_len   = 6;
+pilot_depth = 5;
+// Root fillet where the spacer meets the gear (the break was there): a cone
+// from fillet_d on the gear's top face to the spacer over fillet_h, clear of
+// the boss (its lip hole is 19.5, 2mm up).
+fillet_d    = 18;
+fillet_h    = 1.5;
 washer_d    = 11;
 washer_t    = 2.5;
 m3_csk_top_d  = 6.3;        // same countersink as the motor screws (M3x10, ISO or DIN heads)
 m3_csk_depth  = (m3_csk_top_d - nema17_bolt_clear) / 2;
+// Bearing retainer (v2.1, Paul's design 2026-10-19): nothing kept the 608s in
+// the boss but their light press fit (the dial unit's springs hold its
+// bearings; here nothing does). A ring over the top bearing's outer ring with
+// 4 tabs, 4x M3x6 countersunk self-tapping into the plate's top. Its 0.3mm
+// lip touches only the outer ring (ID 19.5, as the boss's lip: clear of the
+// shield and the inner ring) and stands proud of the plate, so the screws
+// clamp the bearings down onto the boss lip.
+ret_t        = 2.5;
+ret_ring_od  = 27;
+ret_id       = lip_hole_d;            // 19.5
+ret_lip_od   = bearing_pocket_d - 0.25;   // 21.9: enters the pocket, presses the outer ring
+ret_lip_h    = 0.3;
+ret_screw_r  = 19;                    // screw circle, on the diagonals (clear of the motor can)
+ret_tab_r    = 4.5;
+ret_angles   = [45, 135, 225, 315];
+ret_screw_pts = [for (a = ret_angles) ret_screw_r * [cos(a), sin(a)]];
+ret_pilot_depth = 5;                  // into the 6mm plate (1mm floor over the gear)
 
 // ---------------- motor, plate, pinion ----------------
 motor_plate_t  = 6;
@@ -185,6 +218,12 @@ assert(min([for (m = kt_magnet_pts) for (l = leg_pts) norm(m - l)]) - rmag_ring_
 assert(min([for (m = kt_magnet_pts) norm(m)]) - rmag_ring_od/2 >= base_hole_d/2 + 1.5, "magnet ring too close to the key opening");
 assert(min([for (l = [leg_pts[2], leg_pts[3]]) abs(l[1])]) - m6_csk_top_d/2 >= (nema17_body + can_clear)/2 + 1, "M6 head under the motor can");
 assert(min_leg_to_key - cap_orbit_r >= 5, "legs too close to the cap's orbit");
+assert(fillet_d < lip_hole_d - 1 && gear_z1 + fillet_h <= boss_z0 - 0.5, "shaft root fillet would touch the boss");
+assert(shaft_top_z - pilot_depth < bear_z1 + washer_t + 0.25 - screw_len - 1, "shaft pilot shorter than the screw");
+assert(ret_pilot_depth <= motor_plate_t - 1, "retainer pilots would break through the plate");
+assert(ret_screw_r - nema17_bolt_clear/2 - bearing_pocket_d/2 >= 5, "retainer pilot too close to the bearing pocket");
+assert(min([for (q = ret_screw_pts) q[0]]) - ret_tab_r > motor_xy[0] + (nema17_body + can_clear)/2 + 3, "retainer tab under the motor can");
+assert(min([for (q = ret_screw_pts) for (l = leg_pts) norm(q - l)]) - ret_tab_r - m6_csk_top_d/2 >= 3, "retainer tab on an M6 head");
 assert(base_hole_d/2 > key_bow_w/2 + 1, "base opening won't pass the bow");
 
 // ============================================================
@@ -249,6 +288,9 @@ module motor_plate() {
             translate([0, 0, motor_plate_t - m6_csk_depth + eps_c])
                 cylinder(d1 = m6_clear_d, d2 = m6_csk_top_d, h = m6_csk_depth + eps_c, $fn = 48);
         }
+        // bearing retainer: 4 blind M3 pilots from the top (self-tapping, v2.1)
+        for (q = ret_screw_pts) translate([q[0], q[1], motor_face_z - ret_pilot_depth])
+            cylinder(d = m3_pilot_d, h = ret_pilot_depth + eps_c, $fn = 24);
     }
 }
 
@@ -289,6 +331,7 @@ module key_shaft() {
             translate([0, 0, gear_z0]) linear_extrude(height = gear_z1 - gear_z0, convexity = 10)
                 polygon(gear_profile(kg_m, kg_gear_t, kg_gear_x, kg_pa, kg_backlash));
             translate([0, 0, gear_z1 - eps_c]) cylinder(d = spacer_d, h = bear_z0 - gear_z1 + eps_c, $fn = 64);
+            translate([0, 0, gear_z1 - eps_c]) cylinder(d1 = fillet_d, d2 = spacer_d, h = fillet_h + eps_c, $fn = 64);   // root fillet (v2.1)
             translate([0, 0, bear_z0 - eps_c]) cylinder(d = journal_d, h = shaft_top_z - bear_z0 + eps_c, $fn = 64);
         }
         // closed groove for the cap's tongue, along x, square ends (the tongue's are square)
@@ -301,7 +344,7 @@ module key_shaft() {
     }
 }
 
-// Washer on the top bearing's inner ring; the M3x10 countersunk through it
+// Washer on the top bearing's inner ring; the M3x6 countersunk (v2.1) through it
 // self-taps into the shaft and pulls the spacer up against the lower inner
 // ring: both inner rings clamped, no axial play.
 module shaft_washer() {
@@ -309,6 +352,30 @@ module shaft_washer() {
         cylinder(d = washer_d, h = washer_t, $fn = 48);
         translate([0, 0, -eps_c]) cylinder(d = nema17_bolt_clear, h = washer_t + 2*eps_c, $fn = 24);
         translate([0, 0, washer_t - m3_csk_depth]) cylinder(d1 = nema17_bolt_clear, d2 = m3_csk_top_d, h = m3_csk_depth + eps_c, $fn = 32);
+    }
+}
+
+// Bearing retainer (v2.1), in its assembled position resting on the top
+// bearing's outer ring: lip bottom at the plate top, body 0.3 above it until
+// the screws pull the tabs down.
+module bearing_retainer() {
+    translate([0, 0, bear_z1]) difference() {
+        union() {
+            translate([0, 0, ret_lip_h]) linear_extrude(height = ret_t) union() {
+                circle(d = ret_ring_od, $fn = 96);
+                for (q = ret_screw_pts) hull() {
+                    translate(q) circle(r = ret_tab_r, $fn = 48);
+                    translate(q * (ret_ring_od/2 - ret_tab_r) / ret_screw_r) circle(r = ret_tab_r, $fn = 48);
+                }
+            }
+            cylinder(d = ret_lip_od, h = ret_lip_h + eps_c, $fn = 96);
+        }
+        translate([0, 0, -eps_c]) cylinder(d = ret_id, h = ret_lip_h + ret_t + 2*eps_c, $fn = 96);
+        for (q = ret_screw_pts) translate([q[0], q[1], -eps_c]) {
+            cylinder(d = nema17_bolt_clear, h = ret_lip_h + ret_t + 2*eps_c, $fn = 24);
+            translate([0, 0, ret_lip_h + ret_t - m3_csk_depth + eps_c])
+                cylinder(d1 = nema17_bolt_clear, d2 = m3_csk_top_d, h = m3_csk_depth + eps_c, $fn = 32);
+        }
     }
 }
 
@@ -378,10 +445,10 @@ module bearing_dummies() {
         translate([0, 0, -eps_c]) cylinder(d = bearing_id, h = bearing_w + 2*eps_c, $fn = 48);
     }
 }
-module screw_dummy() {   // M3x10 countersunk, head in the washer
+module screw_dummy() {   // M3x6 countersunk (v2.1), head in the washer
     translate([0, 0, bear_z1 + washer_t]) mirror([0, 0, 1]) {
         cylinder(d1 = 6.0, d2 = 3.0, h = 1.5, $fn = 32);
-        cylinder(d = 2.7, h = 10, $fn = 24);   // core diameter: it cuts its own thread in the pilot
+        cylinder(d = 2.7, h = screw_len, $fn = 24);   // core diameter: it cuts its own thread in the pilot
     }
 }
 
@@ -400,6 +467,7 @@ module assembled(part = "all", angle = 0, off = [0, 0]) {
     if (part == "all" || part == "cap") translate([c[0], c[1], 0]) rotate([0, 0, a]) key_cap();
     if (part == "all" || part == "shaft") rotate([0, 0, a]) key_shaft();
     if (part == "all" || part == "washer") shaft_washer();
+    if (part == "all" || part == "retainer") bearing_retainer();
     if (part == "all" || part == "screw") screw_dummy();
     if (part == "all" || part == "bearings") bearing_dummies();
     // pinion phase: 180/N so a pinion tooth sits in the gear's tooth gap on the line of centres
@@ -432,6 +500,7 @@ module print_cap()         translate([0, 0, -cap_z0]) key_cap();                
 module print_key_shaft()   translate([0, 0, -gear_z0]) key_shaft();                  // groove face down
 module print_pinion()      translate([-motor_xy[0], -motor_xy[1], pin_top]) mirror([0, 0, 1]) key_pinion();   // hub end down
 module print_washer()      translate([0, 0, -bear_z1]) shaft_washer();
+module print_retainer()    translate([0, 0, bear_z1 + ret_lip_h + ret_t]) mirror([0, 0, 1]) bearing_retainer();   // countersunk face down, lip up
 module print_fit_lever()   translate([0, 0, -hub_z0]) key_fit_lever();
 
 show_print_layout = true;
@@ -442,6 +511,7 @@ if (show_print_layout) {
     translate([90, 0, 0]) print_key_shaft();
     translate([90, 60, 0]) print_pinion();
     translate([90, -55, 0]) print_washer();
+    translate([140, -55, 0]) print_retainer();
 }
 
 // ============================================================
@@ -452,16 +522,19 @@ if (show_print_layout) {
 //     are on the bed).
 //  2. Hardware: 3x Wukong 22mm rubber magnets + M4 screws + 3 printed
 //     retainers (print_magnet_retainer.scad); 2x 608 bearings; 4x M3x10
-//     countersunk (motor, from the plate's inner face) + 1 more (key shaft,
-//     through the washer); 4x M6x16 countersunk (plate to legs,
-//     self-tapping); optional M3x3/x4 grub in the pinion's hub.
-//  3. Assembly: press both 608s into the boss from the plate's top. Motor
-//     onto the plate's top (4x M3 from below). Pinion onto the motor shaft
-//     from below until it stops (the D meets the shaft's round part). Key
-//     shaft up through the bearings from below; washer on top; M3x10 into
-//     the shaft until the washer clamps the inner ring (snug: the shaft
-//     should still turn freely by hand, with no end play). Plate onto the
-//     legs (4x M6). Turn the gear by hand: the motor should turn 5x, smoothly.
+//     countersunk (motor, from the plate's inner face); 5x M3x6 countersunk
+//     (v2.1: 1 key shaft through the washer, 4 bearing retainer), all
+//     self-tapping; 4x M6x16 countersunk (plate to legs, self-tapping);
+//     optional M3x3/x4 grub in the pinion's hub.
+//  3. Assembly: press both 608s into the boss from the plate's top; bearing
+//     retainer on top, lip down into the pocket, 4x M3x6. Motor onto the
+//     plate's top (4x M3x10 from below). Pinion onto the motor shaft from
+//     below until it stops (the D meets the shaft's round part). Key shaft up
+//     through the bearings from below; washer on top; M3x6 into the shaft
+//     until the washer clamps the inner ring (snug: the shaft should still
+//     turn freely by hand, with no end play; hold the gear, not the motor).
+//     Plate onto the legs (4x M6). Turn the gear by hand: the motor should
+//     turn 5x, smoothly.
 //  4. Mounting: key in the lock, bow vertical; turn the gear so its top-face
 //     mark (along the groove) points left or right, i.e. the groove is
 //     horizontal; turn the cap so its two roof marks are top and bottom

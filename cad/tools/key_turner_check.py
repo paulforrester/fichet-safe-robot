@@ -3,7 +3,8 @@
 Checks for the key-turner unit (v2, 5:1 geared, 2026-10-18):
 
 1. 3D: key dummy (built from Paul's caliper readings) + cap + key shaft
-   (60T gear) + pinion + bearings + washer + screw + motor + frame,
+   (60T gear) + pinion + bearings + washer + bearing retainer (v2.1) +
+   screw + motor + frame,
    intersected pairwise with manifold3d at several key angles (0..100deg CW)
    and key-axis offsets up to the coupling's 2.5mm design range. Reports any
    pair overlapping by > TOL mm^3.
@@ -25,7 +26,7 @@ ASM = os.path.join(HERE, '..', 'key_turner_assembled.scad')
 SCAD = os.path.join(HERE, '..', 'key_turner_housing.scad')
 TOL = 0.5
 DIAL_SIDE_LIMIT = 43.0
-PARTS = ["base", "plate", "key", "cap", "shaft", "washer", "screw", "bearings", "pinion", "motor", "rmags"]
+PARTS = ["base", "plate", "key", "cap", "shaft", "washer", "retainer", "screw", "bearings", "pinion", "motor", "rmags"]
 EXPECTED = {frozenset(('pinion', 'motor')),      # D-bore on the shaft (the dummy shaft is round)
             frozenset(('screw', 'shaft'))}       # the screw cuts its own thread in the pilot
 NOT_DIAL_SIDE = {"key"}
