@@ -1,5 +1,6 @@
 # ============================================================
-# SketchUp review model of the key-turner unit (v2, 5:1 geared, 2026-10-18)
+# SketchUp review model of the key-turner unit (v2.1, 5:1 geared, 2026-10-19:
+# + root fillet on the key shaft, bearing retainer)
 # — build script for the Trimble SketchUp connector's build_model (no
 # imports; `math` pre-loaded). Not the print source:
 # cad/key_turner_housing.scad is. Same numbers (gear outlines from the same
@@ -27,6 +28,10 @@ CD = GM * (GN + PN) / 2                      # 45
 MXY = (-CD, 0.0)                             # motor axis
 GEAR_Z0 = CAP_TOP + 0.5; GEAR_Z1 = 46.5
 SPACER_R = 11.0 / 2; JOURNAL_R = 7.85 / 2
+FILLET_R, FILLET_H = 18.0 / 2, 1.5          # v2.1 root fillet
+RET_T, RET_RING_R, RET_ID_R, RET_LIP_R, RET_LIP_H = 2.5, 27.0 / 2, 19.5 / 2, 21.9 / 2, 0.3   # v2.1 bearing retainer
+RET_SCREW_R, RET_TAB_R = 19.0, 4.5
+RET_PTS = [[RET_SCREW_R * math.cos(math.radians(a)), RET_SCREW_R * math.sin(math.radians(a))] for a in (45, 135, 225, 315)]
 BOSS_Z0 = GEAR_Z1 + 2.0; LIP_H = 2.0; BEAR_Z0 = BOSS_Z0 + LIP_H; BEAR_Z1 = BEAR_Z0 + 14.0
 BOSS_R = (22.15 + 5.0) / 2; POCKET_R = 22.15 / 2; LIP_HOLE_R = 19.5 / 2
 SHAFT_TOP = BEAR_Z1 - 0.3
@@ -231,8 +236,10 @@ def kt_key_shaft():
     sp = circle(0, 0, SPACER_R, 48); jn = circle(0, 0, JOURNAL_R, 48)
     F = [hface(g, GEAR_Z0, False, [gr])] + wall(g, GEAR_Z0, GEAR_Z1, True)
     F += wall(gr, GEAR_Z0, GROOVE_TOP, False) + [hface(gr, GROOVE_TOP, False)]
-    F.append(hface(g, GEAR_Z1, True, [sp]))
-    F += wall(sp, GEAR_Z1, BEAR_Z0, True) + [hface(sp, BEAR_Z0, True, [jn])]
+    fb = circle(0, 0, FILLET_R, 48)
+    F.append(hface(g, GEAR_Z1, True, [fb]))
+    F += wall(fb, GEAR_Z1, GEAR_Z1 + FILLET_H, True, loop2_top=sp)          # v2.1 root fillet
+    F += wall(sp, GEAR_Z1 + FILLET_H, BEAR_Z0, True) + [hface(sp, BEAR_Z0, True, [jn])]
     F += wall(jn, BEAR_Z0, SHAFT_TOP, True) + [hface(jn, SHAFT_TOP, True)]
     return F
 
@@ -249,6 +256,42 @@ def kt_pinion():
 def annulus(ro, ri, h, n=48):
     o = circle(0, 0, ro, n); i = circle(0, 0, ri, max(16, n // 2))
     return [hface(o, 0.0, False, [i]), hface(o, h, True, [i])] + wall(o, 0, h, True) + wall(i, 0, h, False)
+
+
+def ret_outline(n=720):
+    """outline of the retainer's ring + 4 tabs (star-shaped about the axis):
+    along each ray, the furthest exit from the ring or any tab (a tab is a
+    capsule, sampled as circles along its centre line). No any() here: the
+    connector's sandbox doesn't provide it."""
+    cents = []
+    for q in RET_PTS:
+        for k in range(41):
+            f = (9.0 + (RET_SCREW_R - 9.0) * k / 40.0) / RET_SCREW_R
+            cents.append([q[0] * f, q[1] * f])
+    out = []
+    for i in range(n):
+        th = 2 * math.pi * i / n; c, sn = math.cos(th), math.sin(th)
+        best = RET_RING_R
+        for p in cents:
+            uc = c * p[0] + sn * p[1]
+            disc = RET_TAB_R ** 2 - (p[0] * p[0] + p[1] * p[1] - uc * uc)
+            if disc >= 0:
+                t = uc + math.sqrt(disc)
+                if t > best: best = t
+        out.append([best * c, best * sn])
+    return out
+
+
+def kt_retainer_ring():
+    """v2.1 bearing retainer at z 0 = its lip's underside (the top bearing's outer ring)"""
+    out = ccw(ret_outline())
+    hole = circle(0, 0, RET_ID_R, 64); lip = circle(0, 0, RET_LIP_R, 64)
+    sh = [circle(q[0], q[1], 3.4 / 2, 16) for q in RET_PTS]
+    z1, z2 = RET_LIP_H, RET_LIP_H + RET_T
+    F = [hface(lip, 0.0, False, [hole])] + wall(lip, 0.0, z1, True) + [hface(out, z1, False, [lip] + sh)]
+    F += wall(out, z1, z2, True) + [hface(out, z2, True, [hole] + sh)] + wall(hole, 0.0, z2, False)
+    for c in sh: F += wall(c, z1, z2, False)
+    return F
 
 
 def kt_washer():
@@ -300,7 +343,7 @@ def kt_door(thick=6.0):
 
 
 KT_PARTS = dict(base=kt_base, plate=kt_motor_plate, cap=kt_cap, shaft=kt_key_shaft, pinion=kt_pinion,
-                washer=kt_washer, bearing=kt_bearing, collar=kt_key_collar,
+                washer=kt_washer, bretainer=kt_retainer_ring, bearing=kt_bearing, collar=kt_key_collar,
                 head=kt_key_head, motor=kt_motor, door=kt_door, rmag=kt_rmag, retainer=kt_retainer)
 
 # ================= SketchUp adapter + placement + scenes =================
@@ -359,6 +402,7 @@ spec = [  # key, definition name, material, rgba, tag
     ('shaft', 'Key shaft: 60T gear + groove + journal', 'Key shaft PETG', (106, 168, 79, 255), 'Key shaft + gear'),
     ('pinion', 'Pinion 12T (D-bore)', 'Pinion PETG-CF', (230, 200, 60, 255), 'Pinion'),
     ('washer', 'Shaft washer', 'Washer PETG', (160, 172, 184, 255), 'Key shaft + gear'),
+    ('bretainer', 'Bearing retainer (v2.1)', 'Bearing retainer PETG', (245, 166, 35, 255), 'Motor plate'),
     ('bearing', '608 bearing (dummy)', 'Bearing steel', (190, 190, 196, 255), 'Bearings (dummy)'),
     ('motor', 'NEMA17 17HE19-2004S (dummy)', 'NEMA17 dummy', (40, 40, 44, 150), 'Motor (dummy)'),
     ('collar', 'Key collar (from measurements)', 'Key steel', (200, 200, 205, 255), 'Key (from measurements)'),
@@ -398,8 +442,10 @@ def build(wname, off_su, explode):
                 inst.set_transform(T((0, 0, BEAR_Z0 + 7.0 * k + (explode.get('plate', 0.0) if explode else 0.0))))
                 g.get_entities().add_instance(inst); inst.set_layer(tags[tag])
             continue
-        base_xyz = {'motor': (MXY[0], MXY[1], MOTOR_FACE), 'pinion': (MXY[0], MXY[1], 0.0), 'washer': (0, 0, BEAR_Z1)}.get(key, (0, 0, 0.0))
-        dz = explode.get(key, 0.0) if explode else 0.0
+        base_xyz = {'motor': (MXY[0], MXY[1], MOTOR_FACE), 'pinion': (MXY[0], MXY[1], 0.0), 'washer': (0, 0, BEAR_Z1),
+                    'bretainer': (0, 0, BEAR_Z1)}.get(key, (0, 0, 0.0))
+        if key == 'bretainer' and explode: dz = explode.get('plate', 0.0) + 8.0
+        if key != 'bretainer' or not explode: dz = explode.get(key, 0.0) if explode else 0.0
         inst = defs[key].create_instance(); inst.set_name(dname)
         inst.set_transform(T((base_xyz[0], base_xyz[1], base_xyz[2] + dz)))
         g.get_entities().add_instance(inst); inst.set_layer(tags[tag])

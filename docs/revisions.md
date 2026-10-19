@@ -1,6 +1,6 @@
 # Project revisions
 
-> **Revision 2026-10-18.1** · this file is the revision log · current ID in `REVISION`
+> **Revision 2026-10-19.1** · this file is the revision log · current ID in `REVISION`
 
 Every project document and drawing carries the project revision it was last
 brought up to date in, so a printed or downloaded copy can be told apart from
@@ -21,6 +21,21 @@ a newer one. The ID is the date plus a sequence number for that day:
   which also names the project revision it was built for.
 
 ## Log (most recent first)
+
+### 2026-10-19.1 — key turner v2.1: M3×6 in the key shaft, bearing retainer
+
+**Change** (`cad/key_turner_housing.scad`, key-turner STLs, new
+`print_key_turner_retainer.scad`, `cad/tools/key_turner_check.py`, new
+`cad/tools/key_shaft_section.py`, review model script,
+`docs/housing_decisions.md`, manual §1.1, §1.2, §1.5, BOM). Paul's first
+print of v2: the M3×10 self-tapping into the key shaft snapped it at the
+gear, and nothing retained the 608s. Now an M3×6 (pilot 5mm), a root fillet
+where it broke, and Paul's bearing retainer: a ring with four tabs, 4× M3×6
+countersunk into the plate.
+
+**What to do:** reprint `key_turner_shaft.stl`, `key_turner_motor_plate.stl`
+(or drill its 4 pilots, decision log 2026-10-19) and print
+`key_turner_retainer.stl`; assemble per manual §1.5.
 
 ### 2026-10-18.1 — key turner v2: 5:1 printed spur gears
 

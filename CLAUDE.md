@@ -1,9 +1,13 @@
 # CLAUDE.md — Fichet-Bauche safe combination robot
 
 Context for any Claude session working in this repo. Read this first, then
-the doc that matches your task (table below). Last updated 2026-10-18.
+the doc that matches your task (table below). Last updated 2026-10-19.
 
-> **Project revision 2026-10-18.1** — **key turner v2: 5:1 printed spur
+> **Project revision 2026-10-19.1** — key turner **v2.1** (Paul's first
+> print): the key shaft takes an **M3×6** countersunk (an M3×10 self-tapping
+> snapped the shaft at the gear), with a root fillet there, and a **bearing
+> retainer** ring (4 tabs, 4× M3×6 into the plate; Paul's design) holds the
+> 608s. **2026-10-18.1: key turner v2, 5:1 printed spur
 > gears** (12T on the motor, 45 mm left of the key; 60T on the key axis with
 > the cap's groove in its underside; key shaft on two 608s). The key needs
 > ≥ 0.98 N·m to start back from its stop; direct drive couldn't (2026-10-18).
@@ -106,7 +110,7 @@ RAMPS, UART pigtail); firmware written and host-tested
 | `docs/photos/` | Door, dial holes, key reference photos |
 | `cad/*.scad` | OpenSCAD sources. `common_mounts.scad` (shared NEMA17, magnet, D-bore), `dial_unit_housing.scad`, `key_turner_housing.scad`; `print_*.scad` export one printable part each; `*_assembled.scad` for checks |
 | `cad/*.stl` | Rendered parts Paul prints |
-| `cad/tools/` | `dial_layout_check.py`, `dial_interference_check.py`, `key_turner_check.py`, `deck_check.py` (every deck feature vs every other, board outline vs access holes, STL), `stl_freshness_check.py` (every STL matches its source) — run after any CAD change; `gear_shaft_section.py` redraws `docs/gear_shaft_section.png` |
+| `cad/tools/` | `dial_layout_check.py`, `dial_interference_check.py`, `key_turner_check.py`, `deck_check.py` (every deck feature vs every other, board outline vs access holes, STL), `stl_freshness_check.py` (every STL matches its source) — run after any CAD change; `gear_shaft_section.py` redraws `docs/gear_shaft_section.png`, `key_shaft_section.py` the key turner's bearing stack |
 | `cad/sketchup/` | Build scripts for SketchUp review models (run via the Trimble SketchUp connector, not locally) |
 
 ## Mechanical facts the software and wiring depend on
@@ -156,7 +160,8 @@ RAMPS, UART pigtail); firmware written and host-tested
   **settle** (dial drivers off 0.5 s, so each dial falls into its click).
 - **Key turner:** **5:1 printed spur gears** (12T/60T, module 1.25,
   revision 2026-10-18.1; `cad/key_turner_housing.scad`, decision log
-  2026-10-18): the motor turns 5× the key, the other way. The key turns
+  2026-10-18; v2.1 2026-10-19: M3×6 in the shaft, bearing retainer): the
+  motor turns 5× the key, the other way. The key turns
   **clockwise (seen from in front of the safe) to ~100° and stops** with a
   wrong combination. Key torque (50 mm lever): **0.05–0.10 N·m to ~55°, then
   a stiff zone to the stop: 0.74 N·m either way, ≥ 0.98 N·m to start back

@@ -1,6 +1,6 @@
 # Control architecture and operating sequence
 
-> **Revision 2026-10-18.1** · key turner geared 5:1 (the key's stiff zone, 2026-10-18); key driver on the RAMPS E0 socket; UART pigtail · log: `docs/revisions.md`
+> **Revision 2026-10-19.1** · key turner geared 5:1 (the key's stiff zone, 2026-10-18); key driver on the RAMPS E0 socket; UART pigtail · log: `docs/revisions.md`
 
 Working notes on how the robot actually operates the safe, so this
 doesn't only live in chat. Captures the mechanism understanding and
