@@ -5,6 +5,18 @@
 Implements the sequence in `control/sequence.md` on the pin map in
 `control/wiring.md`. Bring it up on the bench with `control/bringup.md`.
 
+## v0.8.1 (2026-10-19): the geared key turner's measured numbers
+
+Bring-up stage 5c on the door (Paul, key turner v2.1). Config only:
+- `CFG_KEY_RUN_MA 600`: the key went out through the stiff zone to 90° and
+  back at 800, 600, 500, 400 and 300 mA with no stall or buzz; 2 × 300.
+- `CFG_INVERT_KEY 1` and `CFG_KEY_SG_CAL_PCT 50` confirmed (comments only).
+  At 600 mA `calibrate` read 310 → threshold 78; nine learn turns all
+  stopped at the hard stop, **N = 130.2°, spread 0.1°**.
+- The 300 mA false stall before calibrating (`key 20` stopped at 4.3°) was
+  the direct-drive threshold still in EEPROM: calibrate before anything
+  else when the key turner's drive changes.
+
 ## v0.8 (2026-10-18, project revision 2026-10-18.1): geared key turner; safer key current and returns
 
 From bring-up stage 5 on the door (Paul, 2026-10-18). Direct drive took the

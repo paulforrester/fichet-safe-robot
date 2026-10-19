@@ -162,8 +162,11 @@ RAMPS, UART pigtail); firmware written and host-tested
   revision 2026-10-18.1; `cad/key_turner_housing.scad`, decision log
   2026-10-18; v2.1 2026-10-19: M3×6 in the shaft, bearing retainer): the
   motor turns 5× the key, the other way. The key turns
-  **clockwise (seen from in front of the safe) to ~100° and stops** with a
-  wrong combination. Key torque (50 mm lever): **0.05–0.10 N·m to ~55°, then
+  **clockwise (seen from in front of the safe) and stops** with a wrong
+  combination: **N = 130.2°, spread 0.1°** measured through the gears
+  (stage 5c, 2026-10-19; by hand it had seemed ~100°, being checked). Key
+  current 600 mA (300 mA worked both ways), threshold from `calibrate`
+  (310 → 78). Key torque (50 mm lever): **0.05–0.10 N·m to ~55°, then
   a stiff zone to the stop: 0.74 N·m either way, ≥ 0.98 N·m to start back
   from the stop** (Paul, 2026-10-18; the 2026-10-06 "0.07–0.08 N·m" was the
   easy part, and its withdrawn "1.4 kg" reading matches the stiff zone). At
@@ -274,9 +277,10 @@ deck); the start button mounts from under the deck (7.4mm hole, 10 x 2.5mm
 recess, 4mm wire hole beside the endstop block; revision 2026-10-09.1,
 `docs/housing_decisions.md`): check it on the reprinted deck.
 
-## Firmware — `control/firmware/` (v0.7.1, 2026-10-18; read its README)
+## Firmware — `control/firmware/` (v0.8.1, 2026-10-19; read its README)
 
-**v0.8 (PR #58, with key turner v2):** `CFG_KEY_GEAR 5`, `CFG_INVERT_KEY 1`;
+**v0.8.1:** the geared key turner's measured numbers (`CFG_KEY_RUN_MA 600`,
+N 130.2°). **v0.8 (PR #58, with key turner v2):** `CFG_KEY_GEAR 5`, `CFG_INVERT_KEY 1`;
 motor currents outside 100–1200 mA refused (`set maK 0` had run the key at
 full scale: TMCStepper's `rms_current(0)` wraps to IRUN 31); a key that
 stalls on its way back > 5° short of its rest is `ERR KEYSTUCK` (refused

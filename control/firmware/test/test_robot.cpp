@@ -1430,7 +1430,7 @@ TEST(motor_current_out_of_range_is_refused) {
   Robot r(h, s);
   r.boot();
   r.handleLine("set maK 0");
-  CHECK(h.has("# maK must be 100..1200 mA: unchanged at 1000"));
+  CHECK(h.has("# maK must be 100..1200 mA: unchanged at 600"));
   r.handleLine("set maA 1300");
   CHECK(h.has("# maA must be 100..1200 mA: unchanged at 600"));
   r.handleLine("set maK 99");
