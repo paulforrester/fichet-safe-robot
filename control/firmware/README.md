@@ -5,6 +5,44 @@
 Implements the sequence in `control/sequence.md` on the pin map in
 `control/wiring.md`. Bring it up on the bench with `control/bringup.md`.
 
+## v0.8.2 (2026-10-19): dial C turning all the way round
+
+Paul, stage 6 dry run on v0.8.1: "Twice now it has gotten to a point that it
+runs the dial C all the way around." A firmware bug (since v0.6.2).
+- **Cause.** The measured offsets (v0.7.1: A 40, B 30, C 40 full steps)
+  put position 18 at 400 and position 19 at 420 full steps from the stall
+  point (B: 19 at 410). That is one dial turn (400) or more. After every
+  move the count was folded back by a turn whenever it reached one turn
+  from the stall point, so at 18 the firmware counted 0, and at 19 it
+  counted 20. The next one-click move then turned the dial clockwise most
+  of a turn, through the stop's anti-reverse cam. With the simulator's
+  dials, offset 10 (19 at 390), it never happened.
+  In the simulator with the door's offsets, C turned 420, 400, 380 and 380
+  full steps clockwise at attempts 19–22, and again at 59–62. B would have
+  started at attempt 380, and A at 7,600. Each turn ended at the right
+  click, so the attempts read `CLEAN`.
+- **Correction:** the count is now kept in the turn that starts half a
+  click before position 0, i.e. from offset − ½ click up to position 19 +
+  ½ click (`Robot::foldDial`). Only a clockwise move past the stop leaves
+  that window (`set wrap 1`, or a `jog`), and it is then folded back. `jog`
+  on a homed dial now folds the same way, so a `goto` after jogging past the
+  stop doesn't turn the dial back into its stop.
+- **Simulator:** `SimHal::windUp` (the motor turns this far into the stop
+  before it's blocked; the wheel stays on the stop) lets the simulated
+  clicks sit where the door's offsets say, and `SimHal::camCrossings`
+  counts clockwise passes over the stop.
+- **Tests:** `door_offsets_reach_positions_18_and_19_one_click_at_a_time`
+  covers `goto` 17 → 18 → 19 and back one click at a time, then `goto 0 0 0`
+  anticlockwise, the logged positions, and a `jog` past the stop.
+  `run_with_door_offsets_moves_one_click_per_attempt_and_never_crosses_the_cam`
+  runs 405 attempts with config.h's offsets: each attempt moves one dial one
+  click, nothing goes clockwise more than one click, there are no cam
+  crossings, and every re-check passes.
+  Negative controls: with v0.8.1's folding rule the run test fails 105
+  checks (moves of 420 full steps; C crossed its cam 40 times, B 25 times),
+  and without the `jog` fold the `goto` after the jog stops with `ERR`.
+- **Bench:** `control/bringup.md` stage 6, "Before running again (v0.8.2)".
+
 ## v0.8.1 (2026-10-19): the geared key turner's measured numbers
 
 Bring-up stage 5c on the door (Paul, key turner v2.1). Config only:
@@ -95,7 +133,10 @@ From the door tests that day (Paul, bring-up 4b):
   stop) than going back, it goes on: 19 → 0 is one click forward, not 19
   back. Ties go back. Never back past the stop. The step count is brought
   back into the first turn afterwards (the stop is at the same place every
-  turn), so re-checks and logged positions stay right. The run itself moves
+  turn), so re-checks and logged positions stay right. (Correction, v0.8.2:
+  "the first turn" from the stall point was wrong once the measured offsets
+  put 18 and 19 at or past one turn; the window is now the turn around
+  positions 0–19.) The run itself moves
   one position at a time, so it rarely wraps.
 - **Every position is reached turning clockwise** (`CFG_DIAL_APPROACH_FULL`
   20, was 0; `set approach N`, 0 = off): a move that would end turning
@@ -519,7 +560,7 @@ The first is live mode (type commands in it); the second re-analyses a run.
 
 ## Verified here (cloud session, no hardware)
 
-- **Host tests**: `make -C control/firmware/test` — 70 tests, ~36,900 checks,
+- **Host tests**: `make -C control/firmware/test` — 76 tests, ~37,800 checks,
   0 failures. Built with `-Wall -Wextra -Werror` (g++ 13 and clang 18) and
   also run under AddressSanitizer + UBSan. They cover:
   - the serpentine order: a bijection, and each step moves one dial by one
@@ -575,6 +616,11 @@ The first is live mode (type commands in it); the second re-analyses a run.
     wrap-around, which fails); ties go back; never back past the stop; every
     anticlockwise move overshoots one click and comes forward, cut short at
     position 0 so it never presses into the stop.
+  - the door's offsets (v0.8.2): with config.h's 40/30/40 and a simulated
+    wind-up at the stop, 17 → 18 → 19 and back is one click per `goto`; a
+    405-attempt run moves one dial one click per attempt and never crosses
+    the stop's cam (checked against v0.8.1's folding rule, which fails);
+    a `jog` past the stop is followed by the count;
 - **Logger**: `python3 -m pytest control/firmware/tools` (3 tests). A
   simulated full run (`make -C control/firmware/test simlog`, 1,787 attempts)
   replays through `logger.py`, and its offline classes match the firmware's on

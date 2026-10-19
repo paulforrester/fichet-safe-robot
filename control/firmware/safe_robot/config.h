@@ -132,6 +132,10 @@
 // and a half (B) from the stall point: the play between motor and dial
 // (~10-12 full steps) plus the wind-up at the stall, plus the stop-to-first-
 // click distance.
+// So positions 18 and 19 are 400 and 420 full steps from the stall point (B:
+// 19 at 410), at or past one turn: the firmware keeps each count in the turn
+// around positions 0-19, not the turn from the stall point (v0.8.2; before
+// it, 18 counted as 0 and the next click turned the dial round).
 #define CFG_HOME_OFFSET_A        40
 #define CFG_HOME_OFFSET_B        30
 #define CFG_HOME_OFFSET_C        40
