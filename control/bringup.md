@@ -529,6 +529,27 @@ its own one click at a time, and it sits right before the stop's cam:
 **Send back:** the lines from step 2 (or any `JAM`), the counts A / B / C
 from step 3, and whether any dial went round in the new run.
 
+**The run (Paul, 2026-10-19, firmware v0.8.2): the door opened.**
+Paul skipped the step 2–3 check and went straight to `reset yes` and `start`.
+- Session start clean: key `CAL K 296/74`; dials `CAL` A 264/66, B 246/62,
+  C 256/64; offsets 40/30/40; N 130.5° (spread 2.1° in both learns).
+- C moved one click per attempt through attempts 19–22 (Paul): the v0.8.2
+  fix works on the door.
+- Pace: 4.8–4.9 s per attempt (50 attempts in 240 s). All 8,000 would have
+  taken about 11 h, re-checks included. About three-quarters of each
+  attempt is the key's trip.
+- Clean fails stopped within about 1.5° of N. The success went to the full
+  target, N + 15° (145.5°), without a stall, and the door opened.
+- So **a combination dialled with the key already in counts**, which was
+  the biggest open question (`control/sequence.md`).
+- **Not recorded here: the combination or the attempt number.** This repo
+  is public, and the serpentine order turns an attempt number straight
+  into a combination. Paul keeps both offline. Keep the run logs out of
+  git too: the raw log has the `SUCCESS` line (`runs/` is ignored at the
+  repo root and in `control/firmware/`).
+- Not done, and not needed to open the door: the power-dip check (step 6),
+  bring-up 4b.6 and 4b.7, and steps 2–3 above.
+
 ---
 
 ## What these stages settle (`config.h` / `CLAUDE.md` open items)
@@ -540,7 +561,7 @@ from step 3, and whether any dial went round in the new run.
 | StallGuard thresholds — now self-calibrated; the 50 % rule and speeds | 3, 4, 5 |
 | Hard stop and clicks per turn | answered 2026-10-06: stop anticlockwise, unlimited clockwise, 20 clicks |
 | Dials still turn with the key inserted at rest | answered 2026-10-06: yes, at rest and at the key's ~100° stop |
-| Does a combination dialled with the key in count? | weak hint from 4b.6; the real test is the first full run |
+| Does a combination dialled with the key in count? | **yes**: the first run opened the door (2026-10-19, stage 6) |
 | Motor direction ↔ dial direction | 4b |
 | Plug seating (seat routine angle and speed) | 4b |
 | Position 1 relative to the stop: found from the clicks (A, C, 2026-10-14); B from the config offset, then settled into its click (v0.5) | 4b.5 |

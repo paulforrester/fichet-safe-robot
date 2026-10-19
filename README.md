@@ -10,7 +10,11 @@ firmware/code (dial indexing and combination search).
 
 ## Status
 
-Mechanical phase. Tooth geometry is **CLOSED** (see `docs/decisions.md`
+**Done (2026-10-19): the robot found the combination and the door opened**,
+on its first full run (firmware v0.8.2; `control/bringup.md`, stage 6). The
+combination isn't in this repo.
+
+History: mechanical phase. Tooth geometry is **CLOSED** (see `docs/decisions.md`
 for how we got here):
 
 | Dimension | Value | Status |

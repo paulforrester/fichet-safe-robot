@@ -56,10 +56,15 @@ Two 3D-printed units sit on the steel door (rubber-coated magnets):
   drives a cap that slips over the key's bow. Its driver is in the RAMPS **E0** socket on the dial
   unit; only the key motor's own cable runs between the units.
 
-Project phases: mechanical (nearly done, being printed); wiring harness
-designed (`control/wiring.md`, revision 2026-10-08.2: all four drivers on the
-RAMPS, UART pigtail); firmware written and host-tested
-(`control/firmware/`), bench bring-up next (`control/bringup.md`).
+**Done (2026-10-19): the first run found the combination and the door
+opened** (firmware v0.8.2; `control/bringup.md`, stage 6). Dialling with the
+key in counts. Before that: mechanical, wiring harness (`control/wiring.md`,
+revision 2026-10-08.2), firmware (`control/firmware/`), bench bring-up
+(`control/bringup.md`).
+
+**This repo is public. Never commit the combination, the success's attempt
+number (the serpentine order turns it into the combination), the `SUCCESS`
+line, or run logs (`runs/`).**
 
 ## How Paul works — follow these
 
@@ -353,11 +358,9 @@ settings. A flag logs a `GSTAT` line and stops with `ERR DRVFAULT`, rewound
 to the last re-check; `resume` recovers. Bench check: `control/bringup.md`
 stage 6, step 6.
 
-Biggest unknown (no source; `control/sequence.md` Open items): **whether a
-combination dialled with the key already in counts.** The manual dials
-before inserting the key. If it doesn't count, the key turner needs a way to
-pull the key out and push it back in at every attempt. Only a weak hint is
-available on the bench (stage 4b.6); the first full run is the real test.
+Biggest unknown, **answered 2026-10-19**: a combination dialled with the
+key already in **counts**. The first run opened the door. (The manual dials
+before inserting the key, so this had no source until the run.)
 
 Still open — each has a `config.h` entry and a stage in `control/bringup.md`:
 motor↔dial/key directions (4b, 5), whether the 50 % rule and the click
